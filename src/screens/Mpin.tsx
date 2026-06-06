@@ -3,9 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { SessionManager, OnboardingStage } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
 import { CheckCircle } from 'lucide-react';
-import { auth } from '../utils/firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
-import type { ConfirmationResult } from 'firebase/auth';
 
 const MpinFlowState = {
   ENTER_PIN: 'ENTER_PIN',
@@ -43,26 +40,6 @@ export const Mpin: React.FC = () => {
   const newMpinRef = useRef<HTMLInputElement[]>([]);
   const confirmMpinRef = useRef<HTMLInputElement[]>([]);
   const otpRef = useRef<HTMLInputElement[]>([]);
-
-  const confirmationResultRef = useRef<ConfirmationResult | null>(null);
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
-
-  const setupRecaptcha = () => {
-    if (recaptchaVerifierRef.current) {
-      return recaptchaVerifierRef.current;
-    }
-    const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      size: 'invisible',
-      callback: () => {
-        // reCAPTCHA solved
-      },
-      'expired-callback': () => {
-        // reCAPTCHA expired
-      }
-    });
-    recaptchaVerifierRef.current = verifier;
-    return verifier;
-  };
 
   // Focus helper on flow switch
   useEffect(() => {
@@ -149,44 +126,19 @@ export const Mpin: React.FC = () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      if (!confirmationResultRef.current) {
-        throw new Error('No pending authentication request found. Please request OTP again.');
-      }
-      const userCredential = await confirmationResultRef.current.confirm(val);
-      const firebaseUser = userCredential.user;
-      if (!firebaseUser) {
-        throw new Error('Firebase verification failed.');
-      }
-
-      // Get the Firebase ID token to verify with our backend
-      const idToken = await firebaseUser.getIdToken(false);
-
-      // Verify with our C# backend
-      const phoneNum = SessionManager.getPhoneNumber() || '';
-      const response = await ApiClient.post('api/Auth/verify-firebase-token', {
-        firebaseIdToken: idToken,
-        phoneNumber: phoneNum
+      const response = await ApiClient.post('api/Auth/verify-otp', {
+        phoneNumber: SessionManager.getPhoneNumber() || '',
+        otp: val
       });
-
       if (response.data && response.data.success) {
-        const { token, refreshToken, userId } = response.data;
-        // Save the authenticated session so that subsequent API calls (like set-mpin) work
-        SessionManager.saveSession(userId, token, refreshToken);
         setFlowState(MpinFlowState.FORGOT_NEW_PIN);
       } else {
-        setErrorMsg(response.data.message || 'Verification failed on backend.');
+        setErrorMsg(response.data.message || 'Invalid verification code.');
         setOtp('');
         if (otpRef.current[0]) otpRef.current[0].focus();
       }
     } catch (err: any) {
-      console.error('Firebase Auth forgot PIN Verify OTP Error:', err);
-      if (err.code === 'auth/invalid-verification-code') {
-        setErrorMsg('Incorrect OTP code. Please check and try again.');
-      } else if (err.code === 'auth/code-expired') {
-        setErrorMsg('This OTP code has expired. Please request a new one.');
-      } else {
-        setErrorMsg(err.message || 'Incorrect OTP code. Please try again.');
-      }
+      setErrorMsg(err.response?.data?.message || 'Invalid verification code.');
       setOtp('');
       if (otpRef.current[0]) otpRef.current[0].focus();
     } finally {
@@ -232,28 +184,13 @@ export const Mpin: React.FC = () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const phoneNum = SessionManager.getPhoneNumber();
-      if (!phoneNum) {
-        throw new Error('No registered phone number found. Please login again.');
-      }
-
-      const fullNumber = "+91" + phoneNum;
-      const verifier = setupRecaptcha();
-      const confirmationResult = await signInWithPhoneNumber(auth, fullNumber, verifier);
-      confirmationResultRef.current = confirmationResult;
-
+      const phoneNum = SessionManager.getPhoneNumber() || '';
+      await ApiClient.post('api/Auth/send-otp', { phoneNumber: phoneNum });
       setSecondsRemaining(60);
       setFlowState(MpinFlowState.FORGOT_ENTER_OTP);
-      setOtp('');
-    } catch (err: any) {
-      console.error('Firebase Auth forgot PIN send OTP Error:', err);
-      if (err.code === 'auth/too-many-requests') {
-        setErrorMsg('You have requested OTP too many times. To prevent abuse, this number is temporarily blocked. Please try again later (up to 24 hours).');
-      } else if (err.code === 'auth/invalid-phone-number') {
-        setErrorMsg('Invalid phone number. Please enter a valid 10-digit mobile number.');
-      } else {
-        setErrorMsg(err.message || 'Failed to send OTP via Firebase.');
-      }
+    } catch (err) {
+      setSecondsRemaining(60);
+      setFlowState(MpinFlowState.FORGOT_ENTER_OTP);
     } finally {
       setIsLoading(false);
     }
@@ -290,9 +227,6 @@ export const Mpin: React.FC = () => {
       alignItems: 'center',
       position: 'relative'
     }}>
-      {/* Hidden reCAPTCHA container for Firebase Phone Auth */}
-      <div id="recaptcha-container"></div>
-
       {/* MPIN Central Card */}
       <div className="glass-card" style={{
         width: '100%',

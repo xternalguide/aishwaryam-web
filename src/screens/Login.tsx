@@ -3,9 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { SessionManager, OnboardingStage } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
 import { Phone, CheckCircle } from 'lucide-react';
-import { auth } from '../utils/firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
-import type { ConfirmationResult } from 'firebase/auth';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -20,8 +17,6 @@ export const Login: React.FC = () => {
 
   // OTP inputs focus handling
   const otpInputsRef = useRef<HTMLInputElement[]>([]);
-  const confirmationResultRef = useRef<ConfirmationResult | null>(null);
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 
   // Timer logic
   useEffect(() => {
@@ -33,23 +28,6 @@ export const Login: React.FC = () => {
     }
     return () => clearInterval(interval);
   }, [isOtpFlow, secondsRemaining]);
-
-  const setupRecaptcha = () => {
-    if (recaptchaVerifierRef.current) {
-      return recaptchaVerifierRef.current;
-    }
-    const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      size: 'invisible',
-      callback: () => {
-        // reCAPTCHA solved
-      },
-      'expired-callback': () => {
-        // reCAPTCHA expired
-      }
-    });
-    recaptchaVerifierRef.current = verifier;
-    return verifier;
-  };
 
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -64,28 +42,21 @@ export const Login: React.FC = () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const fullNumber = "+91" + phone;
-      const verifier = setupRecaptcha();
-      const confirmationResult = await signInWithPhoneNumber(auth, fullNumber, verifier);
-      confirmationResultRef.current = confirmationResult;
-
-      SessionManager.savePhoneNumber(phone);
-      setIsOtpFlow(true);
-      setSecondsRemaining(30);
-      setOtp('');
-      // Focus first OTP field after state updates
-      setTimeout(() => {
-        if (otpInputsRef.current[0]) otpInputsRef.current[0].focus();
-      }, 100);
-    } catch (err: any) {
-      console.error('Firebase Auth Send OTP Error:', err);
-      if (err.code === 'auth/too-many-requests') {
-        setErrorMsg('You have requested OTP too many times. To prevent abuse, this number is temporarily blocked. Please try again later (up to 24 hours).');
-      } else if (err.code === 'auth/invalid-phone-number') {
-        setErrorMsg('Invalid phone number. Please enter a valid 10-digit mobile number.');
+      const response = await ApiClient.post('api/Auth/send-otp', { phoneNumber: phone });
+      if (response.data && response.data.success) {
+        SessionManager.savePhoneNumber(phone);
+        setIsOtpFlow(true);
+        setSecondsRemaining(30);
+        setOtp('');
+        // Focus first OTP field after state updates
+        setTimeout(() => {
+          if (otpInputsRef.current[0]) otpInputsRef.current[0].focus();
+        }, 100);
       } else {
-        setErrorMsg(err.message || 'Failed to send OTP via Firebase.');
+        setErrorMsg(response.data.message || 'Failed to send OTP.');
       }
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || 'Network error occurred. Failed to send OTP.');
     } finally {
       setIsLoading(false);
     }
@@ -95,41 +66,20 @@ export const Login: React.FC = () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      if (!confirmationResultRef.current) {
-        throw new Error('No pending authentication request found. Please request OTP again.');
-      }
-      const userCredential = await confirmationResultRef.current.confirm(enteredOtp);
-      const firebaseUser = userCredential.user;
-      if (!firebaseUser) {
-        throw new Error('Firebase verification failed.');
-      }
-
-      // Get the Firebase ID token to verify with our backend
-      const idToken = await firebaseUser.getIdToken(false);
-
-      // Verify with our C# backend
-      const response = await ApiClient.post('api/Auth/verify-firebase-token', {
-        firebaseIdToken: idToken,
-        phoneNumber: phone
+      const response = await ApiClient.post('api/Auth/verify-otp', {
+        phoneNumber: phone,
+        otp: enteredOtp
       });
-
       if (response.data && response.data.success) {
         const { token, refreshToken, userId, isNewUser, isMpinSet } = response.data;
         SessionManager.saveSession(userId, token, refreshToken);
         setSuccessData({ isNewUser, isMpinSet });
         setShowSuccessDialog(true);
       } else {
-        setErrorMsg(response.data.message || 'Firebase login failed on backend.');
+        setErrorMsg(response.data.message || 'Invalid OTP code.');
       }
     } catch (err: any) {
-      console.error('Firebase Auth Verify OTP Error:', err);
-      if (err.code === 'auth/invalid-verification-code') {
-        setErrorMsg('Incorrect OTP code. Please check and try again.');
-      } else if (err.code === 'auth/code-expired') {
-        setErrorMsg('This OTP code has expired. Please request a new one.');
-      } else {
-        setErrorMsg(err.message || 'Incorrect OTP code. Please try again.');
-      }
+      setErrorMsg(err.response?.data?.message || 'Invalid OTP code.');
     } finally {
       setIsLoading(false);
     }
@@ -207,9 +157,6 @@ export const Login: React.FC = () => {
       justifyContent: 'space-between',
       position: 'relative'
     }}>
-      {/* Hidden reCAPTCHA container for Firebase Phone Auth */}
-      <div id="recaptcha-container"></div>
-
       {/* Top Section */}
       <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {/* Branding Logo */}
