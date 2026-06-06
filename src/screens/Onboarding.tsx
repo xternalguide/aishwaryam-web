@@ -74,13 +74,23 @@ export const Onboarding: React.FC = () => {
   const [confirmAccountNumber, setConfirmAccountNumber] = useState('');
 
   // Date validators
-  const formatDobInput = (input: string): string => {
-    const clean = input.replace(/\//g, '').slice(0, 8);
-    const parts = [];
-    if (clean.length > 0) parts.push(clean.slice(0, 2));
-    if (clean.length > 2) parts.push(clean.slice(2, 4));
-    if (clean.length > 4) parts.push(clean.slice(4, 8));
-    return parts.join('/');
+
+  const convertToInputDateFormat = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+    return '';
+  };
+
+  const convertFromInputDateFormat = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return '';
   };
 
   const validateDate = (input: string, isWedding: boolean) => {
@@ -319,9 +329,21 @@ export const Onboarding: React.FC = () => {
         >
           <ArrowLeft size={24} />
         </button>
-        <span style={{ fontSize: '18px', fontWeight: 'bold', fontFamily: 'var(--font-poppins)' }}>
-          Complete Your Profile
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+          <img
+            src="/logo.png"
+            alt="Logo"
+            style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '6px',
+              objectFit: 'cover'
+            }}
+          />
+          <span style={{ fontSize: '16px', fontWeight: 'bold', fontFamily: 'var(--font-poppins)' }}>
+            Aishwaryam · Step {currentStep} of 3
+          </span>
+        </div>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column' }}>
@@ -395,11 +417,13 @@ export const Onboarding: React.FC = () => {
                   <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Date of Birth (DD/MM/YYYY)</label>
                   <div style={{ position: 'relative' }}>
                     <input
-                      type="text"
-                      placeholder="DD/MM/YYYY"
-                      value={dob}
+                      type="date"
+                      value={convertToInputDateFormat(dob)}
+                      min="1926-06-06"
+                      max="2008-06-06"
+                      onKeyDown={(e) => e.preventDefault()}
                       onChange={(e) => {
-                        const formatted = formatDobInput(e.target.value.replace(/[^\d/]/g, ''));
+                        const formatted = convertFromInputDateFormat(e.target.value);
                         setDob(formatted);
                         validateDate(formatted, false);
                       }}
@@ -411,10 +435,11 @@ export const Onboarding: React.FC = () => {
                         padding: '0 40px 0 12px',
                         fontSize: '14px',
                         outline: 'none',
-                        marginTop: '4px'
+                        marginTop: '4px',
+                        background: 'white'
                       }}
                     />
-                    <Calendar size={18} color="var(--brand-mid)" style={{ position: 'absolute', right: '12px', top: '19px' }} />
+                    <Calendar size={18} color="var(--brand-mid)" style={{ position: 'absolute', right: '12px', top: '19px', pointerEvents: 'none' }} />
                   </div>
                   {dobError && <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>{dobError}</span>}
                 </div>
@@ -470,11 +495,13 @@ export const Onboarding: React.FC = () => {
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Wedding Date (DD/MM/YYYY)</label>
                     <div style={{ position: 'relative' }}>
                       <input
-                        type="text"
-                        placeholder="DD/MM/YYYY"
-                        value={weddingDate}
+                        type="date"
+                        value={convertToInputDateFormat(weddingDate)}
+                        min={dob ? convertToInputDateFormat(dob) : "1940-01-01"}
+                        max="2026-06-06"
+                        onKeyDown={(e) => e.preventDefault()}
                         onChange={(e) => {
-                          const formatted = formatDobInput(e.target.value.replace(/[^\d/]/g, ''));
+                          const formatted = convertFromInputDateFormat(e.target.value);
                           setWeddingDate(formatted);
                           validateDate(formatted, true);
                         }}
@@ -486,10 +513,11 @@ export const Onboarding: React.FC = () => {
                           padding: '0 40px 0 12px',
                           fontSize: '14px',
                           outline: 'none',
-                          marginTop: '4px'
+                          marginTop: '4px',
+                          background: 'white'
                         }}
                       />
-                      <Calendar size={18} color="var(--brand-mid)" style={{ position: 'absolute', right: '12px', top: '19px' }} />
+                      <Calendar size={18} color="var(--brand-mid)" style={{ position: 'absolute', right: '12px', top: '19px', pointerEvents: 'none' }} />
                     </div>
                     {weddingDateError && <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>{weddingDateError}</span>}
                   </div>

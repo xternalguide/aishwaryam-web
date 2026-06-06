@@ -35,9 +35,21 @@ export const Splash: React.FC = () => {
       justifyContent: 'center',
       height: '100vh',
       background: 'var(--gradient-brand)',
-      color: '#white',
+      color: 'white',
       textAlign: 'center'
     }}>
+      <img
+        src="/logo.png"
+        alt="Aishwaryam Logo"
+        style={{
+          width: '120px',
+          height: '120px',
+          borderRadius: '28px',
+          marginBottom: '24px',
+          boxShadow: '0 10px 20px rgba(0,0,0,0.3)',
+          objectFit: 'cover'
+        }}
+      />
       <h1 style={{ color: 'var(--gold-primary)', fontFamily: 'var(--font-playfair)', fontSize: '36px', marginBottom: '8px' }}>
         AISHWARYAM
       </h1>

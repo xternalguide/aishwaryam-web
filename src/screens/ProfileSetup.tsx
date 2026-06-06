@@ -50,7 +50,20 @@ export const ProfileSetup: React.FC = () => {
       padding: '24px',
       justifyContent: 'space-between'
     }}>
-      <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', width: '100%' }}>
+      <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <img
+            src="/logo.png"
+            alt="Logo"
+            style={{
+              width: '72px',
+              height: '72px',
+              borderRadius: '20px',
+              boxShadow: '0 6px 12px rgba(74, 14, 78, 0.15)',
+              objectFit: 'cover'
+            }}
+          />
+        </div>
         <h1 style={{
           fontFamily: 'var(--font-playfair)',
           color: 'var(--brand-deep)',
