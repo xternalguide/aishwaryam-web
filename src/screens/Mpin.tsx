@@ -323,12 +323,6 @@ export const Mpin: React.FC = () => {
                       background: '#F9F9F9'
                     }}
                   />
-                  {mpin[i] && (
-                    <div style={{
-                      position: 'absolute', top: '18px', left: '18px', width: '10px', height: '10px',
-                      borderRadius: '50%', background: 'var(--brand-dark)'
-                    }} />
-                  )}
                 </div>
               ))}
             </div>
@@ -378,12 +372,6 @@ export const Mpin: React.FC = () => {
                         background: '#F9F9F9'
                       }}
                     />
-                    {newMpin[i] && (
-                      <div style={{
-                        position: 'absolute', top: '16px', left: '16px', width: '10px', height: '10px',
-                        borderRadius: '50%', background: 'var(--brand-dark)'
-                      }} />
-                    )}
                   </div>
                 ))}
               </div>
@@ -415,12 +403,6 @@ export const Mpin: React.FC = () => {
                         background: newMpin.length === 4 ? '#F9F9F9' : '#ECECEC'
                       }}
                     />
-                    {confirmMpin[i] && (
-                      <div style={{
-                        position: 'absolute', top: '16px', left: '16px', width: '10px', height: '10px',
-                        borderRadius: '50%', background: 'var(--brand-dark)'
-                      }} />
-                    )}
                   </div>
                 ))}
               </div>
