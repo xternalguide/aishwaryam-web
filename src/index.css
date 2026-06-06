@@ -1,0 +1,126 @@
+:root {
+  /* Brand Magenta Tokens */
+  --brand-deep: #29001D;
+  --brand-dark: #4A0E4E;
+  --brand-mid: #7B1FA2;
+  --brand-accent: #C2185B;
+  --brand-glow: rgba(74, 14, 78, 0.15);
+
+  /* Gold Tokens */
+  --gold-primary: #FFD700;
+  --gold-warm: #FFB300;
+  --gold-deep: #B8860B;
+  --gold-soft: #FFF8E1;
+  --gold-glow: rgba(255, 215, 0, 0.15);
+
+  /* Gradients */
+  --gradient-brand: linear-gradient(135deg, var(--brand-deep) 0%, var(--brand-dark) 100%);
+  --gradient-gold: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-warm) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-mid) 100%);
+  --gradient-silver: linear-gradient(135deg, #78909C 0%, #CFD8DC 100%);
+
+  /* Surface / Background */
+  --surface-white: #FFFFFF;
+  --surface-light: #F8F9FA;
+  --surface-card: #F1F3F4;
+  --surface-gold: #FFF9F0;
+  --border-light: rgba(74, 14, 78, 0.08);
+
+  /* Semantic Colors */
+  --success-green: #10B981;
+  --success-light: #ECFDF5;
+  --warning-amber: #F59E0B;
+  --warning-light: #FEF3C7;
+  --error-red: #EF4444;
+  --error-light: #FEE2E2;
+
+  /* Typography / Text */
+  --text-primary: #1A1A2E;
+  --text-secondary: #4A4A68;
+  --text-muted: #6B7280;
+  --text-light: #A0A0AB;
+  --text-on-dark: #FFFFFF;
+
+  /* Fonts */
+  --font-playfair: 'Playfair Display', Georgia, serif;
+  --font-poppins: 'Poppins', sans-serif;
+  
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  background-color: #0c020d; /* Premium deep black-wine background for desktop container background */
+  font-family: var(--font-poppins);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Centers the app in a phone layout on desktop devices, but full screen on mobile */
+#root {
+  width: 100%;
+  max-width: 480px;
+  height: 100vh;
+  min-height: 100vh;
+  background: var(--surface-light);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  scrollbar-width: none; /* Firefox */
+}
+
+#root::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+@media (max-width: 480px) {
+  #root {
+    max-width: 100%;
+    height: 100svh;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+/* Heading Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-playfair);
+  color: var(--brand-deep);
+  font-weight: 700;
+}
+
+/* Helper utility classes for general styling */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(74, 14, 78, 0.06);
+}
+
+.gold-gradient-text {
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-gradient-text {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

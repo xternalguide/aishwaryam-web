@@ -1,0 +1,1073 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { SessionManager, OnboardingStage } from '../utils/SessionManager';
+import { ApiClient } from '../utils/ApiClient';
+import { useApp } from '../context/AppContext';
+import { ArrowLeft, Calendar, ShieldCheck, Landmark, CheckCircle } from 'lucide-react';
+
+export const Onboarding: React.FC = () => {
+  const navigate = useNavigate();
+  const { refreshData } = useApp();
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 3;
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // --- Step 1 State Variables ---
+  const [name, setName] = useState(SessionManager.getPartialName() || '');
+  const [dob, setDob] = useState(SessionManager.getPartialDob() || '');
+  const [dobError, setDobError] = useState<string | null>(null);
+  const [nomineeName, setNomineeName] = useState(SessionManager.getNomineeName() || '');
+  const [isMarried, setIsMarried] = useState(SessionManager.getPartialIsMarried() || false);
+  const [weddingDate, setWeddingDate] = useState(SessionManager.getPartialWeddingDate() || '');
+  const [weddingDateError, setWeddingDateError] = useState<string | null>(null);
+  const [phone] = useState(SessionManager.getPhoneNumber() || '');
+  const [email, setEmail] = useState(SessionManager.getPartialEmail() || '');
+  const [gender, setGender] = useState(SessionManager.getPartialGender() || 'Male');
+  const [pincode, setPincode] = useState(SessionManager.getPartialPincode() || '');
+  const [state, setState] = useState(SessionManager.getPartialState() || '');
+  const [city, setCity] = useState(SessionManager.getPartialCity() || '');
+  const [area, setArea] = useState(SessionManager.getPartialArea() || '');
+  const [isManualArea, setIsManualArea] = useState(SessionManager.getPartialIsManualArea() || false);
+  const [termsAccepted, setTermsAccepted] = useState(SessionManager.getPartialTermsAccepted() || false);
+
+  // Auto-save Step 1 to Session Storage reactively
+  useEffect(() => {
+    SessionManager.saveStep1Data({
+      name,
+      email,
+      dob,
+      isMarried,
+      weddingDate,
+      gender,
+      pincode,
+      state,
+      city,
+      area,
+      isManualArea,
+      termsAccepted,
+    });
+    SessionManager.saveNomineeName(nomineeName);
+  }, [name, email, dob, isMarried, weddingDate, gender, pincode, state, city, area, isManualArea, termsAccepted, nomineeName]);
+
+  // --- Step 2 State Variables ---
+  const [panNumber, setPanNumber] = useState('');
+  const [isPanOtpSent, setIsPanOtpSent] = useState(false);
+  const [panOtp, setPanOtp] = useState('');
+  const [isPanVerified, setIsPanVerified] = useState(false);
+  const [fetchedPanName, setFetchedPanName] = useState('');
+
+  const [identityNumber, setIdentityNumber] = useState('');
+  const [isIdOtpSent, setIsIdOtpSent] = useState(false);
+  const [idOtp, setIdOtp] = useState('');
+  const [isIdVerified, setIsIdVerified] = useState(false);
+
+  // --- Step 3 State Variables ---
+  const [accountName, setAccountName] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [branchName, setBranchName] = useState('');
+  const [ifscCode, setIfscCode] = useState('');
+  const [ifscError, setIfscError] = useState<string | null>(null);
+  const [accountNumber, setAccountNumber] = useState('');
+  const [accountNumberError, setAccountNumberError] = useState<string | null>(null);
+  const [confirmAccountNumber, setConfirmAccountNumber] = useState('');
+
+  // Date validators
+  const formatDobInput = (input: string): string => {
+    const clean = input.replace(/\//g, '').slice(0, 8);
+    const parts = [];
+    if (clean.length > 0) parts.push(clean.slice(0, 2));
+    if (clean.length > 2) parts.push(clean.slice(2, 4));
+    if (clean.length > 4) parts.push(clean.slice(4, 8));
+    return parts.join('/');
+  };
+
+  const validateDate = (input: string, isWedding: boolean) => {
+    const errorCallback = isWedding ? setWeddingDateError : setDobError;
+    if (!input) {
+      errorCallback(null);
+      return;
+    }
+    if (/[^0-9/]/.test(input)) {
+      errorCallback('Only numbers and "/" are allowed');
+      return;
+    }
+    if (input.length === 10) {
+      const parts = input.split('/');
+      if (parts.length !== 3) {
+        errorCallback('Format must be DD/MM/YYYY');
+        return;
+      }
+      const d = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const y = parseInt(parts[2], 10);
+      if (isNaN(d) || isNaN(m) || isNaN(y)) {
+        errorCallback('Invalid numbers in date');
+        return;
+      }
+      const currentYear = new Date().getFullYear();
+      if (y < 1900 || y > currentYear) {
+        errorCallback(`Year must be between 1900 and ${currentYear}`);
+        return;
+      }
+      if (m < 1 || m > 12) {
+        errorCallback('Month must be between 01 and 12');
+        return;
+      }
+      let days = 31;
+      if (m === 2) {
+        days = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 29 : 28;
+      } else if ([4, 6, 9, 11].includes(m)) {
+        days = 30;
+      }
+      if (d < 1 || d > days) {
+        errorCallback('Invalid day for the selected month');
+        return;
+      }
+      errorCallback(null);
+    } else if (input.length > 10) {
+      errorCallback('Date cannot exceed 10 characters');
+    } else {
+      errorCallback(null);
+    }
+  };
+
+  const isValidDateString = (str: string): boolean => {
+    if (str.length !== 10) return false;
+    const parts = str.split('/');
+    if (parts.length !== 3) return false;
+    const d = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const y = parseInt(parts[2], 10);
+    if (isNaN(d) || isNaN(m) || isNaN(y)) return false;
+    if (y < 1900 || y > new Date().getFullYear()) return false;
+    if (m < 1 || m > 12) return false;
+    let days = 31;
+    if (m === 2) {
+      days = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 29 : 28;
+    } else if ([4, 6, 9, 11].includes(m)) {
+      days = 30;
+    }
+    return d >= 1 && d <= days;
+  };
+
+  // Pincode auto-fill
+  const handlePincodeChange = (val: string) => {
+    const clean = val.replace(/\D/g, '').slice(0, 6);
+    setPincode(clean);
+    if (clean.length === 6) {
+      if (clean.startsWith('641')) {
+        setState('Tamil Nadu');
+        setCity('Coimbatore');
+        setArea('Gandhipuram');
+      } else {
+        setState('Tamil Nadu');
+        setCity('Chennai');
+        setArea('T. Nagar');
+      }
+    }
+  };
+
+  // IFSC auto-fill & validation
+  const handleIfscChange = (val: string) => {
+    const clean = val.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 11);
+    setIfscCode(clean);
+    if (clean.length === 11) {
+      const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+      if (!ifscRegex.test(clean)) {
+        setIfscError('Invalid IFSC format (e.g. SBIN0000843)');
+        setBankName('');
+        setBranchName('');
+      } else {
+        setIfscError(null);
+        setBankName('State Bank of India');
+        setBranchName('T. Nagar Branch');
+      }
+    } else {
+      setIfscError(null);
+      setBankName('');
+      setBranchName('');
+    }
+  };
+
+  const handleAccountNumberChange = (val: string) => {
+    const clean = val.replace(/\D/g, '');
+    setAccountNumber(clean);
+    if (clean.length > 0 && (clean.length < 9 || clean.length > 18)) {
+      setAccountNumberError('Account number must be between 9 and 18 digits');
+    } else {
+      setAccountNumberError(null);
+    }
+  };
+
+  const isStep1Valid = () => {
+    const basicInfo = name.trim().length > 0 && phone.trim().length > 0 && termsAccepted && email.includes('@') && nomineeName.trim().length > 0;
+    const dobValid = isValidDateString(dob) && dobError === null;
+    const marriageValid = !isMarried || (isValidDateString(weddingDate) && weddingDateError === null);
+    return basicInfo && dobValid && marriageValid;
+  };
+
+  const handleNext = async () => {
+    if (currentStep === 1) {
+      const userId = SessionManager.getUserId();
+      if (userId) {
+        setIsSaving(true);
+        setSaveError(null);
+        try {
+          const parts = dob.split('/');
+          const formattedDob = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : null;
+          
+          await ApiClient.post(`api/User/profile`, {
+            fullName: name,
+            email,
+            dateOfBirth: formattedDob,
+            nomineeName,
+            phoneNumber: phone,
+            state,
+            city,
+            pincode,
+            gender
+          });
+          await refreshData();
+          setCurrentStep(2);
+        } catch (err: any) {
+          setSaveError(err.message || 'Failed to save profile. Please try again.');
+        } finally {
+          setIsSaving(false);
+        }
+      } else {
+        setCurrentStep(2);
+      }
+    } else if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
+      await refreshData();
+      navigate('/dashboard');
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--surface-light)' }}>
+      {/* Header */}
+      <div style={{
+        background: 'var(--brand-dark)',
+        color: 'white',
+        padding: '16px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+      }}>
+        <button
+          onClick={() => currentStep > 1 ? setCurrentStep(currentStep - 1) : navigate(-1)}
+          style={{ background: 'transparent', border: 'none', color: 'white', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <span style={{ fontSize: '18px', fontWeight: 'bold', fontFamily: 'var(--font-poppins)' }}>
+          Complete Your Profile
+        </span>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+        {/* Progress Stepper */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '12px 0 24px 0' }}>
+          {[1, 2, 3].map((num) => (
+            <React.Fragment key={num}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: num <= currentStep ? 'var(--brand-mid)' : '#D1D5DB',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                transition: 'all 0.3s ease'
+              }}>
+                {num}
+              </div>
+              {num < totalSteps && (
+                <div style={{
+                  width: '48px',
+                  height: '2px',
+                  background: num < currentStep ? 'var(--brand-mid)' : '#D1D5DB',
+                  transition: 'all 0.3s ease'
+                }} />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Step Content */}
+        <div style={{ flex: 1 }}>
+          {currentStep === 1 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <CheckCircle color="var(--brand-accent)" size={24} />
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Step 1: Basic Profile</h2>
+              </div>
+
+              {/* Box 1: Core Details */}
+              <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Full Name</label>
+                  <input
+                    type="text"
+                    placeholder="Enter Full Name"
+                    value={name}
+                    onChange={(e) => {
+                      if (/^[a-zA-Z\s]*$/.test(e.target.value)) {
+                        setName(e.target.value);
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(0,0,0,0.1)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      marginTop: '4px'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Date of Birth (DD/MM/YYYY)</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      placeholder="DD/MM/YYYY"
+                      value={dob}
+                      onChange={(e) => {
+                        const formatted = formatDobInput(e.target.value.replace(/[^\d/]/g, ''));
+                        setDob(formatted);
+                        validateDate(formatted, false);
+                      }}
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        borderRadius: '8px',
+                        border: dobError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
+                        padding: '0 40px 0 12px',
+                        fontSize: '14px',
+                        outline: 'none',
+                        marginTop: '4px'
+                      }}
+                    />
+                    <Calendar size={18} color="var(--brand-mid)" style={{ position: 'absolute', right: '12px', top: '19px' }} />
+                  </div>
+                  {dobError && <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>{dobError}</span>}
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Nominee Name</label>
+                  <input
+                    type="text"
+                    placeholder="Enter Nominee Name"
+                    value={nomineeName}
+                    onChange={(e) => {
+                      if (/^[a-zA-Z\s]*$/.test(e.target.value)) {
+                        setNomineeName(e.target.value);
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(0,0,0,0.1)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      marginTop: '4px'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '500' }}>Marital Status: {isMarried ? 'Married' : 'Single'}</span>
+                  <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '44px', height: '24px' }}>
+                    <input
+                      type="checkbox"
+                      checked={isMarried}
+                      onChange={(e) => setIsMarried(e.target.checked)}
+                      style={{ opacity: 0, width: 0, height: 0 }}
+                    />
+                    <span className="slider-switch" style={{
+                      position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                      backgroundColor: isMarried ? 'var(--brand-mid)' : '#ccc', borderRadius: '34px',
+                      transition: '0.4s'
+                    }}>
+                      <span style={{
+                        position: 'absolute', content: '""', height: '18px', width: '18px', left: isMarried ? '22px' : '4px', bottom: '3px',
+                        backgroundColor: 'white', borderRadius: '50%', transition: '0.4s'
+                      }} />
+                    </span>
+                  </label>
+                </div>
+
+                {isMarried && (
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Wedding Date (DD/MM/YYYY)</label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        placeholder="DD/MM/YYYY"
+                        value={weddingDate}
+                        onChange={(e) => {
+                          const formatted = formatDobInput(e.target.value.replace(/[^\d/]/g, ''));
+                          setWeddingDate(formatted);
+                          validateDate(formatted, true);
+                        }}
+                        style={{
+                          width: '100%',
+                          height: '48px',
+                          borderRadius: '8px',
+                          border: weddingDateError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
+                          padding: '0 40px 0 12px',
+                          fontSize: '14px',
+                          outline: 'none',
+                          marginTop: '4px'
+                        }}
+                      />
+                      <Calendar size={18} color="var(--brand-mid)" style={{ position: 'absolute', right: '12px', top: '19px' }} />
+                    </div>
+                    {weddingDateError && <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>{weddingDateError}</span>}
+                  </div>
+                )}
+              </div>
+
+              {/* Box 2: Contact Details */}
+              <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Phone Number</label>
+                  <input
+                    type="tel"
+                    disabled
+                    value={phone}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(0,0,0,0.08)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      background: '#F3F4F6',
+                      color: 'var(--text-secondary)',
+                      marginTop: '4px'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="Enter Email Address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(0,0,0,0.1)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      marginTop: '4px'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Gender</label>
+                  <div style={{ display: 'flex', gap: '24px', marginTop: '8px' }}>
+                    {['Male', 'Female'].map((g) => (
+                      <label key={g} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                        <input
+                          type="radio"
+                          name="gender"
+                          value={g}
+                          checked={gender === g}
+                          onChange={() => setGender(g)}
+                          style={{ accentColor: 'var(--brand-mid)' }}
+                        />
+                        {g}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Box 3: Address & Pincode */}
+              <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Pincode</label>
+                  <input
+                    type="tel"
+                    placeholder="Enter 6-digit Pincode"
+                    value={pincode}
+                    onChange={(e) => handlePincodeChange(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(0,0,0,0.1)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      marginTop: '4px'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>State</label>
+                    <input
+                      type="text"
+                      disabled
+                      value={state}
+                      placeholder="Auto-populated"
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        padding: '0 12px',
+                        fontSize: '14px',
+                        background: '#F3F4F6',
+                        color: 'var(--text-secondary)',
+                        marginTop: '4px'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>City</label>
+                    <input
+                      type="text"
+                      disabled
+                      value={city}
+                      placeholder="Auto-populated"
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        padding: '0 12px',
+                        fontSize: '14px',
+                        background: '#F3F4F6',
+                        color: 'var(--text-secondary)',
+                        marginTop: '4px'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                    Area {isManualArea ? '(Enter Manually)' : '(Auto-populated)'}
+                  </label>
+                  <input
+                    type="text"
+                    disabled={!isManualArea}
+                    value={area}
+                    onChange={(e) => setArea(e.target.value)}
+                    placeholder={isManualArea ? "Enter your area name" : "Auto-populated"}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(0,0,0,0.1)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      background: isManualArea ? 'white' : '#F3F4F6',
+                      marginTop: '4px'
+                    }}
+                  />
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}>
+                  <input
+                    type="checkbox"
+                    checked={isManualArea}
+                    onChange={(e) => setIsManualArea(e.target.checked)}
+                    style={{ accentColor: 'var(--brand-mid)' }}
+                  />
+                  Area not listed? Enter manually
+                </label>
+              </div>
+
+              {/* Terms Checkbox */}
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '13px', lineHeight: '18px', padding: '0 4px' }}>
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  style={{ accentColor: 'var(--brand-mid)', marginTop: '3px' }}
+                />
+                <span>
+                  I accept the{' '}
+                  <span style={{ color: 'var(--brand-mid)', textDecoration: 'underline', fontWeight: 'bold' }}>Terms of Service</span>
+                  {' '}and{' '}
+                  <span style={{ color: 'var(--brand-mid)', textDecoration: 'underline', fontWeight: 'bold' }}>Privacy Policy</span>.
+                </span>
+              </label>
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <ShieldCheck color="var(--brand-accent)" size={24} />
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Step 2: KYC Verification</h2>
+              </div>
+
+              {/* PAN Card Box */}
+              <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>PAN Verification</h3>
+
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Enter PAN Number (e.g. ABCDE1234F)"
+                    value={panNumber}
+                    disabled={isPanVerified}
+                    onChange={(e) => setPanNumber(e.target.value.toUpperCase().slice(0, 10))}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(0,0,0,0.1)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                {!isPanOtpSent && !isPanVerified && (
+                  <button
+                    onClick={() => setIsPanOtpSent(true)}
+                    disabled={panNumber.length !== 10}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '12px',
+                      background: panNumber.length === 10 ? 'var(--brand-mid)' : '#D1D5DB',
+                      color: 'white',
+                      border: 'none',
+                      fontWeight: 'bold',
+                      cursor: panNumber.length === 10 ? 'pointer' : 'default'
+                    }}
+                  >
+                    Authorize / Get OTP
+                  </button>
+                )}
+
+                {isPanOtpSent && !isPanVerified && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <input
+                      type="password"
+                      placeholder="Enter 4-digit OTP (Use 1234)"
+                      value={panOtp}
+                      onChange={(e) => setPanOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(0,0,0,0.1)',
+                        padding: '0 12px',
+                        fontSize: '14px',
+                        outline: 'none'
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        if (panOtp === '1234') {
+                          setIsPanVerified(true);
+                          setFetchedPanName('JOHN DOE');
+                          setAccountName('JOHN DOE'); // Sync placeholder name for bank holder name
+                        } else {
+                          alert('Invalid OTP. Use 1234 for testing.');
+                        }
+                      }}
+                      disabled={panOtp.length !== 4}
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        borderRadius: '12px',
+                        background: panOtp.length === 4 ? 'var(--brand-dark)' : '#D1D5DB',
+                        color: 'white',
+                        border: 'none',
+                        fontWeight: 'bold',
+                        cursor: panOtp.length === 4 ? 'pointer' : 'default'
+                      }}
+                    >
+                      Verify OTP
+                    </button>
+                  </div>
+                )}
+
+                {isPanVerified && (
+                  <div style={{ padding: '8px 0' }}>
+                    <div style={{ color: 'var(--success-green)', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      ✓ PAN Verified Successfully
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Name on Card: <strong>{fetchedPanName}</strong>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Identity Aadhaar Box */}
+              <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Identity Verification (Aadhaar)</h3>
+
+                <div>
+                  <input
+                    type="tel"
+                    placeholder="Enter Aadhaar Number"
+                    value={identityNumber}
+                    disabled={isIdVerified}
+                    onChange={(e) => setIdentityNumber(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(0,0,0,0.1)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                {!isIdOtpSent && !isIdVerified && (
+                  <button
+                    onClick={() => setIsIdOtpSent(true)}
+                    disabled={identityNumber.length !== 12}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '12px',
+                      background: identityNumber.length === 12 ? 'var(--brand-mid)' : '#D1D5DB',
+                      color: 'white',
+                      border: 'none',
+                      fontWeight: 'bold',
+                      cursor: identityNumber.length === 12 ? 'pointer' : 'default'
+                    }}
+                  >
+                    Get OTP
+                  </button>
+                )}
+
+                {isIdOtpSent && !isIdVerified && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <input
+                      type="password"
+                      placeholder="Enter 4-digit OTP (Use 1234)"
+                      value={idOtp}
+                      onChange={(e) => setIdOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(0,0,0,0.1)',
+                        padding: '0 12px',
+                        fontSize: '14px',
+                        outline: 'none'
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        if (idOtp === '1234') {
+                          setIsIdVerified(true);
+                        } else {
+                          alert('Invalid OTP. Use 1234.');
+                        }
+                      }}
+                      disabled={idOtp.length !== 4}
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        borderRadius: '12px',
+                        background: idOtp.length === 4 ? 'var(--brand-dark)' : '#D1D5DB',
+                        color: 'white',
+                        border: 'none',
+                        fontWeight: 'bold',
+                        cursor: idOtp.length === 4 ? 'pointer' : 'default'
+                      }}
+                    >
+                      Verify OTP
+                    </button>
+                  </div>
+                )}
+
+                {isIdVerified && (
+                  <div style={{ padding: '4px 0' }}>
+                    <div style={{ color: 'var(--success-green)', fontWeight: 'bold', fontSize: '13px' }}>
+                      ✓ Identity Verified Successfully
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Landmark color="var(--brand-accent)" size={24} />
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Step 3: Financial Setup</h2>
+              </div>
+
+              {/* Financial Box */}
+              <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Account Holder Name</label>
+                  <input
+                    type="text"
+                    placeholder="Must match KYC Name"
+                    value={accountName}
+                    onChange={(e) => {
+                      if (/^[a-zA-Z\s]*$/.test(e.target.value)) {
+                        setAccountName(e.target.value);
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: accountName && accountName.toUpperCase() !== fetchedPanName ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      marginTop: '4px'
+                    }}
+                  />
+                  {accountName && accountName.toUpperCase() !== fetchedPanName && (
+                    <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
+                      Name must match KYC name: {fetchedPanName}
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>IFSC Code</label>
+                  <input
+                    type="text"
+                    placeholder="Enter 11-digit IFSC"
+                    value={ifscCode}
+                    onChange={(e) => handleIfscChange(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: ifscError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      marginTop: '4px'
+                    }}
+                  />
+                  {ifscError && (
+                    <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
+                      {ifscError}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Bank Name</label>
+                    <input
+                      type="text"
+                      disabled
+                      value={bankName}
+                      placeholder="Auto-populated"
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        padding: '0 12px',
+                        fontSize: '14px',
+                        background: '#F3F4F6',
+                        color: 'var(--text-secondary)',
+                        marginTop: '4px'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Branch</label>
+                    <input
+                      type="text"
+                      disabled
+                      value={branchName}
+                      placeholder="Auto-populated"
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        padding: '0 12px',
+                        fontSize: '14px',
+                        background: '#F3F4F6',
+                        color: 'var(--text-secondary)',
+                        marginTop: '4px'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Account Number</label>
+                  <input
+                    type="password"
+                    placeholder="Enter Bank Account Number"
+                    value={accountNumber}
+                    onChange={(e) => handleAccountNumberChange(e.target.value)}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: accountNumberError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      marginTop: '4px'
+                    }}
+                  />
+                  {accountNumberError && (
+                    <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
+                      {accountNumberError}
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Confirm Account Number</label>
+                  <input
+                    type="text"
+                    placeholder="Re-enter Account Number"
+                    value={confirmAccountNumber}
+                    onChange={(e) => setConfirmAccountNumber(e.target.value.replace(/\D/g, ''))}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '8px',
+                      border: confirmAccountNumber && confirmAccountNumber !== accountNumber ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
+                      padding: '0 12px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      marginTop: '4px'
+                    }}
+                  />
+                  {confirmAccountNumber && confirmAccountNumber !== accountNumber && (
+                    <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
+                      Account numbers do not match
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {saveError && (
+          <div style={{ color: 'var(--error-red)', fontSize: '13px', fontWeight: 'bold', textAlign: 'center', margin: '12px 0' }}>
+            {saveError}
+          </div>
+        )}
+
+        {/* Navigation Action Buttons */}
+        <div style={{ display: 'flex', gap: '16px', margin: '24px 0 12px 0' }}>
+          {currentStep > 1 && (
+            <button
+              onClick={() => setCurrentStep(currentStep - 1)}
+              disabled={isSaving}
+              style={{
+                flex: 1,
+                height: '52px',
+                borderRadius: '12px',
+                border: '1px solid var(--brand-dark)',
+                color: 'var(--brand-dark)',
+                background: 'transparent',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                fontSize: '15px'
+              }}
+            >
+              Previous
+            </button>
+          )}
+
+          <button
+            onClick={handleNext}
+            disabled={
+              isSaving ||
+              dobError !== null ||
+              weddingDateError !== null ||
+              (currentStep === 1 && !isStep1Valid()) ||
+              (currentStep === 2 && (!isPanVerified || !isIdVerified)) ||
+              (currentStep === 3 &&
+                (!accountName ||
+                  !bankName ||
+                  !accountNumber ||
+                  ifscError !== null ||
+                  accountNumberError !== null ||
+                  accountNumber !== confirmAccountNumber ||
+                  accountName.toUpperCase() !== fetchedPanName))
+            }
+            style={{
+              flex: 1,
+              height: '52px',
+              borderRadius: '12px',
+              background: 'var(--gradient-brand)',
+              color: 'white',
+              border: 'none',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              fontSize: '15px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: (
+                isSaving ||
+                dobError !== null ||
+                weddingDateError !== null ||
+                (currentStep === 1 && !isStep1Valid()) ||
+                (currentStep === 2 && (!isPanVerified || !isIdVerified)) ||
+                (currentStep === 3 &&
+                  (!accountName ||
+                    !bankName ||
+                    !accountNumber ||
+                    ifscError !== null ||
+                    accountNumberError !== null ||
+                    accountNumber !== confirmAccountNumber ||
+                    accountName.toUpperCase() !== fetchedPanName))
+              ) ? 0.5 : 1
+            }}
+          >
+            {isSaving ? (
+              <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            ) : (
+              currentStep === totalSteps ? 'Finish' : 'Next'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
