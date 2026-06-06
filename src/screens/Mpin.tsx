@@ -89,17 +89,10 @@ export const Mpin: React.FC = () => {
         setMpin('');
         if (mpinRef.current[0]) mpinRef.current[0].focus();
       }
-    } catch (err) {
-      // Mock verify logic
-      if (val === '1234') {
-        SessionManager.saveSession('user-id-999', 'mock-jwt-token-xyz-123', 'mock-refresh-token-abc-789');
-        SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
-        navigate('/dashboard');
-      } else {
-        setErrorMsg('Incorrect PIN. Please try 1234 for testing.');
-        setMpin('');
-        if (mpinRef.current[0]) mpinRef.current[0].focus();
-      }
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || 'Incorrect PIN. Please try again.');
+      setMpin('');
+      if (mpinRef.current[0]) mpinRef.current[0].focus();
     } finally {
       setIsLoading(false);
     }
@@ -121,10 +114,8 @@ export const Mpin: React.FC = () => {
       } else {
         setErrorMsg(response.data.message || 'Failed to update PIN.');
       }
-    } catch (err) {
-      // Mock save logic
-      setSuccessMessage(flowState === MpinFlowState.SETUP_PIN ? 'PIN Set Successfully!' : 'PIN Reset Successfully!');
-      setShowSuccessDialog(true);
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || 'Failed to update PIN.');
     } finally {
       setIsLoading(false);
     }

@@ -22,9 +22,9 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [profile, setProfile] = useState<any>(null);
-  const [livePrice, setLivePrice] = useState<any>({ buyPricePaise: 754200, sellPricePaise: 721000, price24KPaise: 754200, price22KPaise: 701000 });
+  const [livePrice, setLivePrice] = useState<any>({ buyPricePaise: 0, sellPricePaise: 0, price24KPaise: 0, price22KPaise: 0 });
   const [activeSchemes, setActiveSchemes] = useState<any[]>([]);
-  const [portfolio, setPortfolio] = useState<any>({ goldBalanceMg: 19800, investedAmountPaise: 1500000, currentValuePaise: 1493300, returnPercentage: -0.45, lockedGoldMg: 19800, redeemableGoldMg: 19800 });
+  const [portfolio, setPortfolio] = useState<any>({ goldBalanceMg: 0, investedAmountPaise: 0, currentValuePaise: 0, returnPercentage: 0, lockedGoldMg: 0, redeemableGoldMg: 0 });
   const [availableSchemes, setAvailableSchemes] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -92,13 +92,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setOffers(offersRes.value.data);
       }
       if (bankRes.status === 'fulfilled' && bankRes.value.data && Array.isArray(bankRes.value.data)) {
-        setBankAccounts(bankRes.value.data.length > 0 ? bankRes.value.data : [
-          { bankName: 'State Bank of India', accountNumberMasked: '•••• •••• 1234', ifscCode: 'SBIN0000843' }
-        ]);
+        setBankAccounts(bankRes.value.data);
       } else {
-        setBankAccounts([
-          { bankName: 'State Bank of India', accountNumberMasked: '•••• •••• 1234', ifscCode: 'SBIN0000843' }
-        ]);
+        setBankAccounts([]);
       }
       if (notifRes.status === 'fulfilled' && notifRes.value.data) {
         setNotifications(notifRes.value.data);

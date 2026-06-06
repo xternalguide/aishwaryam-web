@@ -56,14 +56,7 @@ export const Login: React.FC = () => {
         setErrorMsg(response.data.message || 'Failed to send OTP.');
       }
     } catch (err: any) {
-      setErrorMsg('Network error. Using simulated fallback (Use 123456 as code).');
-      SessionManager.savePhoneNumber(phone);
-      setIsOtpFlow(true);
-      setSecondsRemaining(30);
-      setOtp('');
-      setTimeout(() => {
-        if (otpInputsRef.current[0]) otpInputsRef.current[0].focus();
-      }, 100);
+      setErrorMsg(err.response?.data?.message || 'Network error occurred. Failed to send OTP.');
     } finally {
       setIsLoading(false);
     }
@@ -86,14 +79,7 @@ export const Login: React.FC = () => {
         setErrorMsg(response.data.message || 'Invalid OTP code.');
       }
     } catch (err: any) {
-      // Direct mock verify fallback in case network rejects
-      if (enteredOtp === '123456') {
-        SessionManager.saveSession('user-id-999', 'mock-jwt-token-xyz-123', 'mock-refresh-token-abc-789');
-        setSuccessData({ isNewUser: true, isMpinSet: false });
-        setShowSuccessDialog(true);
-      } else {
-        setErrorMsg('Invalid OTP code. For simulated testing, please use 123456.');
-      }
+      setErrorMsg(err.response?.data?.message || 'Invalid OTP code.');
     } finally {
       setIsLoading(false);
     }

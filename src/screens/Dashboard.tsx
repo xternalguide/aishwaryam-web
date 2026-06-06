@@ -86,7 +86,7 @@ export const Dashboard: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0);
 
   // User details
-  const [userName, setUserName] = useState('User');
+  const [userName, setUserName] = useState('');
   const [userPhone, setUserPhone] = useState('');
   const [kycLevel, setKycLevel] = useState('BASIC');
   const [nomineeName, setNomineeName] = useState('');
@@ -94,22 +94,20 @@ export const Dashboard: React.FC = () => {
   const [isEditingNominee, setIsEditingNominee] = useState(false);
 
   // Live metal rates
-  const [goldPrice22K, setGoldPrice22K] = useState(701000); // 22K price paise per gram
+  const [goldPrice22K, setGoldPrice22K] = useState(0); // 22K price paise per gram
 
   // Dashboard metrics
-  const [goldBalanceMg, setGoldBalanceMg] = useState(19800);
-  const [currentValuePaise, setCurrentValuePaise] = useState(1493300);
-  const [returnPercentage, setReturnPercentage] = useState(-0.45);
-  const [lockedGoldMg, setLockedGoldMg] = useState(19800);
+  const [goldBalanceMg, setGoldBalanceMg] = useState(0);
+  const [currentValuePaise, setCurrentValuePaise] = useState(0);
+  const [returnPercentage, setReturnPercentage] = useState(0);
+  const [lockedGoldMg, setLockedGoldMg] = useState(0);
 
   // Collections
   const [activeSchemes, setActiveSchemes] = useState<ActiveScheme[]>([]);
-  const [banners, setBanners] = useState<BannerItem[]>([
-    { id: 'b1', title: 'Akshaya Tritiya Special Offer', imageBase64: '', tapActionUrl: 'scheme_explorer' }
-  ]);
+  const [banners, setBanners] = useState<BannerItem[]>([]);
   const [availableSchemes, setAvailableSchemes] = useState<AvailableScheme[]>([]);
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
-  const [unreadNotifCount, setUnreadNotifCount] = useState(1);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
   // Flash Sale Offer
   const [offerTitle, setOfferTitle] = useState<string | null>(null);
