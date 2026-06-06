@@ -74,9 +74,7 @@ export const Onboarding: React.FC = () => {
   }, [name, email, dob, isMarried, weddingDate, gender, pincode, state, city, area, isManualArea, termsAccepted, nomineeName]);
 
   // --- Step 2 State Variables ---
-  const [panNumber, setPanNumber] = useState('');
   const [fetchedPanName, setFetchedPanName] = useState('');
-  const [identityNumber, setIdentityNumber] = useState('');
   const [showKycPendingModal, setShowKycPendingModal] = useState(false);
 
   // Sync KYC name & Bank account holder name defaults from Profile Name
@@ -296,14 +294,14 @@ export const Onboarding: React.FC = () => {
         await ApiClient.post('api/Kyc/submit', {
           userId,
           documentType: 'PAN',
-          documentNumber: panNumber,
+          documentNumber: 'PAN_UPLOADED',
           documentUrl: panImage || 'https://placeholder.url/pan.jpg'
         });
         // Submit Aadhaar
         await ApiClient.post('api/Kyc/submit', {
           userId,
           documentType: 'AADHAAR',
-          documentNumber: identityNumber,
+          documentNumber: 'AADHAAR_UPLOADED',
           documentUrl: aadhaarFrontImage || 'https://placeholder.url/aadhaar.jpg'
         });
         // Update user KYC level to PENDING
@@ -793,24 +791,6 @@ export const Onboarding: React.FC = () => {
               <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>PAN Verification</h3>
 
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>PAN Number <span style={{ color: 'var(--error-red)' }}>*</span></label>
-                  <input
-                    type="text"
-                    placeholder="Enter PAN Number (e.g. ABCDE1234F)"
-                    value={panNumber}
-                    onChange={(e) => setPanNumber(e.target.value.toUpperCase().slice(0, 10))}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(0,0,0,0.1)',
-                      padding: '0 12px',
-                      fontSize: '14px',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
                   <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Upload PAN Card Photo <span style={{ color: 'var(--error-red)' }}>*</span></span>
@@ -850,24 +830,6 @@ export const Onboarding: React.FC = () => {
               <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Identity Verification (Aadhaar)</h3>
 
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Aadhaar Number <span style={{ color: 'var(--error-red)' }}>*</span></label>
-                  <input
-                    type="tel"
-                    placeholder="Enter 12-digit Aadhaar Number"
-                    value={identityNumber}
-                    onChange={(e) => setIdentityNumber(e.target.value.replace(/\D/g, '').slice(0, 12))}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(0,0,0,0.1)',
-                      padding: '0 12px',
-                      fontSize: '14px',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
 
                 <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1138,8 +1100,6 @@ export const Onboarding: React.FC = () => {
                 weddingDateError !== null ||
                 (currentStep === 1 && !isStep1Valid()) ||
                 (currentStep === 2 && (
-                  !panNumber || panNumber.length !== 10 || 
-                  !identityNumber || identityNumber.length !== 12 || 
                   !panImage || !aadhaarFrontImage || !aadhaarBackImage
                 )) ||
                 (currentStep === 3 &&
@@ -1170,8 +1130,6 @@ export const Onboarding: React.FC = () => {
                   weddingDateError !== null ||
                   (currentStep === 1 && !isStep1Valid()) ||
                   (currentStep === 2 && (
-                    !panNumber || panNumber.length !== 10 || 
-                    !identityNumber || identityNumber.length !== 12 || 
                     !panImage || !aadhaarFrontImage || !aadhaarBackImage
                   )) ||
                   (currentStep === 3 &&
