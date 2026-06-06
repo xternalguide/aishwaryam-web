@@ -153,237 +153,244 @@ export const Login: React.FC = () => {
       flexDirection: 'column',
       height: '100vh',
       background: 'var(--surface-light)',
-      padding: '24px',
-      justifyContent: 'space-between',
+      boxSizing: 'border-box',
       position: 'relative'
     }}>
-      {/* Top Section */}
-      <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        {/* Branding Logo */}
-        <img
-          src="/logo.png"
-          alt="Aishwaryam Logo"
-          style={{
-            width: '80px',
-            height: '80px',
-            borderRadius: '24px',
-            boxShadow: '0 8px 16px var(--brand-glow)',
-            marginBottom: '24px',
-            objectFit: 'cover'
-          }}
-        />
-
-        <h1 style={{
-          fontFamily: 'var(--font-playfair)',
-          color: 'var(--brand-deep)',
-          fontSize: '26px',
-          marginBottom: '8px',
-          textAlign: 'center'
-        }}>
-          {isOtpFlow ? 'Verify OTP' : 'Enter Mobile Number'}
-        </h1>
-        <p style={{
-          color: 'var(--text-secondary)',
-          fontSize: '13px',
-          marginBottom: '32px',
-          textAlign: 'center'
-        }}>
-          {isOtpFlow ? `OTP sent to +91 ${phone}. Check your SMS inbox.` : 'We will send a 6-digit OTP to verify your number.'}
-        </p>
-
-        {errorMsg && (
-          <div style={{
-            color: 'var(--error-red)',
-            fontSize: '13px',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            marginBottom: '20px',
-            padding: '0 16px'
-          }}>
-            {errorMsg}
-          </div>
-        )}
-
-        {isOtpFlow ? (
-          /* OTP 6-Digit input layout */
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center' }}>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '24px', width: '100%' }}>
-              {Array.from({ length: 6 }).map((_, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  pattern="[0-9]*"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={otp[index] || ''}
-                  onChange={(e) => handleOtpChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  ref={(el) => { if (el) otpInputsRef.current[index] = el; }}
-                  style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '12px',
-                    border: '1.5px solid rgba(74, 14, 78, 0.15)',
-                    textAlign: 'center',
-                    fontSize: '18px',
-                    fontWeight: 'bold',
-                    color: 'var(--brand-dark)',
-                    outline: 'none',
-                    background: 'white',
-                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--brand-mid)'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(74, 14, 78, 0.15)'}
-                />
-              ))}
-            </div>
-
-            {secondsRemaining > 0 ? (
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 'bold' }}>
-                Resend OTP in {secondsRemaining}s
-              </span>
-            ) : (
-              <button
-                onClick={handleResendOtp}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--brand-dark)',
-                  fontWeight: 'bold',
-                  fontSize: '13px',
-                  cursor: 'pointer'
-                }}
-              >
-                Resend OTP
-              </button>
-            )}
-          </div>
-        ) : (
-          /* Phone Entry form */
-          <form onSubmit={handleSendOtp} style={{ width: '100%' }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              width: '100%',
-              height: '56px',
-              borderRadius: '16px',
-              border: '1px solid rgba(74,14,78,0.15)',
-              padding: '0 16px',
-              background: 'white',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-            }}>
-              <Phone size={20} color="var(--brand-dark)" style={{ marginRight: '8px' }} />
-              <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '16px', marginRight: '8px' }}>
-                +91
-              </span>
-              <input
-                type="tel"
-                placeholder="10 digit mobile number"
-                value={phone}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                  if (val === '' || /^[6-9]/.test(val)) {
-                    setPhone(val);
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  border: 'none',
-                  fontSize: '16px',
-                  outline: 'none',
-                  fontFamily: 'var(--font-poppins)',
-                  color: 'var(--text-primary)'
-                }}
-              />
-            </div>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'center' }}>
-              You will receive an SMS with a 6-digit OTP
-            </p>
-          </form>
-        )}
-      </div>
-
-      {/* Bottom Actions */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', paddingBottom: '16px' }}>
-        {!isOtpFlow && (
-          <button
-            onClick={handleSendOtp}
-            disabled={isLoading}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        boxSizing: 'border-box'
+      }}>
+        {/* Top Section */}
+        <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+          {/* Branding Logo */}
+          <img
+            src="/logo.png"
+            alt="Aishwaryam Logo"
             style={{
-              width: '100%',
-              height: '56px',
-              borderRadius: '16px',
-              background: 'var(--brand-dark)',
-              color: 'white',
-              border: 'none',
-              fontFamily: 'var(--font-poppins)',
-              fontWeight: 'bold',
-              fontSize: '16px',
-              cursor: 'pointer',
+              width: '80px',
+              height: '80px',
+              borderRadius: '24px',
               boxShadow: '0 8px 16px var(--brand-glow)',
-              transition: 'all 0.3s ease',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              marginBottom: '24px',
+              objectFit: 'cover'
             }}
-          >
-            {isLoading ? (
-              <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid white', borderTop: '3px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-            ) : (
-              'Get OTP'
-            )}
-          </button>
-        )}
+          />
 
-        {isOtpFlow && (
+          <h1 style={{
+            fontFamily: 'var(--font-playfair)',
+            color: 'var(--brand-deep)',
+            fontSize: '26px',
+            marginBottom: '8px',
+            textAlign: 'center'
+          }}>
+            {isOtpFlow ? 'Verify OTP' : 'Enter Mobile Number'}
+          </h1>
+          <p style={{
+            color: 'var(--text-secondary)',
+            fontSize: '13px',
+            marginBottom: '32px',
+            textAlign: 'center'
+          }}>
+            {isOtpFlow ? `OTP sent to +91 ${phone}. Check your SMS inbox.` : 'We will send a 6-digit OTP to verify your number.'}
+          </p>
+
+          {errorMsg && (
+            <div style={{
+              color: 'var(--error-red)',
+              fontSize: '13px',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              marginBottom: '20px',
+              padding: '0 16px'
+            }}>
+              {errorMsg}
+            </div>
+          )}
+
+          {isOtpFlow ? (
+            /* OTP 6-Digit input layout */
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '24px', width: '100%' }}>
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <input
+                    key={index}
+                    type="text"
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={otp[index] || ''}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    ref={(el) => { if (el) otpInputsRef.current[index] = el; }}
+                    style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '12px',
+                      border: '1.5px solid rgba(74, 14, 78, 0.15)',
+                      textAlign: 'center',
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      color: 'var(--brand-dark)',
+                      outline: 'none',
+                      background: 'white',
+                      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = 'var(--brand-mid)'}
+                    onBlur={(e) => e.target.style.borderColor = 'rgba(74, 14, 78, 0.15)'}
+                  />
+                ))}
+              </div>
+
+              {secondsRemaining > 0 ? (
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 'bold' }}>
+                  Resend OTP in {secondsRemaining}s
+                </span>
+              ) : (
+                <button
+                  onClick={handleResendOtp}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--brand-dark)',
+                    fontWeight: 'bold',
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Resend OTP
+                </button>
+              )}
+            </div>
+          ) : (
+            /* Phone Entry form */
+            <form onSubmit={handleSendOtp} style={{ width: '100%' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                height: '56px',
+                borderRadius: '16px',
+                border: '1px solid rgba(74,14,78,0.15)',
+                padding: '0 16px',
+                background: 'white',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+              }}>
+                <Phone size={20} color="var(--brand-dark)" style={{ marginRight: '8px' }} />
+                <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '16px', marginRight: '8px' }}>
+                  +91
+                </span>
+                <input
+                  type="tel"
+                  placeholder="10 digit mobile number"
+                  value={phone}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    if (val === '' || /^[6-9]/.test(val)) {
+                      setPhone(val);
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    border: 'none',
+                    fontSize: '16px',
+                    outline: 'none',
+                    fontFamily: 'var(--font-poppins)',
+                    color: 'var(--text-primary)'
+                  }}
+                />
+              </div>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'center' }}>
+                You will receive an SMS with a 6-digit OTP
+              </p>
+            </form>
+          )}
+        </div>
+
+        {/* Bottom Actions */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', marginTop: '24px', paddingBottom: '24px', flexShrink: 0 }}>
+          {!isOtpFlow && (
+            <button
+              onClick={handleSendOtp}
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                height: '56px',
+                borderRadius: '16px',
+                background: 'var(--brand-dark)',
+                color: 'white',
+                border: 'none',
+                fontFamily: 'var(--font-poppins)',
+                fontWeight: 'bold',
+                fontSize: '16px',
+                cursor: 'pointer',
+                boxShadow: '0 8px 16px var(--brand-glow)',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {isLoading ? (
+                <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid white', borderTop: '3px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              ) : (
+                'Get OTP'
+              )}
+            </button>
+          )}
+
+          {isOtpFlow && (
+            <button
+              onClick={() => handleVerifyOtp(otp)}
+              disabled={otp.length !== 6 || isLoading}
+              style={{
+                width: '100%',
+                height: '56px',
+                borderRadius: '16px',
+                background: otp.length === 6 ? 'var(--brand-dark)' : 'var(--text-light)',
+                color: 'white',
+                border: 'none',
+                fontFamily: 'var(--font-poppins)',
+                fontWeight: 'bold',
+                fontSize: '16px',
+                cursor: otp.length === 6 ? 'pointer' : 'default',
+                boxShadow: otp.length === 6 ? '0 8px 16px var(--brand-glow)' : 'none',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {isLoading ? (
+                <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid white', borderTop: '3px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              ) : (
+                'Verify & Continue'
+              )}
+            </button>
+          )}
+
           <button
-            onClick={() => handleVerifyOtp(otp)}
-            disabled={otp.length !== 6 || isLoading}
+            onClick={() => window.open('tel:+919443000000')}
             style={{
-              width: '100%',
-              height: '56px',
-              borderRadius: '16px',
-              background: otp.length === 6 ? 'var(--brand-dark)' : 'var(--text-light)',
-              color: 'white',
+              background: 'transparent',
               border: 'none',
+              color: 'var(--brand-mid)',
               fontFamily: 'var(--font-poppins)',
               fontWeight: 'bold',
-              fontSize: '16px',
-              cursor: otp.length === 6 ? 'pointer' : 'default',
-              boxShadow: otp.length === 6 ? '0 8px 16px var(--brand-glow)' : 'none',
-              transition: 'all 0.3s ease',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              fontSize: '13px',
+              cursor: 'pointer',
+              textAlign: 'center',
+              textDecoration: 'underline'
             }}
           >
-            {isLoading ? (
-              <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid white', borderTop: '3px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-            ) : (
-              'Verify & Continue'
-            )}
+            Need Help? Contact Customer Support
           </button>
-        )}
-
-        <button
-          onClick={() => window.open('tel:+919443000000')}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--brand-mid)',
-            fontFamily: 'var(--font-poppins)',
-            fontWeight: 'bold',
-            fontSize: '13px',
-            cursor: 'pointer',
-            textAlign: 'center',
-            textDecoration: 'underline'
-          }}
-        >
-          Need Help? Contact Customer Support
-        </button>
+        </div>
       </div>
-
       {/* Success Tick Dialog Overlay */}
       {showSuccessDialog && (
         <div style={{

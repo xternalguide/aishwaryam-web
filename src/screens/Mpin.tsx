@@ -222,132 +222,93 @@ export const Mpin: React.FC = () => {
       flexDirection: 'column',
       height: '100vh',
       background: 'var(--gradient-brand)',
-      padding: '24px',
-      justifyContent: 'center',
-      alignItems: 'center',
+      boxSizing: 'border-box',
       position: 'relative'
     }}>
-      {/* MPIN Central Card */}
-      <div className="glass-card" style={{
-        width: '100%',
-        borderRadius: '24px',
-        background: 'white',
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
         padding: '24px',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center'
+        boxSizing: 'border-box'
       }}>
-        {/* Branding Logo */}
-        <div style={{
-          width: '72px',
-          height: '72px',
-          borderRadius: '16px',
-          background: 'var(--gold-soft)',
+        {/* MPIN Central Card */}
+        <div className="glass-card" style={{
+          width: '100%',
+          borderRadius: '24px',
+          background: 'white',
+          padding: '24px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: '8px',
-          marginBottom: '20px'
+          marginTop: 'auto',
+          marginBottom: 'auto'
         }}>
-          <span style={{ color: 'var(--brand-dark)', fontSize: '28px', fontWeight: '900', fontFamily: 'var(--font-playfair)' }}>
-            A
-          </span>
-        </div>
-
-        {/* Title */}
-        <h2 style={{
-          fontSize: '20px',
-          fontWeight: 'bold',
-          color: 'var(--brand-dark)',
-          marginBottom: '8px',
-          fontFamily: 'var(--font-poppins)',
-          textAlign: 'center'
-        }}>
-          {flowState === MpinFlowState.ENTER_PIN && 'Enter your PIN'}
-          {flowState === MpinFlowState.SETUP_PIN && 'Set your 4-Digit PIN'}
-          {flowState === MpinFlowState.FORGOT_ENTER_OTP && 'Verify OTP'}
-          {flowState === MpinFlowState.FORGOT_NEW_PIN && 'Reset your 4-Digit PIN'}
-        </h2>
-
-        {/* Subtitle */}
-        <p style={{
-          fontSize: '12px',
-          color: 'var(--text-muted)',
-          textAlign: 'center',
-          lineHeight: '16px',
-          marginBottom: '24px',
-          padding: '0 8px'
-        }}>
-          {flowState === MpinFlowState.ENTER_PIN && 'Enter your 4-digit PIN to access your account.'}
-          {flowState === MpinFlowState.SETUP_PIN && 'Create a secure PIN for quick login.'}
-          {flowState === MpinFlowState.FORGOT_ENTER_OTP && 'OTP sent to your registered phone number.'}
-          {flowState === MpinFlowState.FORGOT_NEW_PIN && 'Create and repeat your new 4-digit login PIN.'}
-        </p>
-
-        {errorMsg && (
+          {/* Branding Logo */}
           <div style={{
-            color: 'var(--error-red)',
-            fontSize: '12px',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            marginBottom: '16px'
+            width: '72px',
+            height: '72px',
+            borderRadius: '16px',
+            background: 'var(--gold-soft)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '8px',
+            marginBottom: '20px'
           }}>
-            {errorMsg}
+            <span style={{ color: 'var(--brand-dark)', fontSize: '28px', fontWeight: '900', fontFamily: 'var(--font-playfair)' }}>
+              A
+            </span>
           </div>
-        )}
 
-        {/* State Renderers */}
-        {flowState === MpinFlowState.ENTER_PIN && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '32px' }}>
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} style={{ position: 'relative' }}>
-                  <input
-                    type="password"
-                    pattern="[0-9]*"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={mpin[i] || ''}
-                    onChange={(e) => handlePinBoxChange(i, e.target.value, setMpin, mpin, mpinRef, 4, handleVerifyExistingMpin)}
-                    onKeyDown={(e) => handleKeyDown(i, e, mpin, setMpin, mpinRef)}
-                    ref={(el) => { if (el) mpinRef.current[i] = el; }}
-                    style={{
-                      width: '46px',
-                      height: '46px',
-                      borderRadius: '12px',
-                      border: '1.5px solid rgba(74, 14, 78, 0.15)',
-                      textAlign: 'center',
-                      fontSize: '24px',
-                      outline: 'none',
-                      background: '#F9F9F9'
-                    }}
-                  />
-                </div>
-              ))}
+          {/* Title */}
+          <h2 style={{
+            fontSize: '20px',
+            fontWeight: 'bold',
+            color: 'var(--brand-dark)',
+            marginBottom: '8px',
+            fontFamily: 'var(--font-poppins)',
+            textAlign: 'center'
+          }}>
+            {flowState === MpinFlowState.ENTER_PIN && 'Enter your PIN'}
+            {flowState === MpinFlowState.SETUP_PIN && 'Set your 4-Digit PIN'}
+            {flowState === MpinFlowState.FORGOT_ENTER_OTP && 'Verify OTP'}
+            {flowState === MpinFlowState.FORGOT_NEW_PIN && 'Reset your 4-Digit PIN'}
+          </h2>
+
+          {/* Subtitle */}
+          <p style={{
+            fontSize: '12px',
+            color: 'var(--text-muted)',
+            textAlign: 'center',
+            lineHeight: '16px',
+            marginBottom: '24px',
+            padding: '0 8px'
+          }}>
+            {flowState === MpinFlowState.ENTER_PIN && 'Enter your 4-digit PIN to access your account.'}
+            {flowState === MpinFlowState.SETUP_PIN && 'Create a secure PIN for quick login.'}
+            {flowState === MpinFlowState.FORGOT_ENTER_OTP && 'OTP sent to your registered phone number.'}
+            {flowState === MpinFlowState.FORGOT_NEW_PIN && 'Create and repeat your new 4-digit login PIN.'}
+          </p>
+
+          {errorMsg && (
+            <div style={{
+              color: 'var(--error-red)',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              marginBottom: '16px'
+            }}>
+              {errorMsg}
             </div>
+          )}
 
-            <button
-              onClick={triggerForgotPinOtp}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--brand-dark)',
-                fontWeight: 'bold',
-                fontSize: '13px',
-                cursor: 'pointer'
-              }}
-            >
-              Forgot PIN? Reset via OTP
-            </button>
-          </div>
-        )}
-
-        {(flowState === MpinFlowState.SETUP_PIN || flowState === MpinFlowState.FORGOT_NEW_PIN) && (
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '16px' }}>
-            <div>
-              <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>Enter New PIN</span>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '6px' }}>
+          {/* State Renderers */}
+          {flowState === MpinFlowState.ENTER_PIN && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '32px' }}>
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} style={{ position: 'relative' }}>
                     <input
@@ -355,19 +316,17 @@ export const Mpin: React.FC = () => {
                       pattern="[0-9]*"
                       inputMode="numeric"
                       maxLength={1}
-                      value={newMpin[i] || ''}
-                      onChange={(e) => handlePinBoxChange(i, e.target.value, setNewMpin, newMpin, newMpinRef, 4, () => {
-                        if (confirmMpinRef.current[0]) confirmMpinRef.current[0].focus();
-                      })}
-                      onKeyDown={(e) => handleKeyDown(i, e, newMpin, setNewMpin, newMpinRef)}
-                      ref={(el) => { if (el) newMpinRef.current[i] = el; }}
+                      value={mpin[i] || ''}
+                      onChange={(e) => handlePinBoxChange(i, e.target.value, setMpin, mpin, mpinRef, 4, handleVerifyExistingMpin)}
+                      onKeyDown={(e) => handleKeyDown(i, e, mpin, setMpin, mpinRef)}
+                      ref={(el) => { if (el) mpinRef.current[i] = el; }}
                       style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '10px',
-                        border: '1.5px solid rgba(74,14,78,0.15)',
+                        width: '46px',
+                        height: '46px',
+                        borderRadius: '12px',
+                        border: '1.5px solid rgba(74, 14, 78, 0.15)',
                         textAlign: 'center',
-                        fontSize: '20px',
+                        fontSize: '24px',
                         outline: 'none',
                         background: '#F9F9F9'
                       }}
@@ -375,123 +334,7 @@ export const Mpin: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
 
-            <div>
-              <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>Confirm New PIN</span>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '6px' }}>
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} style={{ position: 'relative' }}>
-                    <input
-                      type="password"
-                      pattern="[0-9]*"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={confirmMpin[i] || ''}
-                      disabled={newMpin.length !== 4}
-                      onChange={(e) => handlePinBoxChange(i, e.target.value, setConfirmMpin, confirmMpin, confirmMpinRef, 4, () => {})}
-                      onKeyDown={(e) => handleKeyDown(i, e, confirmMpin, setConfirmMpin, confirmMpinRef)}
-                      ref={(el) => { if (el) confirmMpinRef.current[i] = el; }}
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '10px',
-                        border: '1.5px solid rgba(74,14,78,0.15)',
-                        textAlign: 'center',
-                        fontSize: '20px',
-                        outline: 'none',
-                        background: newMpin.length === 4 ? '#F9F9F9' : '#ECECEC'
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {newMpin.length === 4 && confirmMpin.length === 4 && newMpin !== confirmMpin && (
-              <span style={{ color: 'var(--error-red)', fontSize: '12px', textAlign: 'center', fontWeight: 'bold', marginTop: '4px' }}>
-                PINs do not match
-              </span>
-            )}
-
-            <button
-              onClick={handleSaveMpin}
-              disabled={newMpin.length !== 4 || confirmMpin.length !== 4 || newMpin !== confirmMpin || isLoading}
-              style={{
-                width: '100%',
-                height: '46px',
-                borderRadius: '12px',
-                background: (newMpin.length === 4 && confirmMpin.length === 4 && newMpin === confirmMpin) ? 'var(--brand-dark)' : 'var(--text-light)',
-                color: 'white',
-                border: 'none',
-                fontWeight: 'bold',
-                cursor: (newMpin.length === 4 && confirmMpin.length === 4 && newMpin === confirmMpin) ? 'pointer' : 'default',
-                marginTop: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {isLoading ? (
-                <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-              ) : (
-                'Save'
-              )}
-            </button>
-
-            {flowState === MpinFlowState.FORGOT_NEW_PIN && (
-              <button
-                onClick={() => setFlowState(MpinFlowState.ENTER_PIN)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  marginTop: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        )}
-
-        {flowState === MpinFlowState.FORGOT_ENTER_OTP && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '24px' }}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <input
-                  key={i}
-                  type="text"
-                  pattern="[0-9]*"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={otp[i] || ''}
-                  onChange={(e) => handlePinBoxChange(i, e.target.value, setOtp, otp, otpRef, 6, handleVerifyOtp)}
-                  onKeyDown={(e) => handleKeyDown(i, e, otp, setOtp, otpRef)}
-                  ref={(el) => { if (el) otpRef.current[i] = el; }}
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '8px',
-                    border: '1.5px solid rgba(74,14,78,0.15)',
-                    textAlign: 'center',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    outline: 'none',
-                    background: '#F9F9F9'
-                  }}
-                />
-              ))}
-            </div>
-
-            {secondsRemaining > 0 ? (
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                Resend in {secondsRemaining}s
-              </span>
-            ) : (
               <button
                 onClick={triggerForgotPinOtp}
                 style={{
@@ -500,29 +343,195 @@ export const Mpin: React.FC = () => {
                   color: 'var(--brand-dark)',
                   fontWeight: 'bold',
                   fontSize: '13px',
-                  cursor: 'pointer',
-                  marginBottom: '16px'
+                  cursor: 'pointer'
                 }}
               >
-                Resend OTP
+                Forgot PIN? Reset via OTP
               </button>
-            )}
+            </div>
+          )}
 
-            <button
-              onClick={() => setFlowState(MpinFlowState.ENTER_PIN)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-muted)',
-                fontWeight: 'bold',
-                fontSize: '13px',
-                cursor: 'pointer'
-              }}
-            >
-              Back to PIN Login
-            </button>
-          </div>
-        )}
+          {(flowState === MpinFlowState.SETUP_PIN || flowState === MpinFlowState.FORGOT_NEW_PIN) && (
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '16px' }}>
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>Enter New PIN</span>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '6px' }}>
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} style={{ position: 'relative' }}>
+                      <input
+                        type="password"
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={newMpin[i] || ''}
+                        onChange={(e) => handlePinBoxChange(i, e.target.value, setNewMpin, newMpin, newMpinRef, 4, () => {
+                          if (confirmMpinRef.current[0]) confirmMpinRef.current[0].focus();
+                        })}
+                        onKeyDown={(e) => handleKeyDown(i, e, newMpin, setNewMpin, newMpinRef)}
+                        ref={(el) => { if (el) newMpinRef.current[i] = el; }}
+                        style={{
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '10px',
+                          border: '1.5px solid rgba(74,14,78,0.15)',
+                          textAlign: 'center',
+                          fontSize: '20px',
+                          outline: 'none',
+                          background: '#F9F9F9'
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>Confirm New PIN</span>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '6px' }}>
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} style={{ position: 'relative' }}>
+                      <input
+                        type="password"
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={confirmMpin[i] || ''}
+                        disabled={newMpin.length !== 4}
+                        onChange={(e) => handlePinBoxChange(i, e.target.value, setConfirmMpin, confirmMpin, confirmMpinRef, 4, () => {})}
+                        onKeyDown={(e) => handleKeyDown(i, e, confirmMpin, setConfirmMpin, confirmMpinRef)}
+                        ref={(el) => { if (el) confirmMpinRef.current[i] = el; }}
+                        style={{
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '10px',
+                          border: '1.5px solid rgba(74,14,78,0.15)',
+                          textAlign: 'center',
+                          fontSize: '20px',
+                          outline: 'none',
+                          background: newMpin.length === 4 ? '#F9F9F9' : '#ECECEC'
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {newMpin.length === 4 && confirmMpin.length === 4 && newMpin !== confirmMpin && (
+                <span style={{ color: 'var(--error-red)', fontSize: '12px', textAlign: 'center', fontWeight: 'bold', marginTop: '4px' }}>
+                  PINs do not match
+                </span>
+              )}
+
+              <button
+                onClick={handleSaveMpin}
+                disabled={newMpin.length !== 4 || confirmMpin.length !== 4 || newMpin !== confirmMpin || isLoading}
+                style={{
+                  width: '100%',
+                  height: '46px',
+                  borderRadius: '12px',
+                  background: (newMpin.length === 4 && confirmMpin.length === 4 && newMpin === confirmMpin) ? 'var(--brand-dark)' : 'var(--text-light)',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: 'bold',
+                  cursor: (newMpin.length === 4 && confirmMpin.length === 4 && newMpin === confirmMpin) ? 'pointer' : 'default',
+                  marginTop: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {isLoading ? (
+                  <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                ) : (
+                  'Save'
+                )}
+              </button>
+
+              {flowState === MpinFlowState.FORGOT_NEW_PIN && (
+                <button
+                  onClick={() => setFlowState(MpinFlowState.ENTER_PIN)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    marginTop: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          )}
+
+          {flowState === MpinFlowState.FORGOT_ENTER_OTP && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '24px' }}>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <input
+                    key={i}
+                    type="text"
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={otp[i] || ''}
+                    onChange={(e) => handlePinBoxChange(i, e.target.value, setOtp, otp, otpRef, 6, handleVerifyOtp)}
+                    onKeyDown={(e) => handleKeyDown(i, e, otp, setOtp, otpRef)}
+                    ref={(el) => { if (el) otpRef.current[i] = el; }}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '8px',
+                      border: '1.5px solid rgba(74,14,78,0.15)',
+                      textAlign: 'center',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      outline: 'none',
+                      background: '#F9F9F9'
+                    }}
+                  />
+                ))}
+              </div>
+
+              {secondsRemaining > 0 ? (
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                  Resend in {secondsRemaining}s
+                </span>
+              ) : (
+                <button
+                  onClick={triggerForgotPinOtp}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--brand-dark)',
+                    fontWeight: 'bold',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    marginBottom: '16px'
+                  }}
+                >
+                  Resend OTP
+                </button>
+              )}
+
+              <button
+                onClick={() => setFlowState(MpinFlowState.ENTER_PIN)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  fontWeight: 'bold',
+                  fontSize: '13px',
+                  cursor: 'pointer'
+                }}
+              >
+                Back to PIN Login
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Success tick popup overlay */}

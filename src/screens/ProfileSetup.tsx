@@ -47,159 +47,169 @@ export const ProfileSetup: React.FC = () => {
       flexDirection: 'column',
       height: '100vh',
       background: '#F5F7F5',
-      padding: '24px',
-      justifyContent: 'space-between'
+      boxSizing: 'border-box'
     }}>
-      <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', width: '100%' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-          <img
-            src="/logo.png"
-            alt="Logo"
-            style={{
-              width: '72px',
-              height: '72px',
-              borderRadius: '20px',
-              boxShadow: '0 6px 12px rgba(74, 14, 78, 0.15)',
-              objectFit: 'cover'
-            }}
-          />
-        </div>
-        <h1 style={{
-          fontFamily: 'var(--font-playfair)',
-          color: 'var(--brand-deep)',
-          fontSize: '26px',
-          fontWeight: 'bold',
-          marginBottom: '8px',
-          textAlign: 'center'
-        }}>
-          Account Registration
-        </h1>
-        <p style={{
-          color: 'var(--text-secondary)',
-          fontSize: '14px',
-          marginBottom: '40px',
-          textAlign: 'center'
-        }}>
-          Please provide your contact information
-        </p>
-
-        {errorMsg && (
-          <div style={{
-            color: 'var(--error-red)',
-            fontSize: '13px',
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', width: '100%', flex: 1, marginBottom: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <img
+              src="/logo.png"
+              alt="Logo"
+              style={{
+                width: '72px',
+                height: '72px',
+                borderRadius: '20px',
+                boxShadow: '0 6px 12px rgba(74, 14, 78, 0.15)',
+                objectFit: 'cover'
+              }}
+            />
+          </div>
+          <h1 style={{
+            fontFamily: 'var(--font-playfair)',
+            color: 'var(--brand-deep)',
+            fontSize: '26px',
             fontWeight: 'bold',
-            textAlign: 'center',
-            marginBottom: '20px'
+            marginBottom: '8px',
+            textAlign: 'center'
           }}>
-            {errorMsg}
-          </div>
-        )}
+            Account Registration
+          </h1>
+          <p style={{
+            color: 'var(--text-secondary)',
+            fontSize: '14px',
+            marginBottom: '40px',
+            textAlign: 'center'
+          }}>
+            Please provide your contact information
+          </p>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          <div>
-            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>
-              Full Name <span style={{ color: 'var(--error-red)' }}>*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Enter Full Name"
-              value={fullName}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (/^[a-zA-Z\s]*$/.test(val)) {
-                  setFullName(val);
-                }
-              }}
-              style={{
-                width: '100%',
-                height: '52px',
-                borderRadius: '12px',
-                border: '1px solid rgba(74, 14, 78, 0.15)',
-                padding: '0 16px',
-                fontSize: '15px',
-                outline: 'none',
-                marginTop: '4px',
-                background: 'white'
-              }}
-            />
-          </div>
+          {errorMsg && (
+            <div style={{
+              color: 'var(--error-red)',
+              fontSize: '13px',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              marginBottom: '20px'
+            }}>
+              {errorMsg}
+            </div>
+          )}
 
-          <div>
-            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>
-              Email Address <span style={{ color: 'var(--error-red)' }}>*</span>
-            </label>
-            <input
-              type="email"
-              placeholder="Enter Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={{
-                width: '100%',
-                height: '52px',
-                borderRadius: '12px',
-                border: '1px solid rgba(74, 14, 78, 0.15)',
-                padding: '0 16px',
-                fontSize: '15px',
-                outline: 'none',
-                marginTop: '4px',
-                background: 'white'
-              }}
-            />
-          </div>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>
+                Full Name <span style={{ color: 'var(--error-red)' }}>*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Enter Full Name"
+                value={fullName}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (/^[a-zA-Z\s]*$/.test(val)) {
+                    setFullName(val);
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  height: '52px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(74, 14, 78, 0.15)',
+                  padding: '0 16px',
+                  fontSize: '15px',
+                  outline: 'none',
+                  marginTop: '4px',
+                  background: 'white'
+                }}
+              />
+            </div>
 
-          <div>
-            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>
-              Referral Code (Optional)
-            </label>
-            <input
-              type="text"
-              placeholder="Enter Referral Code"
-              value={referralCode}
-              onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-              style={{
-                width: '100%',
-                height: '52px',
-                borderRadius: '12px',
-                border: '1px solid rgba(74, 14, 78, 0.15)',
-                padding: '0 16px',
-                fontSize: '15px',
-                outline: 'none',
-                marginTop: '4px',
-                background: 'white'
-              }}
-            />
-          </div>
-        </form>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>
+                Email Address <span style={{ color: 'var(--error-red)' }}>*</span>
+              </label>
+              <input
+                type="email"
+                placeholder="Enter Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '52px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(74, 14, 78, 0.15)',
+                  padding: '0 16px',
+                  fontSize: '15px',
+                  outline: 'none',
+                  marginTop: '4px',
+                  background: 'white'
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>
+                Referral Code (Optional)
+              </label>
+              <input
+                type="text"
+                placeholder="Enter Referral Code"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                style={{
+                  width: '100%',
+                  height: '52px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(74, 14, 78, 0.15)',
+                  padding: '0 16px',
+                  fontSize: '15px',
+                  outline: 'none',
+                  marginTop: '4px',
+                  background: 'white'
+                }}
+              />
+            </div>
+          </form>
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={!isFormValid || isLoading}
+          style={{
+            width: '100%',
+            height: '52px',
+            borderRadius: '16px',
+            background: isFormValid ? 'var(--brand-dark)' : 'var(--text-light)',
+            color: 'white',
+            border: 'none',
+            fontFamily: 'var(--font-poppins)',
+            fontWeight: 'bold',
+            fontSize: '16px',
+            cursor: isFormValid ? 'pointer' : 'default',
+            marginTop: '16px',
+            marginBottom: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: isFormValid ? '0 8px 16px var(--brand-glow)' : 'none',
+            transition: 'all 0.3s ease',
+            flexShrink: 0
+          }}
+        >
+          {isLoading ? (
+            <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid white', borderTop: '3px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          ) : (
+            'Complete Registration'
+          )}
+        </button>
       </div>
-
-      <button
-        onClick={handleSubmit}
-        disabled={!isFormValid || isLoading}
-        style={{
-          width: '100%',
-          height: '52px',
-          borderRadius: '16px',
-          background: isFormValid ? 'var(--brand-dark)' : 'var(--text-light)',
-          color: 'white',
-          border: 'none',
-          fontFamily: 'var(--font-poppins)',
-          fontWeight: 'bold',
-          fontSize: '16px',
-          cursor: isFormValid ? 'pointer' : 'default',
-          marginBottom: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: isFormValid ? '0 8px 16px var(--brand-glow)' : 'none',
-          transition: 'all 0.3s ease'
-        }}
-      >
-        {isLoading ? (
-          <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid white', borderTop: '3px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        ) : (
-          'Complete Registration'
-        )}
-      </button>
     </div>
   );
 };
