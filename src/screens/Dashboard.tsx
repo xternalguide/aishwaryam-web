@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SessionManager } from '../utils/SessionManager';
+import { SessionManager, OnboardingStage } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from '../utils/translation';
@@ -191,6 +191,23 @@ export const Dashboard: React.FC = () => {
   }, [profile, livePrice, contextActiveSchemes, portfolio, contextAvailableSchemes, contextTransactions, contextBankAccounts, contextUnreadNotifCount, offers]);
 
   useEffect(() => {
+    // Redirect if onboarding not completed
+    const stage = SessionManager.getOnboardingStage();
+    const token = SessionManager.getToken();
+    if (!token) {
+      navigate('/login');
+      return;
+    } else if (stage === OnboardingStage.NONE || stage === OnboardingStage.OTP_VERIFIED) {
+      navigate('/mpin/setup');
+      return;
+    } else if (stage === OnboardingStage.MPIN_CREATED) {
+      navigate('/profile-setup');
+      return;
+    } else if (stage === OnboardingStage.PROFILE_COMPLETED || stage === OnboardingStage.KYC_PENDING) {
+      navigate('/onboarding');
+      return;
+    }
+
     // Perform initial fetch if profile data is empty
     if (!profile) {
       refreshData();
@@ -394,8 +411,8 @@ export const Dashboard: React.FC = () => {
             {userName.slice(0, 1).toUpperCase()}
           </div>
           <div>
-            <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 'bold' }}>Hello, {userName}</h4>
-            <span style={{ fontSize: '10px', color: 'var(--text-light)', display: 'block' }}>Verified Vault Client</span>
+            <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 'bold' }}>{t('hello')}, {userName}</h4>
+            <span style={{ fontSize: '10px', color: 'var(--text-light)', display: 'block' }}>{t('verified_client')}</span>
           </div>
         </div>
 
@@ -446,9 +463,9 @@ export const Dashboard: React.FC = () => {
               >
                 <AlertTriangle size={20} color="var(--warning-amber)" style={{ marginTop: '2px' }} />
                 <div>
-                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block' }}>KYC Profile Verification Required</span>
+                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block' }}>{t('kyc_required')}</span>
                   <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                    Complete PAN and Aadhaar checks to start physical gold conversions. Tap here.
+                    {t('kyc_required_desc')}
                   </span>
                 </div>
               </div>
@@ -472,7 +489,7 @@ export const Dashboard: React.FC = () => {
             >
               <div>
                 <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.7 }}>
-                  Matured Gold Balance (Live 22K Value)
+                  {t('matured_balance')}
                 </span>
                 <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--gold-primary)', fontFamily: 'var(--font-poppins)', margin: '4px 0 0 0' }}>
                   {formatRupees(currentValuePaise)}
@@ -481,7 +498,7 @@ export const Dashboard: React.FC = () => {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.06)', padding: '12px 16px', borderRadius: '12px' }}>
                 <div>
-                  <span style={{ fontSize: '9px', opacity: 0.6 }}>TOTAL GOLD IN VAULT</span>
+                  <span style={{ fontSize: '9px', opacity: 0.6 }}>{t('total_vault_gold')}</span>
                   <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{mgToGrams(goldBalanceMg)}</div>
                 </div>
 
@@ -494,8 +511,8 @@ export const Dashboard: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', opacity: 0.6 }}>
-                <span>Locked: {mgToGrams(lockedGoldMg)}</span>
-                <span>Updates automatically at live rate locks</span>
+                <span>{t('locked')}: {mgToGrams(lockedGoldMg)}</span>
+                <span>{t('live_updates')}</span>
               </div>
             </div>
 
@@ -509,7 +526,7 @@ export const Dashboard: React.FC = () => {
                   justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
                 }}
               >
-                <Gift size={16} color="var(--brand-accent)" /> Refer & Earn
+                <Gift size={16} color="var(--brand-accent)" /> {t('refer_earn')}
               </button>
 
               <button
@@ -520,7 +537,7 @@ export const Dashboard: React.FC = () => {
                   justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
                 }}
               >
-                <Award size={16} color="var(--gold-deep)" /> My Bonuses
+                <Award size={16} color="var(--gold-deep)" /> {t('my_bonuses')}
               </button>
             </div>
 
@@ -531,18 +548,18 @@ export const Dashboard: React.FC = () => {
                 color: 'white', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center',
                 boxShadow: '0 6px 12px rgba(194, 24, 91, 0.15)', cursor: 'pointer'
               }} onClick={() => navigate('/scheme-explorer')}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8 }}>SPECIAL CAMPAIGN PROMO</span>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8 }}>{t('campaign_promo')}</span>
                 <h3 style={{ fontSize: '16px', color: 'white', fontWeight: 'bold', margin: '4px 0' }}>{banners[activeBannerIdx].title}</h3>
-                <span style={{ fontSize: '11px', textDecoration: 'underline' }}>Tap to subscribe and lock gold chits</span>
+                <span style={{ fontSize: '11px', textDecoration: 'underline' }}>{t('campaign_promo_desc')}</span>
               </div>
             )}
 
             {/* Available Schemes List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Start Saving Gold</h3>
+                <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('start_saving')}</h3>
                 <button onClick={() => navigate('/scheme-explorer')} style={{ background: 'transparent', border: 'none', color: 'var(--brand-accent)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
-                  View All
+                  {t('view_all')}
                 </button>
               </div>
 
@@ -558,7 +575,7 @@ export const Dashboard: React.FC = () => {
                     }}
                   >
                     <h4 style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{sch.planName}</h4>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tenure: {sch.totalInstallments} Months</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t('tenure')}: {sch.totalInstallments} {t('months')}</span>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                       <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-accent)' }}>
                         {formatRupees(sch.installmentAmountPaise)}
@@ -587,7 +604,7 @@ export const Dashboard: React.FC = () => {
                     borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer'
                   }}
                 >
-                  Claim
+                  {t('claim')}
                 </button>
               </div>
             )}
@@ -595,7 +612,7 @@ export const Dashboard: React.FC = () => {
             {/* Active Schemes Tracker list */}
             {activeSchemes.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Your Active Schemes</h3>
+                <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('active_schemes')}</h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {activeSchemes.map((sch) => {
@@ -617,7 +634,7 @@ export const Dashboard: React.FC = () => {
                           <div>
                             <h4 style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{sch.planName}</h4>
                             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                              Paid: {sch.installmentsPaid} / {sch.totalInstallments} months
+                              {t('paid')}: {sch.installmentsPaid} / {sch.totalInstallments} {t('months')}
                             </span>
                           </div>
                           <ChevronRight size={18} style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
@@ -628,26 +645,26 @@ export const Dashboard: React.FC = () => {
                             {/* Stats */}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '11px' }}>
                               <div>
-                                <span style={{ color: 'var(--text-muted)' }}>Maturity Date:</span>
+                                <span style={{ color: 'var(--text-muted)' }}>{t('maturity_date')}:</span>
                                 <div style={{ fontWeight: 'bold' }}>{new Date(sch.maturityDate).toLocaleDateString()}</div>
                               </div>
                               <div>
-                                <span style={{ color: 'var(--text-muted)' }}>Accumulated Gold:</span>
+                                <span style={{ color: 'var(--text-muted)' }}>{t('accumulated_gold')}:</span>
                                 <div style={{ fontWeight: 'bold', color: '#FFB300' }}>{mgToGrams(sch.accumulatedGoldMg)}</div>
                               </div>
                               <div>
-                                <span style={{ color: 'var(--text-muted)' }}>Total Saved:</span>
+                                <span style={{ color: 'var(--text-muted)' }}>{t('total_saved')}:</span>
                                 <div style={{ fontWeight: 'bold' }}>{formatRupees(sch.totalSavingsAddedPaise)}</div>
                               </div>
                               <div>
-                                <span style={{ color: 'var(--text-muted)' }}>Bonus Earned:</span>
+                                <span style={{ color: 'var(--text-muted)' }}>{t('bonus_earned')}:</span>
                                 <div style={{ fontWeight: 'bold', color: 'var(--brand-accent)' }}>{formatRupees(sch.totalBonusEarnedPaise)}</div>
                               </div>
                             </div>
 
                             {/* Autopay checkbox toggle */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F9FAFB', padding: '10px 12px', borderRadius: '10px' }}>
-                              <span style={{ fontSize: '11px', fontWeight: 'bold' }}>Enable Autopay (UPI monthly)</span>
+                              <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{t('enable_autopay')}</span>
                               <input
                                 type="checkbox"
                                 checked={sch.autoPayEnabled}
@@ -665,7 +682,7 @@ export const Dashboard: React.FC = () => {
                                   color: 'white', border: 'none', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer'
                                 }}
                               >
-                                Pay Installment
+                                {t('pay_installment')}
                               </button>
                               <button
                                 onClick={() => {
@@ -677,7 +694,7 @@ export const Dashboard: React.FC = () => {
                                   color: 'white', border: 'none', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer'
                                 }}
                               >
-                                Add Savings
+                                {t('add_savings')}
                               </button>
                               {sch.installmentsPaid >= sch.totalInstallments && (
                                 <button
@@ -687,7 +704,7 @@ export const Dashboard: React.FC = () => {
                                     color: '#1A1200', border: 'none', fontWeight: 'bold', fontSize: '11px', padding: '0 12px', cursor: 'pointer'
                                   }}
                                 >
-                                  Redeem
+                                  {t('redeem')}
                                 </button>
                               )}
                             </div>
@@ -706,7 +723,7 @@ export const Dashboard: React.FC = () => {
         {selectedTab === 1 && (
           <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Transactions</h2>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('transactions_title')}</h2>
               <button
                 onClick={() => setTxSort(txSort === 'NEWEST' ? 'OLDEST' : 'NEWEST')}
                 style={{
@@ -714,7 +731,7 @@ export const Dashboard: React.FC = () => {
                   borderRadius: '20px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer'
                 }}
               >
-                Sort: {txSort}
+                {t('sort')}: {txSort}
               </button>
             </div>
 
@@ -739,7 +756,7 @@ export const Dashboard: React.FC = () => {
                     borderColor: txFilter === f ? 'transparent' : 'rgba(0,0,0,0.08)'
                   }}
                 >
-                  {f === 'ALL' ? 'All activity' : f === 'BUY' ? 'Savings' : 'Redeemed'}
+                  {f === 'ALL' ? t('all_activity') : f === 'BUY' ? t('savings') : t('redeemed')}
                 </button>
               ))}
             </div>
@@ -768,7 +785,7 @@ export const Dashboard: React.FC = () => {
                       </div>
                       <div>
                         <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block' }}>
-                          {isBuy ? 'Added to savings' : 'Redeemed metal'}
+                          {isBuy ? t('added_to_savings') : t('redeemed_metal')}
                         </span>
                         <span style={{ fontSize: '10px', color: 'var(--text-light)', display: 'block', marginTop: '2px' }}>
                           {new Date(tx.createdAt).toLocaleDateString()}
@@ -793,7 +810,7 @@ export const Dashboard: React.FC = () => {
 
               {getFilteredTransactions().length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-light)' }}>
-                  No transaction ledger events found.
+                  {t('no_tx_found')}
                 </div>
               )}
             </div>
@@ -829,9 +846,9 @@ export const Dashboard: React.FC = () => {
             {/* Linked Bank Accounts */}
             <div className="glass-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Linked Bank Accounts</span>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{t('linked_bank_accounts')}</span>
                 <button onClick={() => navigate('/add-bank-account')} style={{ background: 'transparent', border: 'none', color: 'var(--brand-accent)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                  <PlusCircle size={14} /> Add Bank
+                  <PlusCircle size={14} /> {t('add_bank')}
                 </button>
               </div>
 
@@ -848,7 +865,7 @@ export const Dashboard: React.FC = () => {
 
             {/* Nominee Settings */}
             <div className="glass-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Nominee Configuration</span>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{t('nominee_config')}</span>
               
               {isEditingNominee ? (
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -862,17 +879,17 @@ export const Dashboard: React.FC = () => {
                     Save
                   </button>
                   <button onClick={() => setIsEditingNominee(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', padding: '0 8px', fontSize: '11px', cursor: 'pointer' }}>
-                    Cancel
+                    {t('cancel')}
                   </button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>NOMINEE NAME</span>
-                    <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{nomineeName || 'Not configured'}</span>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>{t('nominee_name')}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{nomineeName || t('not_configured')}</span>
                   </div>
                   <button onClick={() => setIsEditingNominee(true)} style={{ background: 'transparent', border: 'none', color: 'var(--brand-mid)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>
-                    Edit Nominee
+                    {t('edit_nominee')}
                   </button>
                 </div>
               )}
@@ -946,12 +963,12 @@ export const Dashboard: React.FC = () => {
             {/* Navigation Reference Links */}
             <div className="glass-card" style={{ borderRadius: '16px', background: 'white', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               {[
-                { title: 'About Us', route: '/about' },
-                { title: 'FAQs', route: '/faq' },
-                { title: 'Safety & Trust', route: '/safety_trust' },
-                { title: 'Redemption Guide', route: '/redemption_guide' },
-                { title: 'Legal & Compliance', route: '/legal_hub' },
-                { title: 'Gold Rate Alerts', route: '/gold_rate_alerts' }
+                { title: t('menu_about_us'), route: '/about' },
+                { title: t('menu_faqs'), route: '/faq' },
+                { title: t('menu_safety_trust'), route: '/safety_trust' },
+                { title: t('menu_redemption_guide'), route: '/redemption_guide' },
+                { title: t('menu_legal_compliance'), route: '/legal_hub' },
+                { title: t('menu_gold_alerts'), route: '/gold_rate_alerts' }
               ].map((link, idx) => (
                 <div
                   key={idx}
@@ -1158,7 +1175,7 @@ export const Dashboard: React.FC = () => {
           }}
         >
           <Home size={20} color={selectedTab === 0 ? 'var(--brand-dark)' : 'var(--text-light)'} />
-          <span style={{ fontSize: '10px', fontWeight: selectedTab === 0 ? 'bold' : '500' }}>Home</span>
+          <span style={{ fontSize: '10px', fontWeight: selectedTab === 0 ? 'bold' : '500' }}>{t('tab_home')}</span>
         </button>
 
         <button
@@ -1170,7 +1187,7 @@ export const Dashboard: React.FC = () => {
           }}
         >
           <History size={20} color={selectedTab === 1 ? 'var(--brand-dark)' : 'var(--text-light)'} />
-          <span style={{ fontSize: '10px', fontWeight: selectedTab === 1 ? 'bold' : '500' }}>History</span>
+          <span style={{ fontSize: '10px', fontWeight: selectedTab === 1 ? 'bold' : '500' }}>{t('tab_history')}</span>
         </button>
 
         <button
@@ -1182,7 +1199,7 @@ export const Dashboard: React.FC = () => {
           }}
         >
           <User size={20} color={selectedTab === 2 ? 'var(--brand-dark)' : 'var(--text-light)'} />
-          <span style={{ fontSize: '10px', fontWeight: selectedTab === 2 ? 'bold' : '500' }}>Profile</span>
+          <span style={{ fontSize: '10px', fontWeight: selectedTab === 2 ? 'bold' : '500' }}>{t('tab_profile')}</span>
         </button>
       </div>
 

@@ -31,35 +31,41 @@ export const Login: React.FC = () => {
 
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (phone.length === 10 && /^[6-9]\d{9}$/.test(phone)) {
-      setIsLoading(true);
-      setErrorMsg(null);
-      try {
-        const response = await ApiClient.post('api/Auth/send-otp', { phoneNumber: phone });
-        if (response.data && response.data.success) {
-          SessionManager.savePhoneNumber(phone);
-          setIsOtpFlow(true);
-          setSecondsRemaining(30);
-          setOtp('');
-          // Focus first OTP field after state updates
-          setTimeout(() => {
-            if (otpInputsRef.current[0]) otpInputsRef.current[0].focus();
-          }, 100);
-        } else {
-          setErrorMsg(response.data.message || 'Failed to send OTP.');
-        }
-      } catch (err: any) {
-        setErrorMsg('Network error. Using simulated fallback (Use 123456 as code).');
+    if (phone.length === 0) {
+      setErrorMsg('Mobile number cannot be empty.');
+      return;
+    }
+    if (phone.length !== 10 || !/^[6-9]\d{9}$/.test(phone)) {
+      setErrorMsg('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      const response = await ApiClient.post('api/Auth/send-otp', { phoneNumber: phone });
+      if (response.data && response.data.success) {
         SessionManager.savePhoneNumber(phone);
         setIsOtpFlow(true);
         setSecondsRemaining(30);
         setOtp('');
+        // Focus first OTP field after state updates
         setTimeout(() => {
           if (otpInputsRef.current[0]) otpInputsRef.current[0].focus();
         }, 100);
-      } finally {
-        setIsLoading(false);
+      } else {
+        setErrorMsg(response.data.message || 'Failed to send OTP.');
       }
+    } catch (err: any) {
+      setErrorMsg('Network error. Using simulated fallback (Use 123456 as code).');
+      SessionManager.savePhoneNumber(phone);
+      setIsOtpFlow(true);
+      setSecondsRemaining(30);
+      setOtp('');
+      setTimeout(() => {
+        if (otpInputsRef.current[0]) otpInputsRef.current[0].focus();
+      }, 100);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -153,7 +159,7 @@ export const Login: React.FC = () => {
     }
   }, [showSuccessDialog, successData]);
 
-  const isValidPhone = phone.length === 10 && /^[6-9]\d{9}$/.test(phone);
+
 
   return (
     <div style={{
@@ -320,19 +326,19 @@ export const Login: React.FC = () => {
         {!isOtpFlow && (
           <button
             onClick={handleSendOtp}
-            disabled={!isValidPhone || isLoading}
+            disabled={isLoading}
             style={{
               width: '100%',
               height: '56px',
               borderRadius: '16px',
-              background: isValidPhone ? 'var(--brand-dark)' : 'var(--text-light)',
+              background: 'var(--brand-dark)',
               color: 'white',
               border: 'none',
               fontFamily: 'var(--font-poppins)',
               fontWeight: 'bold',
               fontSize: '16px',
-              cursor: isValidPhone ? 'pointer' : 'default',
-              boxShadow: isValidPhone ? '0 8px 16px var(--brand-glow)' : 'none',
+              cursor: 'pointer',
+              boxShadow: '0 8px 16px var(--brand-glow)',
               transition: 'all 0.3s ease',
               display: 'flex',
               alignItems: 'center',

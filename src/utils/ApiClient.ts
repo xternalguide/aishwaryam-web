@@ -379,9 +379,10 @@ export const ApiClient = {
   get: async <T = any>(url: string): Promise<AxiosResponse<T>> => {
     try {
       return await instance.get<T>(url);
-    } catch (err) {
+    } catch (err: any) {
+      const isNetworkError = !err.response || err.code === 'ERR_NETWORK';
       const mock = getMockResponse(url);
-      if (mock) {
+      if (isNetworkError && mock) {
         return {
           data: mock as T,
           status: 200,
@@ -398,9 +399,10 @@ export const ApiClient = {
   post: async <T = any>(url: string, data?: any): Promise<AxiosResponse<T>> => {
     try {
       return await instance.post<T>(url, data);
-    } catch (err) {
+    } catch (err: any) {
+      const isNetworkError = !err.response || err.code === 'ERR_NETWORK';
       const mock = getMockResponse(url);
-      if (mock) {
+      if (isNetworkError && mock) {
         // Handle mock specific states on POST actions
         if (url === 'api/Auth/verify-otp' && data?.otp === '123456') {
           return {
@@ -428,9 +430,10 @@ export const ApiClient = {
   put: async <T = any>(url: string, data?: any): Promise<AxiosResponse<T>> => {
     try {
       return await instance.put<T>(url, data);
-    } catch (err) {
+    } catch (err: any) {
+      const isNetworkError = !err.response || err.code === 'ERR_NETWORK';
       const mock = getMockResponse(url);
-      if (mock) {
+      if (isNetworkError && mock) {
         return {
           data: mock as T,
           status: 200,

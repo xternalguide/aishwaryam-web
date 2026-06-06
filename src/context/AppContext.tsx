@@ -61,6 +61,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ApiClient.get('api/Notification')
       ]);
 
+      if (profileRes.status === 'rejected') {
+        const reason = profileRes.reason;
+        if (reason && reason.response && (reason.response.status === 404 || reason.response.status === 401)) {
+          console.warn('User profile not found or unauthorized on server. Logging out...');
+          SessionManager.clearSession();
+          window.location.href = '/login';
+          return;
+        }
+      }
       if (profileRes.status === 'fulfilled' && profileRes.value.data) {
         setProfile(profileRes.value.data);
       }
