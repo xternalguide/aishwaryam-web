@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Aishwaryam @Your home',
   webDir: 'dist',
   server: {
-    url: 'https://aishwaryam.pages.dev/',
+    url: 'https://aishwaryam-web.pages.dev',
     cleartext: true
   }
 };
