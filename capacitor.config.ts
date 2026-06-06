@@ -7,6 +7,11 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://aishwaryam-web.pages.dev',
     cleartext: true
+  },
+  plugins: {
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
+    }
   }
 };
 

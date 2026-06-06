@@ -31,6 +31,7 @@ import {
   Notifications
 } from './screens/InfoPages';
 import { AppProvider } from './context/AppContext';
+import { PushNotificationHandler } from './components/PushNotificationHandler';
 import './App.css';
 
 const App: React.FC = () => {
@@ -38,11 +39,12 @@ const App: React.FC = () => {
     <div className="app-container">
       <AppProvider>
         <Router>
-        <Routes>
-          {/* Auth & Onboarding Flow */}
-          <Route path="/" element={<Splash />} />
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/login" element={<Login />} />
+          <PushNotificationHandler />
+          <Routes>
+            {/* Auth & Onboarding Flow */}
+            <Route path="/" element={<Splash />} />
+            <Route path="/welcome" element={<Welcome />} />
+            <Route path="/login" element={<Login />} />
           <Route path="/mpin/:mode" element={<Mpin />} />
           <Route path="/profile-setup" element={<ProfileSetup />} />
           <Route path="/onboarding" element={<Onboarding />} />
