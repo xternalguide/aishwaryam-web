@@ -75,15 +75,19 @@ export const Onboarding: React.FC = () => {
 
   // --- Step 2 State Variables ---
   const [panNumber, setPanNumber] = useState('');
-  const [isPanOtpSent, setIsPanOtpSent] = useState(false);
-  const [panOtp, setPanOtp] = useState('');
-  const [isPanVerified, setIsPanVerified] = useState(false);
   const [fetchedPanName, setFetchedPanName] = useState('');
-
   const [identityNumber, setIdentityNumber] = useState('');
-  const [isIdOtpSent, setIsIdOtpSent] = useState(false);
-  const [idOtp, setIdOtp] = useState('');
-  const [isIdVerified, setIsIdVerified] = useState(false);
+  const [showKycPendingModal, setShowKycPendingModal] = useState(false);
+
+  // Sync KYC name & Bank account holder name defaults from Profile Name
+  useEffect(() => {
+    if (name) {
+      setFetchedPanName(name.toUpperCase());
+      if (!accountName) {
+        setAccountName(name);
+      }
+    }
+  }, [name]);
 
   // --- Step 3 State Variables ---
   const [accountName, setAccountName] = useState('');
@@ -302,16 +306,26 @@ export const Onboarding: React.FC = () => {
           documentNumber: identityNumber,
           documentUrl: aadhaarFrontImage || 'https://placeholder.url/aadhaar.jpg'
         });
-        // Update user KYC level to FULL
+        // Update user KYC level to PENDING
         await ApiClient.post('api/Kyc/update-status', {
           userId,
-          newLevel: 'FULL'
+          newLevel: 'PENDING'
         });
         await refreshData();
-        setCurrentStep(3);
+        
+        // Show pending modal for 3 seconds before moving to step 3
+        setShowKycPendingModal(true);
+        setTimeout(() => {
+          setShowKycPendingModal(false);
+          setCurrentStep(3);
+        }, 3000);
       } catch (err: any) {
-        // Fallback for network error
-        setCurrentStep(3);
+        // Fallback for network/test error
+        setShowKycPendingModal(true);
+        setTimeout(() => {
+          setShowKycPendingModal(false);
+          setCurrentStep(3);
+        }, 3000);
       } finally {
         setIsSaving(false);
       }
@@ -780,11 +794,11 @@ export const Onboarding: React.FC = () => {
                 <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>PAN Verification</h3>
 
                 <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>PAN Number <span style={{ color: 'var(--error-red)' }}>*</span></label>
                   <input
                     type="text"
                     placeholder="Enter PAN Number (e.g. ABCDE1234F)"
                     value={panNumber}
-                    disabled={isPanVerified}
                     onChange={(e) => setPanNumber(e.target.value.toUpperCase().slice(0, 10))}
                     style={{
                       width: '100%',
@@ -799,7 +813,7 @@ export const Onboarding: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Upload PAN Card Photo</span>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Upload PAN Card Photo <span style={{ color: 'var(--error-red)' }}>*</span></span>
                   <label style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -830,80 +844,6 @@ export const Onboarding: React.FC = () => {
                     )}
                   </label>
                 </div>
-
-                {!isPanOtpSent && !isPanVerified && (
-                  <button
-                    onClick={() => setIsPanOtpSent(true)}
-                    disabled={panNumber.length !== 10}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '12px',
-                      background: panNumber.length === 10 ? 'var(--brand-mid)' : '#D1D5DB',
-                      color: 'white',
-                      border: 'none',
-                      fontWeight: 'bold',
-                      cursor: panNumber.length === 10 ? 'pointer' : 'default'
-                    }}
-                  >
-                    Authorize / Get OTP
-                  </button>
-                )}
-
-                {isPanOtpSent && !isPanVerified && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <input
-                      type="password"
-                      placeholder="Enter 4-digit OTP (Use 1234)"
-                      value={panOtp}
-                      onChange={(e) => setPanOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      style={{
-                        width: '100%',
-                        height: '48px',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(0,0,0,0.1)',
-                        padding: '0 12px',
-                        fontSize: '14px',
-                        outline: 'none'
-                      }}
-                    />
-                    <button
-                      onClick={() => {
-                        if (panOtp === '1234') {
-                          setIsPanVerified(true);
-                          setFetchedPanName('JOHN DOE');
-                          setAccountName('JOHN DOE'); // Sync placeholder name for bank holder name
-                        } else {
-                          alert('Invalid OTP. Use 1234 for testing.');
-                        }
-                      }}
-                      disabled={panOtp.length !== 4}
-                      style={{
-                        width: '100%',
-                        height: '48px',
-                        borderRadius: '12px',
-                        background: panOtp.length === 4 ? 'var(--brand-dark)' : '#D1D5DB',
-                        color: 'white',
-                        border: 'none',
-                        fontWeight: 'bold',
-                        cursor: panOtp.length === 4 ? 'pointer' : 'default'
-                      }}
-                    >
-                      Verify OTP
-                    </button>
-                  </div>
-                )}
-
-                {isPanVerified && (
-                  <div style={{ padding: '8px 0' }}>
-                    <div style={{ color: 'var(--success-green)', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      ✓ PAN Verified Successfully
-                    </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      Name on Card: <strong>{fetchedPanName}</strong>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Identity Aadhaar Box */}
@@ -911,11 +851,11 @@ export const Onboarding: React.FC = () => {
                 <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Identity Verification (Aadhaar)</h3>
 
                 <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Aadhaar Number <span style={{ color: 'var(--error-red)' }}>*</span></label>
                   <input
                     type="tel"
-                    placeholder="Enter Aadhaar Number"
+                    placeholder="Enter 12-digit Aadhaar Number"
                     value={identityNumber}
-                    disabled={isIdVerified}
                     onChange={(e) => setIdentityNumber(e.target.value.replace(/\D/g, '').slice(0, 12))}
                     style={{
                       width: '100%',
@@ -931,7 +871,7 @@ export const Onboarding: React.FC = () => {
 
                 <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Aadhaar Front</span>
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Aadhaar Front <span style={{ color: 'var(--error-red)' }}>*</span></span>
                     <label style={{
                       display: 'flex',
                       flexDirection: 'column',
@@ -964,7 +904,7 @@ export const Onboarding: React.FC = () => {
                   </div>
 
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Aadhaar Back</span>
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Aadhaar Back <span style={{ color: 'var(--error-red)' }}>*</span></span>
                     <label style={{
                       display: 'flex',
                       flexDirection: 'column',
@@ -996,75 +936,6 @@ export const Onboarding: React.FC = () => {
                     </label>
                   </div>
                 </div>
-
-                {!isIdOtpSent && !isIdVerified && (
-                  <button
-                    onClick={() => setIsIdOtpSent(true)}
-                    disabled={identityNumber.length !== 12}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '12px',
-                      background: identityNumber.length === 12 ? 'var(--brand-mid)' : '#D1D5DB',
-                      color: 'white',
-                      border: 'none',
-                      fontWeight: 'bold',
-                      cursor: identityNumber.length === 12 ? 'pointer' : 'default'
-                    }}
-                  >
-                    Get OTP
-                  </button>
-                )}
-
-                {isIdOtpSent && !isIdVerified && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <input
-                      type="password"
-                      placeholder="Enter 4-digit OTP (Use 1234)"
-                      value={idOtp}
-                      onChange={(e) => setIdOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      style={{
-                        width: '100%',
-                        height: '48px',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(0,0,0,0.1)',
-                        padding: '0 12px',
-                        fontSize: '14px',
-                        outline: 'none'
-                      }}
-                    />
-                    <button
-                      onClick={() => {
-                        if (idOtp === '1234') {
-                          setIsIdVerified(true);
-                        } else {
-                          alert('Invalid OTP. Use 1234.');
-                        }
-                      }}
-                      disabled={idOtp.length !== 4}
-                      style={{
-                        width: '100%',
-                        height: '48px',
-                        borderRadius: '12px',
-                        background: idOtp.length === 4 ? 'var(--brand-dark)' : '#D1D5DB',
-                        color: 'white',
-                        border: 'none',
-                        fontWeight: 'bold',
-                        cursor: idOtp.length === 4 ? 'pointer' : 'default'
-                      }}
-                    >
-                      Verify OTP
-                    </button>
-                  </div>
-                )}
-
-                {isIdVerified && (
-                  <div style={{ padding: '4px 0' }}>
-                    <div style={{ color: 'var(--success-green)', fontWeight: 'bold', fontSize: '13px' }}>
-                      ✓ Identity Verified Successfully
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -1266,7 +1137,11 @@ export const Onboarding: React.FC = () => {
                 dobError !== null ||
                 weddingDateError !== null ||
                 (currentStep === 1 && !isStep1Valid()) ||
-                (currentStep === 2 && (!isPanVerified || !isIdVerified)) ||
+                (currentStep === 2 && (
+                  !panNumber || panNumber.length !== 10 || 
+                  !identityNumber || identityNumber.length !== 12 || 
+                  !panImage || !aadhaarFrontImage || !aadhaarBackImage
+                )) ||
                 (currentStep === 3 &&
                   (!accountName ||
                     !bankName ||
@@ -1294,7 +1169,11 @@ export const Onboarding: React.FC = () => {
                   dobError !== null ||
                   weddingDateError !== null ||
                   (currentStep === 1 && !isStep1Valid()) ||
-                  (currentStep === 2 && (!isPanVerified || !isIdVerified)) ||
+                  (currentStep === 2 && (
+                    !panNumber || panNumber.length !== 10 || 
+                    !identityNumber || identityNumber.length !== 12 || 
+                    !panImage || !aadhaarFrontImage || !aadhaarBackImage
+                  )) ||
                   (currentStep === 3 &&
                     (!accountName ||
                       !bankName ||
@@ -1463,6 +1342,64 @@ export const Onboarding: React.FC = () => {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* KYC Pending Modal */}
+      {showKycPendingModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2000,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '24px',
+            width: '100%',
+            maxWidth: '360px',
+            padding: '24px',
+            textAlign: 'center',
+            boxShadow: '0 12px 30px rgba(0,0,0,0.25)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+            animation: 'scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+          }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              background: 'var(--amber-dim, rgba(243, 156, 18, 0.15))',
+              color: 'var(--amber, #f39c12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <ShieldCheck size={32} />
+            </div>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>KYC Under Verification</h3>
+            <p style={{ margin: 0, fontSize: '14px', lineHeight: '22px', color: 'var(--text-secondary, #5c5d64)' }}>
+              Your KYC will be verified in 24 hours to 48 hours
+            </p>
+            <div className="spinner" style={{
+              width: '24px',
+              height: '24px',
+              border: '3px solid var(--brand-mid)',
+              borderTop: '3px solid transparent',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              marginTop: '8px'
+            }} />
           </div>
         </div>
       )}
