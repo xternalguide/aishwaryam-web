@@ -47,7 +47,7 @@ export const ProfileSetup: React.FC = () => {
       background: '#F5F7F5',
       boxSizing: 'border-box'
     }}>
-      <div style={{
+      <div className="responsive-form-container" style={{
         flex: 1,
         overflowY: 'auto',
         padding: '24px',

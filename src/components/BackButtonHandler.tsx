@@ -1,15 +1,29 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { App } from '@capacitor/app';
 
 export const BackButtonHandler: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const pathRef = useRef(location.pathname);
+
+  useEffect(() => {
+    pathRef.current = location.pathname;
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleBackButton = async () => {
-      const currentPath = location.pathname;
-      const rootRoutes = ['/', '/welcome', '/login', '/dashboard'];
+      const currentPath = pathRef.current;
+      const rootRoutes = ['/', '/welcome', '/dashboard'];
+
+      if (currentPath === '/dashboard') {
+        const activeTab = localStorage.getItem('DASHBOARD_ACTIVE_TAB');
+        if (activeTab && activeTab !== '0') {
+          localStorage.setItem('DASHBOARD_ACTIVE_TAB', '0');
+          window.dispatchEvent(new Event('dashboardTabChange'));
+          return;
+        }
+      }
 
       if (rootRoutes.includes(currentPath)) {
         await App.exitApp();
@@ -18,17 +32,19 @@ export const BackButtonHandler: React.FC = () => {
       }
     };
 
+    let listener: any = null;
     const setupListener = async () => {
-      const listener = await App.addListener('backButton', handleBackButton);
-      return listener;
+      listener = await App.addListener('backButton', handleBackButton);
     };
 
-    const listenerPromise = setupListener();
+    setupListener();
 
     return () => {
-      listenerPromise.then(listener => listener.remove());
+      if (listener) {
+        listener.remove();
+      }
     };
-  }, [location.pathname, navigate]);
+  }, [navigate]);
 
   return null;
 };

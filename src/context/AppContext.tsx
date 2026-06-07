@@ -66,7 +66,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (reason && reason.response && (reason.response.status === 404 || reason.response.status === 401)) {
           console.warn('User profile not found or unauthorized on server. Logging out...');
           SessionManager.clearSession();
-          window.location.href = '/login';
+          if (SessionManager.getOnboardingStage() === 'FULLY_VERIFIED') {
+            window.location.hash = '#/mpin/verify';
+          } else {
+            window.location.hash = '#/login';
+          }
           return;
         }
       }

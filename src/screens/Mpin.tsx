@@ -73,8 +73,9 @@ export const Mpin: React.FC = () => {
     return () => clearInterval(interval);
   }, [flowState, secondsRemaining]);
 
-  // Handle verify existing MPIN on 4 digits
+  // Handle verify existing MPIN
   const handleVerifyExistingMpin = async (val: string) => {
+    if (val.length !== 4) return;
     setIsLoading(true);
     setErrorMsg(null);
     try {
@@ -85,12 +86,12 @@ export const Mpin: React.FC = () => {
       if (response.data && response.data.success) {
         SessionManager.saveSession(response.data.userId, response.data.token, response.data.refreshToken);
         SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
-        try {
-          await refreshData();
-        } catch (err) {
-          console.error("Error pre-fetching app context:", err);
-        }
-        navigate('/dashboard');
+        
+        // Await all API calls so Dashboard gets live prices and schemes before transition
+        await refreshData();
+        
+        setSuccessMessage('Login Successful!');
+        setShowSuccessDialog(true);
       } else {
         setErrorMsg(response.data.message || 'Incorrect PIN. Please try again.');
         setMpin('');
@@ -210,6 +211,8 @@ export const Mpin: React.FC = () => {
       navigate('/profile-setup');
     } else if (flowState === MpinFlowState.FORGOT_NEW_PIN) {
       setFlowState(MpinFlowState.ENTER_PIN);
+    } else if (flowState === MpinFlowState.ENTER_PIN) {
+      navigate('/dashboard');
     }
   };
 
@@ -232,7 +235,7 @@ export const Mpin: React.FC = () => {
       boxSizing: 'border-box',
       position: 'relative'
     }}>
-      <div style={{
+      <div className="responsive-form-container" style={{
         flex: 1,
         overflowY: 'auto',
         padding: '24px',
@@ -315,7 +318,7 @@ export const Mpin: React.FC = () => {
           {/* State Renderers */}
           {flowState === MpinFlowState.ENTER_PIN && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '32px' }}>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '24px' }}>
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} style={{ position: 'relative' }}>
                     <input
@@ -324,7 +327,7 @@ export const Mpin: React.FC = () => {
                       inputMode="numeric"
                       maxLength={1}
                       value={mpin[i] || ''}
-                      onChange={(e) => handlePinBoxChange(i, e.target.value, setMpin, mpin, mpinRef, 4, handleVerifyExistingMpin)}
+                      onChange={(e) => handlePinBoxChange(i, e.target.value, setMpin, mpin, mpinRef, 4, () => {})}
                       onKeyDown={(e) => handleKeyDown(i, e, mpin, setMpin, mpinRef)}
                       ref={(el) => { if (el) mpinRef.current[i] = el; }}
                       style={{
@@ -341,6 +344,32 @@ export const Mpin: React.FC = () => {
                   </div>
                 ))}
               </div>
+
+              <button
+                onClick={() => handleVerifyExistingMpin(mpin)}
+                disabled={mpin.length !== 4 || isLoading}
+                style={{
+                  width: '100%',
+                  height: '46px',
+                  borderRadius: '12px',
+                  background: mpin.length === 4 ? 'var(--brand-dark)' : 'var(--text-light)',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: 'bold',
+                  cursor: mpin.length === 4 ? 'pointer' : 'default',
+                  marginTop: '12px',
+                  marginBottom: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {isLoading ? (
+                  <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                ) : (
+                  'Verify PIN / சமர்ப்பி'
+                )}
+              </button>
 
               <button
                 onClick={triggerForgotPinOtp}

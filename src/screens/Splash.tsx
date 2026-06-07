@@ -13,6 +13,8 @@ export const Splash: React.FC = () => {
 
       if (!hasSeenWelcome) {
         navigate('/welcome');
+      } else if (stage === OnboardingStage.FULLY_VERIFIED) {
+        navigate('/mpin/verify');
       } else if (!hasToken) {
         navigate('/login');
       } else if (stage === OnboardingStage.OTP_VERIFIED) {

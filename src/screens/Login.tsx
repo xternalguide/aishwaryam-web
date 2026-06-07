@@ -156,7 +156,7 @@ export const Login: React.FC = () => {
       boxSizing: 'border-box',
       position: 'relative'
     }}>
-      <div style={{
+      <div className="responsive-form-container" style={{
         flex: 1,
         overflowY: 'auto',
         padding: '24px',

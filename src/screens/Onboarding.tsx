@@ -441,7 +441,7 @@ export const Onboarding: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+      <div className="responsive-form-container" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column' }}>
         {/* Progress Stepper */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '12px 0 24px 0' }}>
           {[1, 2, 3].map((num) => (

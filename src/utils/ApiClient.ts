@@ -2,7 +2,9 @@ import axios from 'axios';
 import type { AxiosInstance, AxiosResponse } from 'axios';
 import { SessionManager } from './SessionManager';
 
-const BASE_URL = 'https://aishwaryam.blazewing.in/';
+const BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+  ? 'http://192.168.1.36:5044/'
+  : 'https://aishwaryam.blazewing.in/';
 
 const instance: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -57,11 +59,19 @@ instance.interceptors.response.use(
         } catch (refreshErr) {
           // Refresh failed, clear session and redirect
           SessionManager.clearSession();
-          window.location.hash = '#/login';
+          if (SessionManager.getOnboardingStage() === 'FULLY_VERIFIED') {
+            window.location.hash = '#/mpin/verify';
+          } else {
+            window.location.hash = '#/login';
+          }
         }
       } else {
         SessionManager.clearSession();
-        window.location.hash = '#/login';
+        if (SessionManager.getOnboardingStage() === 'FULLY_VERIFIED') {
+          window.location.hash = '#/mpin/verify';
+        } else {
+          window.location.hash = '#/login';
+        }
       }
     }
 

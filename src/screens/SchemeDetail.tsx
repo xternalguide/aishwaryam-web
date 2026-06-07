@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { SessionManager } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
 import { useApp } from '../context/AppContext';
-import { ArrowLeft, Milestone, ShieldAlert, Award } from 'lucide-react';
+import { useTranslation } from '../utils/translation';
+import { ArrowLeft, ShieldAlert, Award } from 'lucide-react';
 
 interface AvailableScheme {
   id: string;
@@ -26,6 +27,7 @@ interface MilestoneItem {
 export const SchemeDetail: React.FC = () => {
   const navigate = useNavigate();
   const { schemeId } = useParams<{ schemeId: string }>();
+  const { t } = useTranslation();
 
   const [isLoading, setIsLoading] = useState(true);
   const [scheme, setScheme] = useState<AvailableScheme | null>(null);
@@ -42,9 +44,11 @@ export const SchemeDetail: React.FC = () => {
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
   const [autoPayEnabled, setAutoPayEnabled] = useState(false);
 
+  // UI Interactive States
+  const [openTabs, setOpenTabs] = useState<Record<number, boolean>>({});
+
   // General configuration/metadata
   const [kycLevel, setKycLevel] = useState('BASIC');
-
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Consume from AppContext
@@ -54,6 +58,72 @@ export const SchemeDetail: React.FC = () => {
     profile,
     refreshData
   } = useApp();
+
+  const parseMilestones = (
+    bonusConfigJson: string | null,
+    activeDays: number
+  ): MilestoneItem[] => {
+    if (!bonusConfigJson) {
+      return [
+        { name: 'Join Bonus', targetDay: 1, bonusPercentage: 7.5, isAchieved: activeDays >= 1 },
+        { name: 'Month 3 Milestone', targetDay: 90, bonusPercentage: 5.5, isAchieved: activeDays >= 90 },
+        { name: 'Month 6 Milestone', targetDay: 180, bonusPercentage: 3.5, isAchieved: activeDays >= 180 },
+        { name: 'Maturity Bonus', targetDay: 330, bonusPercentage: 1.5, isAchieved: activeDays >= 330 }
+      ];
+    }
+
+    try {
+      const config = JSON.parse(bonusConfigJson);
+      
+      if (Array.isArray(config)) {
+        return config.map((tier: any) => {
+          const start = tier.startDay ?? tier.StartDay ?? 0;
+          const end = tier.endDay ?? tier.EndDay ?? 0;
+          const pct = tier.bonusPercentage ?? tier.BonusPercentage ?? 0;
+          return {
+            name: `${t('payment_day')} ${start} - ${end}`,
+            targetDay: end,
+            bonusPercentage: pct,
+            isAchieved: activeDays >= start
+          };
+        });
+      }
+
+      if (typeof config === 'object') {
+        const startPct = config.startingBonusPercent ?? 7.5;
+        const msList = config.milestones || [];
+        const list: MilestoneItem[] = [
+          { name: t('loyalty_bonus_structure'), targetDay: 1, bonusPercentage: startPct, isAchieved: activeDays >= 1 }
+        ];
+        
+        msList.forEach((ms: any) => {
+          if (ms.days !== undefined) {
+            list.push({
+              name: `${t('day_number')} ${ms.days} ${t('milestone_target')}`,
+              targetDay: ms.days,
+              bonusPercentage: ms.bonusPercent || 0,
+              isAchieved: activeDays >= ms.days
+            });
+          } else if (ms.installment !== undefined) {
+            const targetInst = ms.installment;
+            const label = `${t('installment')} ${targetInst} ${t('milestone_target')}`;
+            const isMonthAchieved = installmentsPaid >= targetInst;
+            list.push({
+              name: label,
+              targetDay: targetInst,
+              bonusPercentage: ms.bonusPercent || 0,
+              isAchieved: isMonthAchieved
+            });
+          }
+        });
+        return list;
+      }
+    } catch (e) {
+      console.error('Error parsing milestones:', e);
+    }
+
+    return [];
+  };
 
   useEffect(() => {
     // 1. If not loaded, run refresh
@@ -92,12 +162,10 @@ export const SchemeDetail: React.FC = () => {
       setAutoPayEnabled(userActiveScheme.autoPayEnabled || false);
 
       // Setup milestones
-      setMilestones([
-        { name: 'Join Bonus', targetDay: 1, bonusPercentage: 7.5, isAchieved: true },
-        { name: 'Month 3 Milestone', targetDay: 90, bonusPercentage: 5.5, isAchieved: true },
-        { name: 'Month 6 Milestone', targetDay: 180, bonusPercentage: 3.5, isAchieved: false },
-        { name: 'Maturity Bonus', targetDay: 330, bonusPercentage: 1.5, isAchieved: false }
-      ]);
+      setMilestones(parseMilestones(
+        matching?.bonusConfigJson || null,
+        userActiveScheme.schemeDayNumber
+      ));
     } else {
       setIsActive(false);
     }
@@ -165,7 +233,7 @@ export const SchemeDetail: React.FC = () => {
 
   const handleJoinScheme = async () => {
     if (kycLevel === 'BASIC') {
-      alert('Please complete your KYC verification profile to join this saving plan.');
+      alert(t('kyc_required_desc'));
       navigate('/onboarding');
       return;
     }
@@ -186,6 +254,243 @@ export const SchemeDetail: React.FC = () => {
   };
 
   const mgToGrams = (mg: number) => `${(mg / 1000).toFixed(4)} g`;
+
+  const renderContentWithTable = (text: string) => {
+    if (!text) return null;
+    const startIdx = text.indexOf('[TABLE]');
+    const endIdx = text.indexOf('[/TABLE]');
+
+    if (startIdx === -1 || endIdx === -1) {
+      return <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '20px', margin: 0, whiteSpace: 'pre-line' }}>{text}</p>;
+    }
+
+    const cleanText = text.substring(0, startIdx).trim();
+    const tablePart = text.substring(startIdx + 7, endIdx).trim();
+    const restText = text.substring(endIdx + 8).trim();
+
+    const lines = tablePart.split('\n').map(l => l.trim()).filter(Boolean);
+    
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {cleanText && <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '20px', margin: 0, whiteSpace: 'pre-line' }}>{cleanText}</p>}
+        
+        {lines.length > 0 && (
+          <div style={{ overflowX: 'auto', border: '1px solid #ECECEC', borderRadius: '8px', marginTop: '6px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <thead>
+                <tr style={{ background: '#F9FAFB', borderBottom: '1px solid #ECECEC' }}>
+                  {lines[0].split('|').map((h, i) => (
+                    <th key={i} style={{ padding: '8px 12px', fontWeight: 'bold', color: 'var(--brand-dark)', borderRight: '1px solid #ECECEC', textAlign: 'left' }}>
+                      {h.trim()}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {lines.slice(1).map((row, ri) => (
+                  <tr key={ri} style={{ borderBottom: ri < lines.length - 2 ? '1px solid #ECECEC' : 'none' }}>
+                    {row.split('|').map((c, ci) => (
+                      <td key={ci} style={{ padding: '8px 12px', color: 'var(--text-secondary)', borderRight: '1px solid #ECECEC' }}>
+                        {c.trim()}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        
+        {restText && <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '20px', margin: 0, whiteSpace: 'pre-line' }}>{restText}</p>}
+      </div>
+    );
+  };
+
+  const renderCustomSections = () => {
+    if (!scheme || !scheme.customSectionsJson) return null;
+    try {
+      const sections = JSON.parse(scheme.customSectionsJson);
+      if (!Array.isArray(sections) || sections.length === 0) return null;
+
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {sections.map((sec: any, idx: number) => {
+            const type = sec.type !== undefined ? sec.type : 0;
+            
+            if (type === 0) {
+              // Accordion FAQ Style
+              const isOpen = !!openTabs[idx];
+              return (
+                <div key={idx} className="glass-card" style={{ borderRadius: '16px', padding: '0', background: 'white', overflow: 'hidden' }}>
+                  <button
+                    onClick={() => setOpenTabs({ ...openTabs, [idx]: !isOpen })}
+                    style={{
+                      width: '100%',
+                      background: 'transparent',
+                      border: 'none',
+                      padding: '16px 20px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      color: 'var(--brand-dark)',
+                      fontFamily: 'var(--font-poppins)',
+                      fontWeight: 'bold',
+                      fontSize: '14px',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <span>{sec.title}</span>
+                    <span style={{
+                      transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                      display: 'inline-block',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      color: 'var(--brand-accent)'
+                    }}>
+                      ▼
+                    </span>
+                  </button>
+                  <div style={{
+                    maxHeight: isOpen ? '2000px' : '0px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out',
+                    borderTop: isOpen ? '1px solid #ECECEC' : 'none'
+                  }}>
+                    <div style={{ padding: '16px 20px' }}>
+                      {renderContentWithTable(sec.content)}
+                    </div>
+                  </div>
+                </div>
+              );
+            } else if (type === 1) {
+              // Premium Highlights Card
+              return (
+                <div key={idx} className="glass-card" style={{
+                  borderRadius: '16px',
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, #FFFDF9 0%, #FFFFFF 100%)',
+                  border: '1.5px solid #FFD700',
+                  boxShadow: '0 4px 20px rgba(255, 215, 0, 0.08)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                    <Award size={18} color="#FFB300" />
+                    <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
+                      {sec.title}
+                    </h3>
+                  </div>
+                  {renderContentWithTable(sec.content)}
+                </div>
+              );
+            } else {
+              // 2-Column Grid/Card Style
+              return (
+                <div key={idx} className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', marginBottom: '12px', marginTop: 0 }}>
+                    {sec.title}
+                  </h3>
+                  {renderContentWithTable(sec.content)}
+                </div>
+              );
+            }
+          })}
+        </div>
+      );
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const renderLoyaltyBonusStructure = () => {
+    if (!scheme) return null;
+    if (!scheme.bonusConfigJson) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold' }}>
+            <span>{t('payment_day')}</span>
+            <span>{t('bonus_credited')}</span>
+          </div>
+          <div style={{ height: '1px', background: '#F3F4F6' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+            <span>Day 1 to 75</span>
+            <span style={{ color: 'var(--success-green)', fontWeight: 'bold' }}>7.5% Bonus weight</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+            <span>Day 76 to 150</span>
+            <span style={{ color: 'var(--warning-amber)', fontWeight: 'bold' }}>5.5% Bonus weight</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+            <span>Day 151 to 330</span>
+            <span style={{ color: 'var(--brand-accent)', fontWeight: 'bold' }}>3.5% Bonus weight</span>
+          </div>
+        </div>
+      );
+    }
+
+    try {
+      const config = JSON.parse(scheme.bonusConfigJson);
+      if (Array.isArray(config)) {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold' }}>
+              <span>{t('payment_interval')}</span>
+              <span>{t('bonus_credited')}</span>
+            </div>
+            <div style={{ height: '1px', background: '#F3F4F6' }} />
+            {config.map((tier: any, idx: number) => {
+              const start = tier.startDay ?? tier.StartDay ?? 0;
+              const end = tier.endDay ?? tier.EndDay ?? 0;
+              const pct = tier.bonusPercentage ?? tier.BonusPercentage ?? 0;
+              return (
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                  <span>Day {start} to {end}</span>
+                  <span style={{ color: 'var(--success-green)', fontWeight: 'bold' }}>{pct}% Bonus weight</span>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      
+      if (typeof config === 'object') {
+        const startPct = config.startingBonusPercent ?? 7.5;
+        const milestones = config.milestones || [];
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold' }}>
+              <span>{t('milestone_target')}</span>
+              <span>{t('bonus_value')}</span>
+            </div>
+            <div style={{ height: '1px', background: '#F3F4F6' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+              <span>Starting Loyalty Bonus</span>
+              <span style={{ color: 'var(--success-green)', fontWeight: 'bold' }}>{startPct}% Bonus weight</span>
+            </div>
+            {milestones.map((ms: any, idx: number) => {
+              let label = '';
+              let val = '';
+              if (ms.days !== undefined) {
+                label = `Day ${ms.days} Completed`;
+                val = `+${ms.bonusPercent}% Bonus`;
+              } else if (ms.installment !== undefined) {
+                label = `Installment ${ms.installment} Reached`;
+                val = ms.flatGoldBonusMg ? `+${ms.flatGoldBonusMg} mg Gold` : `+${ms.bonusPercent || ms.freeMonthBonusPercent}%`;
+              }
+              return (
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                  <span>{label}</span>
+                  <span style={{ color: 'var(--brand-accent)', fontWeight: 'bold' }}>{val}</span>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+    } catch (e) {
+      return <span style={{ color: 'red', fontSize: '11px' }}>Failed to parse bonus methodology</span>;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -222,7 +527,7 @@ export const SchemeDetail: React.FC = () => {
           <ArrowLeft size={24} />
         </button>
         <span style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', fontFamily: 'var(--font-poppins)' }}>
-          {isActive ? 'My Saving Chit Plan' : 'Plan Specifications'}
+          {isActive ? t('my_saving_plan') : t('plan_specifications')}
         </span>
       </div>
 
@@ -236,17 +541,17 @@ export const SchemeDetail: React.FC = () => {
 
           <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
             <div>
-              <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>TENURE</span>
-              <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{scheme.totalInstallments} Months</div>
+              <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>{t('tenure').toUpperCase()}</span>
+              <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{scheme.totalInstallments} {scheme.frequency === 'Daily' ? 'Days' : t('months')}</div>
             </div>
             <div style={{ width: '1px', height: '20px', background: 'rgba(0,0,0,0.1)' }} />
             <div>
-              <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>INSTALLMENT</span>
-              <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{formatRupees(scheme.installmentAmountPaise)} / month</div>
+              <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>{t('installment').toUpperCase()}</span>
+              <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{formatRupees(scheme.installmentAmountPaise)} / {scheme.frequency === 'Daily' ? 'day' : 'month'}</div>
             </div>
             <div style={{ width: '1px', height: '20px', background: 'rgba(0,0,0,0.1)' }} />
             <div>
-              <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>FREQUENCY</span>
+              <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>{t('frequency').toUpperCase()}</span>
               <div style={{ fontSize: '13px', fontWeight: 'bold', textTransform: 'capitalize' }}>{scheme.frequency}</div>
             </div>
           </div>
@@ -258,7 +563,7 @@ export const SchemeDetail: React.FC = () => {
             {/* Progress Card */}
             <div className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Installments Paid</span>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{t('installments_paid')}</span>
                 <span style={{ fontSize: '14px', fontWeight: '900', color: 'var(--brand-accent)' }}>
                   {installmentsPaid} / {scheme.totalInstallments}
                 </span>
@@ -276,83 +581,140 @@ export const SchemeDetail: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-                <span>Next due date: {nextDueDate ? new Date(nextDueDate).toLocaleDateString() : '—'}</span>
-                <span>Day Number: {schemeDayNumber}</span>
+                <span>{t('next_due_date')}: {nextDueDate ? new Date(nextDueDate).toLocaleDateString() : '—'}</span>
+                <span>{t('day_number')}: {schemeDayNumber}</span>
               </div>
             </div>
 
-            {/* Balances Grid Card */}
-            <div className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Accumulated Balances</h3>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '4px' }}>
-                <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Total Gold Saved</span>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FFB300' }}>{mgToGrams(accumulatedGoldMg)}</div>
-                </div>
-                <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Total Saving Value</span>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{formatRupeesFull(totalSavingsAddedPaise)}</div>
-                </div>
-                <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Bonus Gold Weight</span>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--brand-accent)' }}>{mgToGrams(totalBonusGoldMg)}</div>
-                </div>
-                <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Total Bonus Earned</span>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{formatRupeesFull(totalBonusEarnedPaise)}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Milestones Roadmaps */}
+            {/* Loyalty Milestones Timeline */}
             {milestones.length > 0 && (
-              <div className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Milestone size={18} color="var(--brand-accent)" />
-                  <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Milestone Roadmap</h3>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative', paddingLeft: '24px', marginTop: '4px' }}>
-                  {/* Timeline Bar */}
-                  <div style={{ position: 'absolute', left: '7px', top: '10px', bottom: '10px', width: '2px', background: '#E5E7EB' }} />
-
+              <div className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
+                  {t('milestone_roadmap')}
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '6px', position: 'relative', paddingLeft: '8px' }}>
                   {milestones.map((ms, idx) => (
-                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative' }}>
-                      {/* Circle indicator */}
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
+                      {/* Vertical line connecting nodes */}
+                      {idx < milestones.length - 1 && (
+                        <div style={{
+                          position: 'absolute',
+                          left: '5px',
+                          top: '16px',
+                          width: '2px',
+                          height: '24px',
+                          background: ms.isAchieved && milestones[idx + 1].isAchieved ? 'var(--success-green)' : '#E5E7EB',
+                          zIndex: 1
+                        }} />
+                      )}
+                      {/* Timeline node dot */}
                       <div style={{
-                        position: 'absolute', left: '-23px', top: '4px', width: '12px', height: '12px', borderRadius: '50%',
-                        background: ms.isAchieved ? 'var(--success-green)' : '#D1D5DB',
-                        border: '2px solid white', boxShadow: '0 0 0 1px rgba(0,0,0,0.05)'
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '50%',
+                        background: ms.isAchieved ? 'var(--success-green)' : '#E5E7EB',
+                        border: ms.isAchieved ? '2px solid #D1FAE5' : '2px solid white',
+                        boxShadow: ms.isAchieved ? '0 0 8px rgba(16, 185, 129, 0.4)' : 'none',
+                        zIndex: 2
                       }} />
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: ms.isAchieved ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                      
+                      <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{
+                          fontSize: '12.5px',
+                          color: ms.isAchieved ? 'var(--brand-dark)' : 'var(--text-secondary)',
+                          fontWeight: ms.isAchieved ? 'bold' : 'normal'
+                        }}>
                           {ms.name}
                         </span>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Target Day: {ms.targetDay}</span>
+                        <span style={{
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          color: ms.isAchieved ? 'var(--success-green)' : 'var(--text-muted)'
+                        }}>
+                          {ms.bonusPercentage}% {ms.isAchieved ? t('achieved') : t('pending')}
+                        </span>
                       </div>
-
-                      <span style={{
-                        fontSize: '11px', fontWeight: 'bold',
-                        color: ms.isAchieved ? 'var(--success-green)' : 'var(--brand-mid)'
-                      }}>
-                        {ms.bonusPercentage}% Bonus
-                      </span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Auto Pay toggle */}
+            {/* Plan Summary Table (Bilingual simplified breakdown for accessibility) */}
+            <div className="glass-card" style={{ borderRadius: '16px', padding: '0', background: 'white', overflow: 'hidden', border: '1.5px solid #FFD700', boxShadow: '0 4px 16px rgba(255, 215, 0, 0.06)' }}>
+              <div style={{ background: 'linear-gradient(135deg, #FFFDF9 0%, #FFF9F0 100%)', padding: '12px 16px', borderBottom: '1px solid #ECECEC' }}>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block' }}>
+                  Plan Summary Table / சேமிப்பு விவர அட்டவணை
+                </span>
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+                <tbody>
+                  <tr style={{ borderBottom: '1px solid #ECECEC' }}>
+                    <td style={{ padding: '10px 16px', color: 'var(--text-secondary)' }}>Installments Paid / தவணைகள்</td>
+                    <td style={{ padding: '10px 16px', fontWeight: 'bold', textAlign: 'right', color: 'var(--brand-dark)' }}>
+                      {installmentsPaid} / {scheme.totalInstallments}
+                    </td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #ECECEC' }}>
+                    <td style={{ padding: '10px 16px', color: 'var(--text-secondary)' }}>Total Deposited / சேமிப்பு தொகை</td>
+                    <td style={{ padding: '10px 16px', fontWeight: 'bold', textAlign: 'right', color: 'var(--brand-dark)' }}>
+                      {formatRupeesFull(totalSavingsAddedPaise)}
+                    </td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #ECECEC' }}>
+                    <td style={{ padding: '10px 16px', color: 'var(--text-secondary)' }}>Gold Accumulated / சேமித்த தங்கம்</td>
+                    <td style={{ padding: '10px 16px', fontWeight: 'bold', textAlign: 'right', color: '#FFB300' }}>
+                      {mgToGrams(accumulatedGoldMg)}
+                    </td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #ECECEC' }}>
+                    <td style={{ padding: '10px 16px', color: 'var(--text-secondary)' }}>Bonus Gold / போனஸ் தங்கம்</td>
+                    <td style={{ padding: '10px 16px', fontWeight: 'bold', textAlign: 'right', color: 'var(--brand-accent)' }}>
+                      {mgToGrams(totalBonusGoldMg)}
+                    </td>
+                  </tr>
+                  <tr style={{ background: '#FFFDF9', fontWeight: 'bold' }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--brand-dark)' }}>Total Weight / மொத்த தங்கம் (Vault)</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--brand-accent)', fontSize: '14px' }}>
+                      {mgToGrams(accumulatedGoldMg + totalBonusGoldMg)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Balances Grid Card */}
+            <div className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('accumulated_balances')}</h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '4px' }}>
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{t('total_gold_saved')}</span>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FFB300' }}>{mgToGrams(accumulatedGoldMg)}</div>
+                </div>
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{t('total_saving_value')}</span>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{formatRupeesFull(totalSavingsAddedPaise)}</div>
+                </div>
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{t('bonus_gold_weight')}</span>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--brand-accent)' }}>{mgToGrams(totalBonusGoldMg)}</div>
+                </div>
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{t('total_bonus_earned')}</span>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{formatRupeesFull(totalBonusEarnedPaise)}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Autopay Subscription config */}
             <div className="glass-card" style={{
               borderRadius: '16px', padding: '16px', background: 'white',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center'
             }}>
               <div>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block' }}>Autopay Subscription</span>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Auto-debit installments monthly via UPI</span>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block' }}>{t('autopay_subscription')}</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t('autopay_desc')}</span>
               </div>
               <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '40px', height: '22px' }}>
                 <input
@@ -388,7 +750,7 @@ export const SchemeDetail: React.FC = () => {
                 {isProcessing ? (
                   <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
                 ) : (
-                  'Pay Installment'
+                  t('pay_installment')
                 )}
               </button>
 
@@ -401,7 +763,7 @@ export const SchemeDetail: React.FC = () => {
                     boxShadow: '0 8px 16px var(--gold-glow)'
                   }}
                 >
-                  Redeem Plan 🎁
+                  {t('redeem')} Plan 🎁
                 </button>
               )}
             </div>
@@ -409,35 +771,20 @@ export const SchemeDetail: React.FC = () => {
         ) : (
           /* Render Specs and Join details if NOT Joined */
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* Bonus Rules */}
+            {/* Dynamic Custom content sections (FAQs, Highlights, Grids) */}
+            {renderCustomSections()}
+
+            {/* Loyalty Bonus Structure */}
             <div className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Award size={18} color="var(--brand-accent)" />
-                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Loyalty Bonus Structure</h3>
+                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('loyalty_bonus_structure')}</h3>
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '18px', margin: 0 }}>
-                Join this plan early to grab maximum benefits. Bonus weight percentage varies based on the day number you pay.
+                {t('loyalty_bonus_desc')}
               </p>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold' }}>
-                  <span>Payment Day</span>
-                  <span>Bonus Credited</span>
-                </div>
-                <div style={{ height: '1px', background: '#F3F4F6' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                  <span>Day 1 to 75</span>
-                  <span style={{ color: 'var(--success-green)', fontWeight: 'bold' }}>7.5% Bonus weight</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                  <span>Day 76 to 150</span>
-                  <span style={{ color: 'var(--warning-amber)', fontWeight: 'bold' }}>5.5% Bonus weight</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                  <span>Day 151 to 330</span>
-                  <span style={{ color: 'var(--brand-accent)', fontWeight: 'bold' }}>3.5% Bonus weight</span>
-                </div>
-              </div>
+              {renderLoyaltyBonusStructure()}
             </div>
 
             {/* KYC warnings if basic */}
@@ -448,9 +795,9 @@ export const SchemeDetail: React.FC = () => {
               }}>
                 <ShieldAlert size={20} color="var(--warning-amber)" style={{ marginTop: '2px' }} />
                 <div>
-                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block' }}>KYC Completion Required</span>
+                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block' }}>{t('kyc_completion_required')}</span>
                   <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                    You need to complete PAN and Aadhaar identity verification before subscribing to chit plans.
+                    {t('kyc_required_detail')}
                   </span>
                 </div>
               </div>
@@ -469,7 +816,7 @@ export const SchemeDetail: React.FC = () => {
               {isProcessing ? (
                 <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid white', borderTop: '3px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
               ) : (
-                kycLevel === 'BASIC' ? 'Complete KYC to Join' : 'Join Scheme Plan'
+                kycLevel === 'BASIC' ? t('complete_kyc_join') : t('join_scheme_plan')
               )}
             </button>
           </div>

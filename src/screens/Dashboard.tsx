@@ -83,7 +83,10 @@ interface TransactionItem {
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { t, lang, changeLanguage } = useTranslation();
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedTab, setSelectedTab] = useState(() => {
+    const saved = localStorage.getItem('DASHBOARD_ACTIVE_TAB');
+    return saved ? parseInt(saved, 10) : 0;
+  });
 
   // User details
   const [userName, setUserName] = useState('');
@@ -130,6 +133,29 @@ export const Dashboard: React.FC = () => {
 
   // Profile Tab Bank Accounts
   const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+
+  // Profile Tab KYC status and documents
+  const [kycDocs, setKycDocs] = useState<any[]>([]);
+  const [kycStatusMsg, setKycStatusMsg] = useState('');
+
+  useEffect(() => {
+    const fetchKycStatus = async () => {
+      const userId = SessionManager.getUserId();
+      if (!userId) return;
+      try {
+        const res = await ApiClient.get(`api/Kyc/status/${userId}`);
+        if (res.data && res.data.success) {
+          setKycDocs(res.data.documents || []);
+          setKycStatusMsg(res.data.status || 'PENDING');
+        }
+      } catch (err) {
+        console.error('Failed to load KYC documents:', err);
+      }
+    };
+    if (selectedTab === 2) {
+      fetchKycStatus();
+    }
+  }, [selectedTab]);
 
   // Consume from AppContext
   const {
@@ -223,8 +249,27 @@ export const Dashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem('DASHBOARD_ACTIVE_TAB', String(selectedTab));
+  }, [selectedTab]);
+
+  useEffect(() => {
+    const handleTabChange = () => {
+      const saved = localStorage.getItem('DASHBOARD_ACTIVE_TAB');
+      if (saved) {
+        setSelectedTab(parseInt(saved, 10));
+      }
+    };
+    window.addEventListener('dashboardTabChange', handleTabChange);
+    return () => {
+      window.removeEventListener('dashboardTabChange', handleTabChange);
+    };
+  }, []);
+
   const handleLogout = () => {
     SessionManager.clearSession();
+    localStorage.removeItem('ONBOARDING_STAGE');
+    localStorage.removeItem('PHONE_NUMBER');
     navigate('/login');
   };
 
@@ -438,11 +483,12 @@ export const Dashboard: React.FC = () => {
         
         {/* TAB 0: HOME VIEW */}
         {selectedTab === 0 && (
-          <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="dashboard-home-container" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
             {/* Soft KYC Restriction alert banner */}
             {(kycLevel === 'BASIC' || kycLevel === 'PENDING') && (
               <div
+                className="kyc-alert-banner"
                 onClick={() => navigate('/onboarding')}
                 style={{
                   background: 'var(--warning-light)',
@@ -467,6 +513,7 @@ export const Dashboard: React.FC = () => {
 
             {/* Unified Portfolio Card */}
             <div
+              className="portfolio-card"
               onClick={() => navigate('/portfolio-analytics')}
               style={{
                 background: 'var(--gradient-brand)',
@@ -510,8 +557,79 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
 
+            {/* Live Metal Rates Card */}
+            <div className="glass-card live-rates-card" style={{
+              borderRadius: '20px',
+              padding: '16px 20px',
+              background: 'white',
+              border: '1px solid rgba(0,0,0,0.06)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', fontFamily: 'var(--font-poppins)' }}>
+                  Live Metal Rates / நேரடி உலோக விலைகள்
+                </span>
+                <span style={{
+                  fontSize: '9px',
+                  background: 'var(--success-light)',
+                  color: 'var(--success-green)',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  fontWeight: 'bold'
+                }}>
+                  ● LIVE
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                {/* Gold Rates */}
+                <div style={{ background: 'linear-gradient(135deg, #FFFDF9 0%, #FFF9F0 100%)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 215, 0, 0.2)' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--gold-deep)', display: 'block', marginBottom: '6px' }}>
+                    Gold / தங்கம் (per g)
+                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>24K (99.9%):</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                        ₹{((livePrice?.price24KPaise || 754200) / 100).toFixed(2)}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>22K (91.6%):</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                        ₹{((livePrice?.price22KPaise || 701000) / 100).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Silver Rates */}
+                <div style={{ background: 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0, 0, 0, 0.04)' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#6B7280', display: 'block', marginBottom: '6px' }}>
+                    Silver / வெள்ளி (per g)
+                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>99.9% Pure:</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                        ₹{Math.max(92.5, Math.round((livePrice?.price22KPaise || 701000) * 0.0132) / 100).toFixed(2)}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Sterling (92.5):</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                        ₹{Math.max(85.5, Math.round((livePrice?.price22KPaise || 701000) * 0.0132 * 0.925) / 100).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Quick Actions Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="quick-actions-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <button
                 onClick={() => navigate('/referral')}
                 style={{
@@ -537,7 +655,7 @@ export const Dashboard: React.FC = () => {
 
             {/* Promo Pager banners */}
             {banners.length > 0 && (
-              <div style={{
+              <div className="promo-banner-container" style={{
                 width: '100%', height: '120px', borderRadius: '16px', background: 'var(--gradient-accent)',
                 color: 'white', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center',
                 boxShadow: '0 6px 12px rgba(194, 24, 91, 0.15)', cursor: 'pointer'
@@ -549,7 +667,7 @@ export const Dashboard: React.FC = () => {
             )}
 
             {/* Available Schemes List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="available-schemes-section" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('start_saving')}</h3>
                 <button onClick={() => navigate('/scheme-explorer')} style={{ background: 'transparent', border: 'none', color: 'var(--brand-accent)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
@@ -583,7 +701,7 @@ export const Dashboard: React.FC = () => {
 
             {/* Flash Sale Promo */}
             {offerTitle && (
-              <div style={{
+              <div className="flash-sale-promo" style={{
                 background: 'var(--gold-soft)', border: '1px solid rgba(255, 215, 0, 0.3)', borderRadius: '16px',
                 padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
               }}>
@@ -605,7 +723,7 @@ export const Dashboard: React.FC = () => {
 
             {/* Active Schemes Tracker list */}
             {activeSchemes.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="active-schemes-section" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('active_schemes')}</h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -813,10 +931,10 @@ export const Dashboard: React.FC = () => {
 
         {/* TAB 2: PROFILE & SETTINGS VIEW */}
         {selectedTab === 2 && (
-          <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="dashboard-profile-container" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
             {/* Account Info summary */}
-            <div className="glass-card" style={{ padding: '20px', borderRadius: '16px', background: 'white', display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <div className="glass-card profile-info-card" style={{ padding: '20px', borderRadius: '16px', background: 'white', display: 'flex', gap: '16px', alignItems: 'center' }}>
               <div style={{
                 width: '56px', height: '56px', borderRadius: '50%', background: 'var(--gradient-brand)',
                 color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -837,8 +955,86 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
 
+            {/* Personal Details / தனிப்பட்ட விவரங்கள் */}
+            <div className="glass-card profile-details-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block', fontFamily: 'var(--font-poppins)' }}>
+                {t('personal_info')}
+              </span>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12.5px', fontFamily: 'var(--font-poppins)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{t('full_name_label')}</span>
+                  <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{userName}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{t('phone_number_label')}</span>
+                  <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>+91 {userPhone}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{t('email_address_label')}</span>
+                  <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{profile?.email || '—'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{t('dob_label')}</span>
+                  <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : '—'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{t('nominee_label')}</span>
+                  <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{nomineeName || t('not_configured')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '4px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{t('verification_status_label')}</span>
+                  <span style={{
+                    fontWeight: 'bold',
+                    color: kycLevel === 'FULL' ? 'var(--success-green)' : 'var(--warning-amber)',
+                    textTransform: 'capitalize'
+                  }}>
+                    {kycLevel.toLowerCase()} KYC ({kycStatusMsg || 'Pending'})
+                  </span>
+                </div>
+              </div>
+
+              {/* Uploaded KYC Documents List */}
+              <div style={{ marginTop: '8px', borderTop: '1px dashed #ECECEC', paddingTop: '12px', fontFamily: 'var(--font-poppins)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+                  {t('kyc_documents_label')}
+                </span>
+                
+                {kycDocs.length === 0 ? (
+                  <span style={{ fontSize: '12px', color: 'var(--text-light)', fontStyle: 'italic' }}>
+                    {t('no_kyc_documents')}
+                  </span>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {kycDocs.map((doc, idx) => (
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F9FAFB', padding: '8px 12px', borderRadius: '8px' }}>
+                        <div>
+                          <span style={{ fontSize: '11.5px', fontWeight: 'bold', display: 'block', color: 'var(--brand-dark)' }}>
+                            {doc.documentType === 'pan' ? 'PAN Card' : 'Aadhaar Card'}
+                          </span>
+                          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                            No: {doc.documentNumber}
+                          </span>
+                        </div>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: 'bold',
+                          padding: '2px 6px',
+                          borderRadius: '6px',
+                          background: doc.status === 'APPROVED' ? 'var(--success-light)' : doc.status === 'REJECTED' ? 'var(--error-light)' : 'var(--warning-light)',
+                          color: doc.status === 'APPROVED' ? 'var(--success-green)' : doc.status === 'REJECTED' ? 'var(--error-red)' : 'var(--warning-amber)'
+                        }}>
+                          {doc.status === 'APPROVED' ? t('approved_status') : doc.status === 'REJECTED' ? t('rejected_status') : t('review_status')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Linked Bank Accounts */}
-            <div className="glass-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="glass-card profile-bank-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{t('linked_bank_accounts')}</span>
                 <button onClick={() => navigate('/add-bank-account')} style={{ background: 'transparent', border: 'none', color: 'var(--brand-accent)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}>
@@ -858,7 +1054,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Nominee Settings */}
-            <div className="glass-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="glass-card profile-nominee-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{t('nominee_config')}</span>
               
               {isEditingNominee ? (
@@ -890,7 +1086,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Language Settings */}
-            <div className="glass-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="glass-card profile-lang-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{
@@ -955,7 +1151,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Navigation Reference Links */}
-            <div className="glass-card" style={{ borderRadius: '16px', background: 'white', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div className="glass-card profile-links-card" style={{ borderRadius: '16px', background: 'white', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               {[
                 { title: t('menu_about_us'), route: '/about' },
                 { title: t('menu_faqs'), route: '/faq' },
@@ -979,7 +1175,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Supportdial Compliance Compliance Compliance */}
-            <div style={{ textAlign: 'center', marginTop: '10px' }}>
+            <div className="profile-support-wrap" style={{ textAlign: 'center', marginTop: '10px' }}>
               <button
                 onClick={() => window.open('tel:+919443000000')}
                 style={{
@@ -992,7 +1188,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Logout button at bottom */}
-            <div style={{ textAlign: 'center', marginTop: '24px' }}>
+            <div className="profile-logout-wrap" style={{ textAlign: 'center', marginTop: '24px' }}>
               <button
                 onClick={handleLogout}
                 style={{
