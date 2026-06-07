@@ -146,7 +146,11 @@ export const translations = {
     rejected_status: "Rejected",
     review_status: "Under Review",
     achieved: "Achieved",
-    pending: "Pending"
+    pending: "Pending",
+    live_metal_rates: "Live Metal Rates",
+    gold_per_g: "Gold (per g)",
+    silver_per_g: "Silver (per g)",
+    verify_pin: "Verify PIN"
   },
   ta: {
     app_name: "ஐஸ்வர்யம் @ உங்கள் இல்லத்தில்",
@@ -292,7 +296,11 @@ export const translations = {
     rejected_status: "நிராகரிக்கப்பட்டது",
     review_status: "சரிபார்ப்பில் உள்ளது",
     achieved: "அடையப்பட்டது",
-    pending: "நிலுவையில் உள்ளது"
+    pending: "நிலுவையில் உள்ளது",
+    live_metal_rates: "நேரடி உலோக விலைகள்",
+    gold_per_g: "தங்கம் (ஒரு கிராமுக்கு)",
+    silver_per_g: "வெள்ளி (ஒரு கிராமுக்கு)",
+    verify_pin: "சமர்ப்பி"
   }
 };
 

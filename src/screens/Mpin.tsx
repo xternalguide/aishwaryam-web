@@ -4,6 +4,7 @@ import { SessionManager, OnboardingStage } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
 import { CheckCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from '../utils/translation';
 
 const MpinFlowState = {
   ENTER_PIN: 'ENTER_PIN',
@@ -17,6 +18,7 @@ type MpinFlowState = typeof MpinFlowState[keyof typeof MpinFlowState];
 export const Mpin: React.FC = () => {
   const navigate = useNavigate();
   const { refreshData } = useApp();
+  const { t } = useTranslation();
   const { mode } = useParams<{ mode: 'setup' | 'verify' }>();
   const isSetupMode = mode === 'setup';
 
@@ -372,7 +374,7 @@ export const Mpin: React.FC = () => {
                 {isLoading ? (
                   <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
                 ) : (
-                  'Verify PIN / சமர்ப்பி'
+                  t('verify_pin')
                 )}
               </button>
 

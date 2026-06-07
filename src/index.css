@@ -261,3 +261,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .splash-logo-animated {
   animation: floatLogo 3s ease-in-out infinite;
 }
+
+/* Universal safe area top padding for all top headers/navigation bars on notch devices */
+div[style*="height: 100vh"] > div[style*="border-bottom"],
+div[style*="height: 100vh"] > div[style*="borderBottom"] {
+  padding-top: calc(16px + env(safe-area-inset-top, 0px)) !important;
+}

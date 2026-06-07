@@ -437,7 +437,10 @@ export const Dashboard: React.FC = () => {
       <div style={{
         background: 'white',
         borderBottom: '1px solid #ECECEC',
-        padding: '16px 20px',
+        paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
+        paddingLeft: '20px',
+        paddingRight: '20px',
+        paddingBottom: '16px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -570,7 +573,7 @@ export const Dashboard: React.FC = () => {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', fontFamily: 'var(--font-poppins)' }}>
-                  Live Metal Rates / நேரடி உலோக விலைகள்
+                  {t('live_metal_rates')}
                 </span>
                 <span style={{
                   fontSize: '9px',
@@ -587,7 +590,7 @@ export const Dashboard: React.FC = () => {
                 {/* Gold Rates */}
                 <div style={{ background: 'linear-gradient(135deg, #FFFDF9 0%, #FFF9F0 100%)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 215, 0, 0.2)' }}>
                   <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--gold-deep)', display: 'block', marginBottom: '6px' }}>
-                    Gold / தங்கம் (per g)
+                    {t('gold_per_g')}
                   </span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
@@ -608,7 +611,7 @@ export const Dashboard: React.FC = () => {
                 {/* Silver Rates */}
                 <div style={{ background: 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0, 0, 0, 0.04)' }}>
                   <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#6B7280', display: 'block', marginBottom: '6px' }}>
-                    Silver / வெள்ளி (per g)
+                    {t('silver_per_g')}
                   </span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
