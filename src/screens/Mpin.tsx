@@ -35,6 +35,7 @@ export const Mpin: React.FC = () => {
 
   const [secondsRemaining, setSecondsRemaining] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -75,6 +76,27 @@ export const Mpin: React.FC = () => {
     return () => clearInterval(interval);
   }, [flowState, secondsRemaining]);
 
+  // Loading progress animation effect (0% to 95%)
+  useEffect(() => {
+    let interval: any;
+    if (isLoading) {
+      setLoadingProgress(0);
+      interval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          if (prev >= 95) {
+            clearInterval(interval);
+            return prev;
+          }
+          const next = prev + Math.floor(Math.random() * 8) + 3; // increment by 3-10%
+          return next > 95 ? 95 : next;
+        });
+      }, 50);
+    } else {
+      setLoadingProgress(0);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
   // Handle verify existing MPIN
   const handleVerifyExistingMpin = async (val: string) => {
     if (val.length !== 4) return;
@@ -92,6 +114,10 @@ export const Mpin: React.FC = () => {
         
         // Await all API calls so Dashboard gets live prices and schemes before transition
         await refreshData();
+        
+        // Complete the progress to 100% smoothly
+        setLoadingProgress(100);
+        await new Promise((resolve) => setTimeout(resolve, 250));
         
         setSuccessMessage('Login Successful!');
         setShowSuccessDialog(true);
@@ -121,6 +147,9 @@ export const Mpin: React.FC = () => {
         phoneNumber: SessionManager.getPhoneNumber() || ''
       });
       if (response.data && response.data.success) {
+        // Complete progress to 100% smoothly
+        setLoadingProgress(100);
+        await new Promise((resolve) => setTimeout(resolve, 250));
         setSuccessMessage(flowState === MpinFlowState.SETUP_PIN ? 'PIN Set Successfully!' : 'PIN Reset Successfully!');
         setShowSuccessDialog(true);
       } else {
@@ -143,6 +172,9 @@ export const Mpin: React.FC = () => {
         otp: val
       });
       if (response.data && response.data.success) {
+        // Complete progress to 100% smoothly
+        setLoadingProgress(100);
+        await new Promise((resolve) => setTimeout(resolve, 250));
         const { token, refreshToken, userId } = response.data;
         SessionManager.saveSession(userId, token, refreshToken);
         setFlowState(MpinFlowState.FORGOT_NEW_PIN);
@@ -655,9 +687,9 @@ export const Mpin: React.FC = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(41, 0, 29, 0.85)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
+          background: 'rgba(41, 0, 29, 0.9)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -666,15 +698,47 @@ export const Mpin: React.FC = () => {
           color: 'white',
           animation: 'fadeIn 0.2s ease-out'
         }}>
-          <div className="spinner" style={{
-            width: '60px',
-            height: '60px',
-            border: '4px solid rgba(255, 255, 255, 0.1)',
-            borderTop: '4px solid var(--gold-primary)',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            marginBottom: '20px'
-          }} />
+          {/* Circular SVG Progress Loader */}
+          <div style={{ position: 'relative', width: '90px', height: '90px', marginBottom: '20px' }}>
+            <svg width="90" height="90" viewBox="0 0 90 90" style={{ transform: 'rotate(-90deg)' }}>
+              <circle
+                cx="45"
+                cy="45"
+                r="38"
+                fill="transparent"
+                stroke="rgba(255, 255, 255, 0.15)"
+                strokeWidth="5"
+              />
+              <circle
+                cx="45"
+                cy="45"
+                r="38"
+                fill="transparent"
+                stroke="var(--gold-primary)"
+                strokeWidth="5"
+                strokeDasharray={2 * Math.PI * 38}
+                strokeDashoffset={2 * Math.PI * 38 * (1 - loadingProgress / 100)}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dashoffset 0.12s ease-out' }}
+              />
+            </svg>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '18px',
+              fontWeight: '900',
+              color: 'var(--gold-primary)',
+              fontFamily: 'var(--font-poppins)'
+            }}>
+              {loadingProgress}%
+            </div>
+          </div>
           <span style={{ fontSize: '15px', fontWeight: 'bold', fontFamily: 'var(--font-poppins)', color: 'rgba(255, 255, 255, 0.9)', letterSpacing: '0.5px' }}>
             {flowState === MpinFlowState.ENTER_PIN ? 'Verifying PIN...' : 'Saving PIN...'}
           </span>

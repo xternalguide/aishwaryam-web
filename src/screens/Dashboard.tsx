@@ -570,23 +570,69 @@ export const Dashboard: React.FC = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '4px' }}>
                 {/* Gold Rates (22K) */}
-                <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: 'clamp(10px, 3vw, 14px) clamp(8px, 2.5vw, 16px)', borderRadius: '16px', border: '1px solid rgba(255, 215, 0, 0.2)' }}>
+                <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: 'clamp(10px, 3vw, 14px) clamp(8px, 2.5vw, 16px)', borderRadius: '16px', border: '1px solid rgba(255, 215, 0, 0.2)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--gold-primary)', display: 'block', marginBottom: '6px' }}>
                     Gold 22K (per g)
                   </span>
-                  <span style={{ fontSize: 'clamp(14px, 4.5vw, 20px)', fontWeight: '900', color: 'white', fontFamily: 'var(--font-poppins)' }}>
-                    ₹{((livePrice?.price22KPaise || 701000) / 100).toFixed(2)}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: 'clamp(14px, 4.5vw, 20px)', fontWeight: '900', color: 'white', fontFamily: 'var(--font-poppins)' }}>
+                      ₹{new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format((livePrice?.price22KPaise || 701000) / 100)}
+                    </span>
+                    <div 
+                      className="spinning-gold-coin"
+                      style={{
+                        width: '15px',
+                        height: '15px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #FFE082 0%, #FFB300 50%, #B8860B 100%)',
+                        border: '1px solid #FFE082',
+                        boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), 0 1px 3px rgba(0,0,0,0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '9px',
+                        fontWeight: '900',
+                        color: '#5D4037',
+                        animation: 'spinY 2.5s linear infinite',
+                        flexShrink: 0
+                      }}
+                    >
+                      G
+                    </div>
+                  </div>
                 </div>
 
                 {/* Silver Rates (99.9%) */}
-                <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: 'clamp(10px, 3vw, 14px) clamp(8px, 2.5vw, 16px)', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+                <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: 'clamp(10px, 3vw, 14px) clamp(8px, 2.5vw, 16px)', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.15)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#ECECEC', display: 'block', marginBottom: '6px' }}>
                     Silver 99.9% (per g)
                   </span>
-                  <span style={{ fontSize: 'clamp(14px, 4.5vw, 20px)', fontWeight: '900', color: 'white', fontFamily: 'var(--font-poppins)' }}>
-                    ₹{((livePrice?.priceSilverPaise || 9900) / 100).toFixed(2)}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: 'clamp(14px, 4.5vw, 20px)', fontWeight: '900', color: 'white', fontFamily: 'var(--font-poppins)' }}>
+                      ₹{new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format((livePrice?.priceSilverPaise || 9900) / 100)}
+                    </span>
+                    <div 
+                      className="spinning-silver-coin"
+                      style={{
+                        width: '15px',
+                        height: '15px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #FFFFFF 0%, #B0BEC5 50%, #546E7A 100%)',
+                        border: '1px solid #FFFFFF',
+                        boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), 0 1px 3px rgba(0,0,0,0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '9px',
+                        fontWeight: '900',
+                        color: '#37474F',
+                        animation: 'spinY 2.5s linear infinite',
+                        flexShrink: 0
+                      }}
+                    >
+                      S
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

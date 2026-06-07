@@ -316,3 +316,8 @@ input, textarea {
 .animate-tick-success {
   animation: tickSuccess 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
+
+@keyframes spinY {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
