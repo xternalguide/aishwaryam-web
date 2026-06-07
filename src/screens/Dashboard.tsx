@@ -21,7 +21,14 @@ import {
   Landmark,
   Languages,
   Headset,
-  Mail
+  Mail,
+  ChevronLeft,
+  Calculator,
+  MapPin,
+  Lock,
+  FileText,
+  Pencil,
+  ShieldCheck
 } from 'lucide-react';
 
 interface ActiveScheme {
@@ -122,6 +129,20 @@ export const Dashboard: React.FC = () => {
   const [targetAddSavingsScheme, setTargetAddSavingsScheme] = useState<ActiveScheme | null>(null);
   const [customAmountText, setCustomAmountText] = useState('');
   const [isProcessingAddSavings, setIsProcessingAddSavings] = useState(false);
+
+  // Profile Interactive Modals & Sub-states
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressPincode, setAddressPincode] = useState(() => SessionManager.getPartialPincode());
+  const [addressState, setAddressState] = useState(() => SessionManager.getPartialState());
+  const [addressCity, setAddressCity] = useState(() => SessionManager.getPartialCity());
+  const [addressArea, setAddressArea] = useState(() => SessionManager.getPartialArea());
+  const [showCalculatorModal, setShowCalculatorModal] = useState(false);
+  const [calcAmount, setCalcAmount] = useState('');
+  const [calcType, setCalcType] = useState<'RUPEES' | 'GRAMS'>('RUPEES');
+  const [showRedeemModal, setShowRedeemModal] = useState(false);
+  const [showCompletedModal, setShowCompletedModal] = useState(false);
+  const [showKycModal, setShowKycModal] = useState(false);
+  const [showBankModal, setShowBankModal] = useState(false);
 
   // History Tab Filter States
   const [txFilter, setTxFilter] = useState<'ALL' | 'BUY' | 'SELL'>('ALL');
@@ -1239,163 +1260,575 @@ export const Dashboard: React.FC = () => {
 
         {/* TAB 2: PROFILE & SETTINGS VIEW */}
         {selectedTab === 2 && (
-          <div className="dashboard-profile-container" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* Account Info summary */}
-            <div className="glass-card profile-info-card" style={{ padding: '20px', borderRadius: '16px', background: 'white', display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div style={{
-                width: '56px', height: '56px', borderRadius: '50%', background: 'var(--gradient-brand)',
-                color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 'bold', fontSize: '20px'
+          <div className="dashboard-profile-container" style={{
+            minHeight: 'calc(100vh - 64px)',
+            background: '#FFF9E6', // soft cream background at the top
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+            width: '100%',
+            maxWidth: '100%',
+            padding: 0
+          }}>
+            {/* HEADER BAR */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 20px',
+              background: '#FFF9E6',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10
+            }}>
+              <button 
+                onClick={() => setSelectedTab(0)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--brand-deep)'
+                }}
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <h2 style={{
+                fontSize: '18px',
+                fontWeight: 'bold',
+                color: 'var(--brand-deep)',
+                margin: 0,
+                fontFamily: 'var(--font-poppins)',
+                textAlign: 'center',
+                flex: 1,
+                marginRight: '40px' // offset the back arrow to center the text
               }}>
-                {userName.slice(0, 1).toUpperCase()}
-              </div>
-              <div>
-                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{userName}</h3>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Phone: +91 {userPhone}</span>
-                <span style={{
-                  fontSize: '9px', fontWeight: 'bold', color: kycLevel === 'FULL' ? 'var(--success-green)' : 'var(--warning-amber)',
-                  background: kycLevel === 'FULL' ? 'var(--success-light)' : 'var(--warning-light)',
-                  padding: '2px 6px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.05)', marginLeft: '8px'
+                {t('my_profile')}
+              </h2>
+            </div>
+
+            {/* AVATAR & USER DETAILS SECTION */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              padding: '10px 20px 24px 20px',
+              background: '#FFF9E6',
+            }}>
+              {/* Circle Avatar Wrapper */}
+              <div style={{
+                position: 'relative',
+                width: '90px',
+                height: '90px',
+                marginBottom: '16px'
+              }}>
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  background: '#ECEFF1',
+                  border: '3px solid white',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.06)'
                 }}>
-                  {kycLevel} KYC
-                </span>
-              </div>
-            </div>
-
-            {/* Personal Details / தனிப்பட்ட விவரங்கள் */}
-            <div className="glass-card profile-details-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block', fontFamily: 'var(--font-poppins)' }}>
-                {t('personal_info')}
-              </span>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12.5px', fontFamily: 'var(--font-poppins)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>{t('full_name_label')}</span>
-                  <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{userName}</span>
+                  {/* Custom SVG Cute Avatar */}
+                  <svg viewBox="0 0 100 100" width="100%" height="100%">
+                    <circle cx="50" cy="50" r="48" fill="#E8EAF6" />
+                    <path d="M25,50 C25,30 35,22 50,22 C65,22 75,30 75,50 C75,55 70,55 70,50 C70,35 62,30 50,30 C38,30 30,35 30,50 C30,55 25,55 25,50 Z" fill="#6D4C41" />
+                    <circle cx="32" cy="52" r="5" fill="#FFCC80" />
+                    <circle cx="68" cy="52" r="5" fill="#FFCC80" />
+                    <circle cx="50" cy="50" r="18" fill="#FFE0B2" />
+                    <path d="M32,45 C35,32 45,34 50,38 C55,34 65,32 68,45 C62,38 55,40 50,42 C45,40 38,38 32,45 Z" fill="#5D4037" />
+                    <path d="M32,40 C35,28 65,28 68,40" fill="none" stroke="#5D4037" strokeWidth="4" strokeLinecap="round" />
+                    <circle cx="44" cy="48" r="1.5" fill="#212121" />
+                    <circle cx="56" cy="48" r="1.5" fill="#212121" />
+                    <rect x="38" y="44" width="12" height="8" rx="3" fill="none" stroke="#37474F" strokeWidth="1.5" />
+                    <rect x="50" y="44" width="12" height="8" rx="3" fill="none" stroke="#37474F" strokeWidth="1.5" />
+                    <line x1="48" y1="47" x2="52" y2="47" stroke="#37474F" strokeWidth="1.5" />
+                    <path d="M47,54 Q50,56 53,54" fill="none" stroke="#E53935" strokeWidth="1" strokeLinecap="round" />
+                    <rect x="47" y="59" width="6" height="8" fill="#FFE0B2" />
+                    <path d="M30,85 L70,85 L65,65 C60,61 40,61 35,65 Z" fill="#1565C0" />
+                    <path d="M43,62 L50,72 L57,62 Z" fill="#FFFFFF" />
+                    <path d="M36,65 L44,78 L50,85 L56,78 L64,65 Z" fill="#0D47A1" />
+                  </svg>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>{t('phone_number_label')}</span>
-                  <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>+91 {userPhone}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>{t('email_address_label')}</span>
-                  <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{profile?.email || '—'}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>{t('dob_label')}</span>
-                  <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : '—'}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>{t('nominee_label')}</span>
-                  <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{nomineeName || t('not_configured')}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '4px' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>{t('verification_status_label')}</span>
-                  <span style={{
-                    fontWeight: 'bold',
-                    color: kycLevel === 'FULL' ? 'var(--success-green)' : 'var(--warning-amber)',
-                    textTransform: 'capitalize'
-                  }}>
-                    {kycLevel.toLowerCase()} KYC ({kycStatusMsg || 'Pending'})
-                  </span>
-                </div>
-              </div>
-
-              {/* Uploaded KYC Documents List */}
-              <div style={{ marginTop: '8px', borderTop: '1px dashed #ECECEC', paddingTop: '12px', fontFamily: 'var(--font-poppins)' }}>
-                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
-                  {t('kyc_documents_label')}
-                </span>
-                
-                {kycDocs.length === 0 ? (
-                  <span style={{ fontSize: '12px', color: 'var(--text-light)', fontStyle: 'italic' }}>
-                    {t('no_kyc_documents')}
-                  </span>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {kycDocs.map((doc, idx) => (
-                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F9FAFB', padding: '8px 12px', borderRadius: '8px' }}>
-                        <div>
-                          <span style={{ fontSize: '11.5px', fontWeight: 'bold', display: 'block', color: 'var(--brand-dark)' }}>
-                            {doc.documentType === 'pan' ? 'PAN Card' : 'Aadhaar Card'}
-                          </span>
-                          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                            No: {doc.documentNumber}
-                          </span>
-                        </div>
-                        <span style={{
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          padding: '2px 6px',
-                          borderRadius: '6px',
-                          background: doc.status === 'APPROVED' ? 'var(--success-light)' : doc.status === 'REJECTED' ? 'var(--error-light)' : 'var(--warning-light)',
-                          color: doc.status === 'APPROVED' ? 'var(--success-green)' : doc.status === 'REJECTED' ? 'var(--error-red)' : 'var(--warning-amber)'
-                        }}>
-                          {doc.status === 'APPROVED' ? t('approved_status') : doc.status === 'REJECTED' ? t('rejected_status') : t('review_status')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Linked Bank Accounts */}
-            <div className="glass-card profile-bank-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{t('linked_bank_accounts')}</span>
-                <button onClick={() => navigate('/add-bank-account')} style={{ background: 'transparent', border: 'none', color: 'var(--brand-accent)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                  <PlusCircle size={14} /> {t('add_bank')}
+                {/* Floating Edit Icon Overlay */}
+                <button 
+                  onClick={() => {
+                    const newName = prompt("Enter new full name:", userName);
+                    if (newName && newName.trim()) {
+                      setUserName(newName.trim());
+                      const userId = SessionManager.getUserId();
+                      if (userId) {
+                        ApiClient.put(`api/User/profile/${userId}`, { fullName: newName.trim() });
+                      }
+                    }
+                  }}
+                  style={{
+                    position: 'absolute',
+                    bottom: '0px',
+                    right: '0px',
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: 'white',
+                    border: '1.5px solid rgba(0,0,0,0.08)',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    padding: 0
+                  }}
+                >
+                  <Pencil size={12} color="var(--text-secondary)" />
                 </button>
               </div>
 
-              {bankAccounts.map((b, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '10px', borderRadius: '10px', background: '#F9FAFB' }}>
-                  <Landmark size={20} color="var(--success-green)" />
-                  <div>
-                    <span style={{ fontSize: '12px', fontWeight: 'bold', display: 'block' }}>{b.bankName}</span>
-                    <span style={{ fontSize: '10px', color: 'var(--text-light)' }}>A/C: {b.accountNumberMasked} · IFSC: {b.ifscCode}</span>
-                  </div>
-                </div>
-              ))}
+              {/* Name and Email */}
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '800',
+                color: 'var(--brand-deep)',
+                margin: '0 0 4px 0',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                fontFamily: 'var(--font-poppins)'
+              }}>
+                {userName}
+              </h3>
+              <span style={{
+                fontSize: '13px',
+                color: 'var(--text-muted)',
+                fontFamily: 'var(--font-poppins)',
+                fontWeight: '500'
+              }}>
+                {profile?.email || 'srivenkatesh118@gmail.com'}
+              </span>
             </div>
 
-            {/* Nominee Settings */}
-            <div className="glass-card profile-nominee-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{t('nominee_config')}</span>
+            {/* LOWER MENU CARDS CONTAINER (White Background Overlay) */}
+            <div style={{
+              flex: 1,
+              background: 'white',
+              borderTopLeftRadius: '28px',
+              borderTopRightRadius: '28px',
+              padding: '24px 20px 100px 20px',
+              boxShadow: '0 -6px 20px rgba(0,0,0,0.02)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px'
+            }}>
               
-              {isEditingNominee ? (
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text"
-                    value={newNomineeInput}
-                    onChange={(e) => setNewNomineeInput(e.target.value)}
-                    style={{ flex: 1, height: '36px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 10px', fontSize: '12px' }}
-                  />
-                  <button onClick={handleUpdateNominee} style={{ background: 'var(--brand-dark)', color: 'white', border: 'none', padding: '0 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>
-                    Save
-                  </button>
-                  <button onClick={() => setIsEditingNominee(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', padding: '0 8px', fontSize: '11px', cursor: 'pointer' }}>
-                    {t('cancel')}
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>{t('nominee_name')}</span>
-                    <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{nomineeName || t('not_configured')}</span>
+              {/* GROUP 1: CHIT & TRANSACTION ACTIONS */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                
+                {/* Card 1: Ready to Redeem */}
+                <div 
+                  onClick={() => setShowRedeemModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    border: '1px solid rgba(74, 14, 78, 0.04)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '12px',
+                      background: '#FFF8E1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#FFB300'
+                    }}>
+                      <Gift size={20} />
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      {t('ready_to_redeem')}
+                    </span>
                   </div>
-                  <button onClick={() => setIsEditingNominee(true)} style={{ background: 'transparent', border: 'none', color: 'var(--brand-mid)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>
-                    {t('edit_nominee')}
-                  </button>
+                  <ChevronRight size={18} color="var(--text-light)" />
                 </div>
-              )}
-            </div>
 
-            {/* Language Settings */}
-            <div className="glass-card profile-lang-card" style={{ padding: '16px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {/* Card 2: Price Calculator */}
+                <div 
+                  onClick={() => setShowCalculatorModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    border: '1px solid rgba(74, 14, 78, 0.04)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '12px',
+                      background: '#FFEBEE',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#EF5350'
+                    }}>
+                      <Calculator size={20} />
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      {t('price_calculator')}
+                    </span>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-light)" />
+                </div>
+
+                {/* Card 3: Recent Transactions */}
+                <div 
+                  onClick={() => setSelectedTab(1)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    border: '1px solid rgba(74, 14, 78, 0.04)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '12px',
+                      background: '#E8F5E9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#4CAF50'
+                    }}>
+                      <FileText size={20} />
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      {t('recent_transactions')}
+                    </span>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-light)" />
+                </div>
+
+                {/* Card 4: Completed Schemes */}
+                <div 
+                  onClick={() => setShowCompletedModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    border: '1px solid rgba(74, 14, 78, 0.04)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '12px',
+                      background: '#E0F7FA',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#00ACC1'
+                    }}>
+                      <Award size={20} />
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      {t('completed_schemes')}
+                    </span>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-light)" />
+                </div>
+
+              </div>
+
+              {/* GROUP 2: GENERAL SETTINGS */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <h4 style={{
+                  fontSize: '13px',
+                  fontWeight: 'bold',
+                  color: 'var(--text-muted)',
+                  margin: '0 0 4px 4px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  {t('general_settings')}
+                </h4>
+
+                {/* Card 5: Address */}
+                <div 
+                  onClick={() => setShowAddressModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    border: '1px solid rgba(74, 14, 78, 0.04)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '12px',
+                      background: '#F3E5F5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#9C27B0'
+                    }}>
+                      <MapPin size={20} />
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      {t('address_label')}
+                    </span>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-light)" />
+                </div>
+
+                {/* Card 6: KYC Details */}
+                <div 
+                  onClick={() => setShowKycModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    border: '1px solid rgba(74, 14, 78, 0.04)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '12px',
+                      background: '#E1F5FE',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#0288D1'
+                    }}>
+                      <ShieldCheck size={20} />
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      {t('kyc_details')}
+                    </span>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-light)" />
+                </div>
+
+                {/* Card 6b: Bank Accounts */}
+                <div 
+                  onClick={() => setShowBankModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    border: '1px solid rgba(74, 14, 78, 0.04)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '12px',
+                      background: '#FFF3E0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#F57C00'
+                    }}>
+                      <Landmark size={20} />
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      {t('linked_bank_accounts')}
+                    </span>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-light)" />
+                </div>
+
+                {/* Card 7: Change MPIN */}
+                <div 
+                  onClick={() => navigate('/mpin/setup')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    border: '1px solid rgba(74, 14, 78, 0.04)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '12px',
+                      background: '#FFE0B2',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#E65100'
+                    }}>
+                      <Lock size={20} />
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      {t('change_mpin')}
+                    </span>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-light)" />
+                </div>
+
+              </div>
+
+              {/* GROUP 3: SECURITY & PRIVACY */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <h4 style={{
+                  fontSize: '13px',
+                  fontWeight: 'bold',
+                  color: 'var(--text-muted)',
+                  margin: '0 0 4px 4px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  {t('security_privacy')}
+                </h4>
+
+                {/* Card 8: Privacy policy */}
+                <div 
+                  onClick={() => navigate('/legal_hub')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    border: '1px solid rgba(74, 14, 78, 0.04)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '12px',
+                      background: '#ECEFF1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#607D8B'
+                    }}>
+                      <ShieldCheck size={20} />
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      {t('privacy_policy_label')}
+                    </span>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-light)" />
+                </div>
+
+                {/* Card 9: Terms and conditions */}
+                <div 
+                  onClick={() => navigate('/legal_hub')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px 20px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    border: '1px solid rgba(74, 14, 78, 0.04)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '12px',
+                      background: '#ECEFF1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#607D8B'
+                    }}>
+                      <FileText size={20} />
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      {t('terms_conditions_label')}
+                    </span>
+                  </div>
+                  <ChevronRight size={18} color="var(--text-light)" />
+                </div>
+
+              </div>
+
+              {/* LANGUAGE SELECTOR */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                background: 'rgba(74, 14, 78, 0.02)',
+                borderRadius: '16px',
+                border: '1.5px solid rgba(74, 14, 78, 0.05)',
+                marginTop: '12px'
+              }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{
                     width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(74, 14, 78, 0.08)',
@@ -1404,8 +1837,10 @@ export const Dashboard: React.FC = () => {
                     <Languages size={20} color="var(--brand-dark)" />
                   </div>
                   <div>
-                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block' }}>{t('language')}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-light)' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block' }}>
+                      {t('language')}
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                       {lang === 'ta' ? 'தமிழ் (Tamil)' : 'English'}
                     </span>
                   </div>
@@ -1456,69 +1891,551 @@ export const Dashboard: React.FC = () => {
                   <span style={{ fontSize: '11px', fontWeight: 'bold', color: lang === 'ta' ? 'var(--brand-dark)' : 'var(--text-light)' }}>தமிழ்</span>
                 </div>
               </div>
-            </div>
 
-            {/* Navigation Reference Links */}
-            <div className="glass-card profile-links-card" style={{ borderRadius: '16px', background: 'white', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              {[
-                { title: t('menu_about_us'), route: '/about' },
-                { title: t('menu_faqs'), route: '/faq' },
-                { title: t('menu_safety_trust'), route: '/safety_trust' },
-                { title: t('menu_redemption_guide'), route: '/redemption_guide' },
-                { title: t('menu_legal_compliance'), route: '/legal_hub' },
-                { title: t('menu_gold_alerts'), route: '/gold_rate_alerts' }
-              ].map((link, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => navigate(link.route)}
+              {/* LOGOUT BUTTON */}
+              <div style={{ marginTop: '16px' }}>
+                <button
+                  onClick={handleLogout}
                   style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px',
-                    borderBottom: idx < 5 ? '1px solid #F3F4F6' : 'none', cursor: 'pointer'
+                    width: '100%',
+                    height: '52px',
+                    borderRadius: '16px',
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    color: 'var(--error-red)',
+                    border: '1.5px solid rgba(239, 68, 68, 0.15)',
+                    fontWeight: 'bold',
+                    fontSize: '14.5px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s ease',
+                    fontFamily: 'var(--font-poppins)'
                   }}
                 >
-                  <span style={{ fontSize: '12px', fontWeight: '500' }}>{link.title}</span>
-                  <ChevronRight size={16} color="var(--text-light)" />
+                  <LogOut size={16} /> {t('logout')}
+                </button>
+              </div>
+
+            </div>
+
+            {/* ── PROFILE MODALS (RENDERED CONDITIONALLY) ── */}
+
+            {/* 1. READY TO REDEEM MODAL */}
+            {showRedeemModal && (
+              <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
+                display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000
+              }}>
+                <div className="glass-card" style={{
+                  width: '100%', maxWidth: '480px', background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px',
+                  padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '80vh', overflowY: 'auto'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
+                      {t('ready_to_redeem')}
+                    </h3>
+                    <button onClick={() => setShowRedeemModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
+                    {activeSchemes.filter(s => s.installmentsPaid >= s.totalInstallments).length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)' }}>
+                        <Gift size={48} color="var(--text-light)" style={{ marginBottom: '12px' }} />
+                        <p style={{ fontSize: '13px', margin: 0 }}>No schemes are ready for redemption yet.</p>
+                        <button 
+                          onClick={() => { setShowRedeemModal(false); setSelectedTab(0); }}
+                          style={{
+                            marginTop: '16px', padding: '10px 20px', borderRadius: '10px', background: 'var(--brand-dark)',
+                            color: 'white', border: 'none', fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer'
+                          }}
+                        >
+                          View Active Schemes
+                        </button>
+                      </div>
+                    ) : (
+                      activeSchemes.filter(s => s.installmentsPaid >= s.totalInstallments).map(sch => (
+                        <div key={sch.schemeId} style={{ padding: '16px', borderRadius: '12px', background: '#FFF9F0', border: '1px solid rgba(255,215,0,0.2)' }}>
+                          <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: '0 0 6px 0' }}>{sch.planName}</h4>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                            <span>Accumulated Gold: <b>{mgToGrams(sch.accumulatedGoldMg)}</b></span>
+                            <span>Total Investment: <b>{formatRupees(sch.totalInvestmentPaise)}</b></span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setShowRedeemModal(false);
+                              navigate(`/scheme-redemption/${sch.schemeId}`);
+                            }}
+                            style={{
+                              width: '100%', height: '38px', borderRadius: '8px', background: 'var(--gold-warm)',
+                              color: 'var(--brand-deep)', border: 'none', fontWeight: 'bold', fontSize: '12.5px', cursor: 'pointer'
+                            }}
+                          >
+                            Redeem Plan
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
 
-            {/* Supportdial Compliance Compliance Compliance */}
-            <div className="profile-support-wrap" style={{ textAlign: 'center', marginTop: '10px' }}>
-              <button
-                onClick={() => window.open('tel:+919443000000')}
-                style={{
-                  background: 'transparent', border: 'none', color: 'var(--brand-accent)',
-                  fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px'
-                }}
-              >
-                <PhoneCall size={16} /> Contact Support: +91 94430 00000
-              </button>
-            </div>
+            {/* 2. PRICE CALCULATOR MODAL */}
+            {showCalculatorModal && (
+              <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
+                display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000
+              }}>
+                <div className="glass-card" style={{
+                  width: '100%', maxWidth: '480px', background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px',
+                  padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '17px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
+                      {t('price_calculator')}
+                    </h3>
+                    <button onClick={() => { setShowCalculatorModal(false); setCalcAmount(''); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                      <X size={20} />
+                    </button>
+                  </div>
 
-            {/* Logout button at bottom */}
-            <div className="profile-logout-wrap" style={{ textAlign: 'center', marginTop: '24px' }}>
-              <button
-                onClick={handleLogout}
-                style={{
-                  width: '100%',
-                  height: '48px',
-                  borderRadius: '12px',
-                  background: 'rgba(239, 68, 68, 0.08)',
-                  color: 'var(--error-red)',
-                  border: '1px solid rgba(239, 68, 68, 0.15)',
-                  fontWeight: 'bold',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <LogOut size={16} /> {t('logout')}
-              </button>
-            </div>
+                  {/* Calculator toggle type */}
+                  <div style={{ display: 'flex', background: '#F5F5F5', padding: '4px', borderRadius: '10px' }}>
+                    <button 
+                      onClick={() => { setCalcType('RUPEES'); setCalcAmount(''); }}
+                      style={{
+                        flex: 1, padding: '8px 0', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold',
+                        background: calcType === 'RUPEES' ? 'white' : 'transparent',
+                        color: calcType === 'RUPEES' ? 'var(--brand-dark)' : 'var(--text-muted)',
+                        boxShadow: calcType === 'RUPEES' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer'
+                      }}
+                    >
+                      Amount (₹) to Gold (g)
+                    </button>
+                    <button 
+                      onClick={() => { setCalcType('GRAMS'); setCalcAmount(''); }}
+                      style={{
+                        flex: 1, padding: '8px 0', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold',
+                        background: calcType === 'GRAMS' ? 'white' : 'transparent',
+                        color: calcType === 'GRAMS' ? 'var(--brand-dark)' : 'var(--text-muted)',
+                        boxShadow: calcType === 'GRAMS' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer'
+                      }}
+                    >
+                      Gold (g) to Amount (₹)
+                    </button>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                      {calcType === 'RUPEES' ? 'Enter Savings Amount' : 'Enter Gold Weight (grams)'}
+                    </label>
+                    <div style={{ position: 'relative', marginTop: '4px' }}>
+                      <span style={{ position: 'absolute', left: '12px', top: '13px', fontSize: '15px', fontWeight: 'bold' }}>
+                        {calcType === 'RUPEES' ? '₹' : 'g'}
+                      </span>
+                      <input
+                        type="text"
+                        placeholder={calcType === 'RUPEES' ? 'e.g. 5000' : 'e.g. 1'}
+                        value={calcAmount}
+                        onChange={(e) => setCalcAmount(e.target.value.replace(/[^0-9.]/g, ''))}
+                        style={{
+                          width: '100%', height: '44px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.1)',
+                          padding: '0 12px 0 28px', fontSize: '15px', fontWeight: 'bold', outline: 'none'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Calculator breakdown logic */}
+                  {parseFloat(calcAmount) > 0 && (
+                    <div style={{ background: '#FFF9F0', padding: '16px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {calcType === 'RUPEES' ? (
+                        <>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            <span>Entered Savings Amount</span>
+                            <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>₹{calcAmount}</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            <span>GST (3% Included)</span>
+                            <span>₹{(parseFloat(calcAmount) - (parseFloat(calcAmount) / 1.03)).toFixed(2)}</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--brand-mid)', fontWeight: 'bold' }}>
+                            <span>Loyalty Bonus (7.5%)</span>
+                            <span>+ ₹{(parseFloat(calcAmount) / 1.03 * 0.075).toFixed(2)}</span>
+                          </div>
+                          <div style={{ height: '1px', background: 'rgba(0,0,0,0.05)' }} />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                            <span>Effective Gold Added</span>
+                            <span style={{ color: '#FFB300' }}>
+                              {((parseFloat(calcAmount) / 1.03 * 1.075 * 100) / (goldPrice22K || 700000)).toFixed(4)} grams
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            <span>Base Gold Value (22K)</span>
+                            <span>₹{(parseFloat(calcAmount) * (goldPrice22K || 700000) / 100).toFixed(2)}</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            <span>GST (3%)</span>
+                            <span>₹{(parseFloat(calcAmount) * (goldPrice22K || 700000) / 100 * 0.03).toFixed(2)}</span>
+                          </div>
+                          <div style={{ height: '1px', background: 'rgba(0,0,0,0.05)' }} />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                            <span>Total Amount to Pay</span>
+                            <span style={{ color: 'var(--brand-accent)' }}>
+                              ₹{(parseFloat(calcAmount) * (goldPrice22K || 700000) / 100 * 1.03).toFixed(2)}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 3. COMPLETED SCHEMES MODAL */}
+            {showCompletedModal && (
+              <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
+                display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000
+              }}>
+                <div className="glass-card" style={{
+                  width: '100%', maxWidth: '480px', background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px',
+                  padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '80vh', overflowY: 'auto'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
+                      {t('completed_schemes')}
+                    </h3>
+                    <button onClick={() => setShowCompletedModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
+                    {activeSchemes.filter(s => s.status === 'MATURED' || s.status === 'COMPLETED').length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)' }}>
+                        <Award size={48} color="var(--text-light)" style={{ marginBottom: '12px' }} />
+                        <p style={{ fontSize: '13px', margin: 0 }}>No completed schemes yet. Keep saving to complete a scheme!</p>
+                      </div>
+                    ) : (
+                      activeSchemes.filter(s => s.status === 'MATURED' || s.status === 'COMPLETED').map(sch => (
+                        <div key={sch.schemeId} style={{ padding: '16px', borderRadius: '12px', background: '#ECEFF1', border: '1px solid rgba(0,0,0,0.05)' }}>
+                          <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: '0 0 6px 0' }}>{sch.planName}</h4>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)' }}>
+                            <span>Accumulated Gold: <b>{mgToGrams(sch.accumulatedGoldMg)}</b></span>
+                            <span style={{ color: 'var(--success-green)', fontWeight: 'bold' }}>COMPLETED</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 4. ADDRESS DETAILS MODAL */}
+            {showAddressModal && (
+              <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
+                display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000
+              }}>
+                <div className="glass-card" style={{
+                  width: '100%', maxWidth: '480px', background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px',
+                  padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
+                      {t('address_label')}
+                    </h3>
+                    <button onClick={() => setShowAddressModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Area / Street</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Gandhipuram"
+                        value={addressArea}
+                        onChange={(e) => setAddressArea(e.target.value)}
+                        style={{
+                          width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
+                          padding: '0 10px', fontSize: '13px', outline: 'none', marginTop: '4px'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>City</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Coimbatore"
+                        value={addressCity}
+                        onChange={(e) => setAddressCity(e.target.value)}
+                        style={{
+                          width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
+                          padding: '0 10px', fontSize: '13px', outline: 'none', marginTop: '4px'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>State</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Tamil Nadu"
+                        value={addressState}
+                        onChange={(e) => setAddressState(e.target.value)}
+                        style={{
+                          width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
+                          padding: '0 10px', fontSize: '13px', outline: 'none', marginTop: '4px'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Pincode</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 641012"
+                        value={addressPincode}
+                        onChange={(e) => setAddressPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        style={{
+                          width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
+                          padding: '0 10px', fontSize: '13px', outline: 'none', marginTop: '4px'
+                        }}
+                      />
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        SessionManager.saveStep1Data({
+                          area: addressArea,
+                          city: addressCity,
+                          state: addressState,
+                          pincode: addressPincode
+                        });
+                        alert("Address updated successfully!");
+                        setShowAddressModal(false);
+                      }}
+                      style={{
+                        width: '100%', height: '44px', borderRadius: '10px', background: 'var(--brand-dark)',
+                        color: 'white', border: 'none', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', marginTop: '8px'
+                      }}
+                    >
+                      Save Address
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 5. KYC DETAILS MODAL */}
+            {showKycModal && (
+              <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
+                display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000
+              }}>
+                <div className="glass-card" style={{
+                  width: '100%', maxWidth: '480px', background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px',
+                  padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '85vh', overflowY: 'auto'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
+                      {t('kyc_details')}
+                    </h3>
+                    <button onClick={() => setShowKycModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  {/* KYC summary */}
+                  <div style={{
+                    background: kycLevel === 'FULL' ? 'var(--success-light)' : 'var(--warning-light)',
+                    border: `1.5px solid ${kycLevel === 'FULL' ? 'var(--success-green)' : 'var(--warning-amber)'}`,
+                    padding: '16px', borderRadius: '16px', display: 'flex', gap: '12px', alignItems: 'center'
+                  }}>
+                    <ShieldCheck size={28} color={kycLevel === 'FULL' ? 'var(--success-green)' : 'var(--warning-amber)'} />
+                    <div>
+                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block' }}>
+                        KYC Level: {kycLevel}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                        {kycLevel === 'FULL' ? 'Your identity is fully verified. You can start physical gold redemptions.' : 'Please upload PAN and Aadhaar documents to complete verification.'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Personal detail lists */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12.5px', marginTop: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>{t('full_name_label')}</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{userName}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>{t('phone_number_label')}</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>+91 {userPhone}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>{t('nominee_label')}</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{nomineeName || t('not_configured')}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>{t('verification_status_label')}</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--brand-dark)' }}>{kycStatusMsg || 'PENDING'}</span>
+                    </div>
+                  </div>
+
+                  {/* Nominee Configuration edit inline */}
+                  <div style={{ background: '#F9FAFB', padding: '12px', borderRadius: '12px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+                      {t('nominee_config')}
+                    </span>
+                    {isEditingNominee ? (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          type="text"
+                          value={newNomineeInput}
+                          onChange={(e) => setNewNomineeInput(e.target.value)}
+                          style={{ flex: 1, height: '36px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 10px', fontSize: '12px' }}
+                        />
+                        <button 
+                          onClick={async () => {
+                            await handleUpdateNominee();
+                            setIsEditingNominee(false);
+                          }} 
+                          style={{ background: 'var(--brand-dark)', color: 'white', border: 'none', padding: '0 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
+                          Save
+                        </button>
+                        <button onClick={() => setIsEditingNominee(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', padding: '0 8px', fontSize: '11px', cursor: 'pointer' }}>
+                          {t('cancel')}
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{nomineeName || t('not_configured')}</span>
+                        <button onClick={() => { setNewNomineeInput(nomineeName); setIsEditingNominee(true); }} style={{ background: 'transparent', border: 'none', color: 'var(--brand-mid)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>
+                          {t('edit_nominee')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* KYC Documents */}
+                  <div style={{ marginTop: '8px', borderTop: '1px dashed #ECECEC', paddingTop: '12px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+                      {t('kyc_documents_label')}
+                    </span>
+                    {kycDocs.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                        <span style={{ fontSize: '12px', color: 'var(--text-light)', fontStyle: 'italic', display: 'block', marginBottom: '12px' }}>
+                          {t('no_kyc_documents')}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setShowKycModal(false);
+                            navigate('/onboarding');
+                          }}
+                          style={{
+                            padding: '8px 16px', borderRadius: '8px', background: 'var(--brand-dark)', color: 'white',
+                            border: 'none', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer'
+                          }}
+                        >
+                          Upload KYC Documents
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {kycDocs.map((doc, idx) => (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F9FAFB', padding: '8px 12px', borderRadius: '8px' }}>
+                            <div>
+                              <span style={{ fontSize: '11.5px', fontWeight: 'bold', display: 'block', color: 'var(--brand-dark)' }}>
+                                {doc.documentType === 'pan' ? 'PAN Card' : 'Aadhaar Card'}
+                              </span>
+                              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                                No: {doc.documentNumber}
+                              </span>
+                            </div>
+                            <span style={{
+                              fontSize: '10px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '6px',
+                              background: doc.status === 'APPROVED' ? 'var(--success-light)' : doc.status === 'REJECTED' ? 'var(--error-light)' : 'var(--warning-light)',
+                              color: doc.status === 'APPROVED' ? 'var(--success-green)' : doc.status === 'REJECTED' ? 'var(--error-red)' : 'var(--warning-amber)'
+                            }}>
+                              {doc.status === 'APPROVED' ? t('approved_status') : doc.status === 'REJECTED' ? t('rejected_status') : t('review_status')}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 6. BANK ACCOUNTS MODAL */}
+            {showBankModal && (
+              <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
+                display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000
+              }}>
+                <div className="glass-card" style={{
+                  width: '100%', maxWidth: '480px', background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px',
+                  padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '80vh', overflowY: 'auto'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
+                      {t('linked_bank_accounts')}
+                    </h3>
+                    <button onClick={() => setShowBankModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
+                    {bankAccounts.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)' }}>
+                        <Landmark size={40} color="var(--text-light)" style={{ marginBottom: '10px' }} />
+                        <span style={{ fontSize: '12.5px', display: 'block' }}>No bank accounts linked yet.</span>
+                      </div>
+                    ) : (
+                      bankAccounts.map((b, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px', borderRadius: '12px', background: '#F9FAFB', border: '1px solid rgba(0,0,0,0.04)' }}>
+                          <Landmark size={22} color="var(--success-green)" style={{ flexShrink: 0 }} />
+                          <div>
+                            <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', color: 'var(--brand-dark)' }}>{b.bankName}</span>
+                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>A/C: {b.accountNumberMasked} · IFSC: {b.ifscCode}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setShowBankModal(false);
+                        navigate('/add-bank-account');
+                      }}
+                      style={{
+                        width: '100%', height: '44px', borderRadius: '10px', background: 'var(--brand-dark)',
+                        color: 'white', border: 'none', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '8px'
+                      }}
+                    >
+                      <PlusCircle size={16} />
+                      {t('add_bank')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
         )}
       </div>

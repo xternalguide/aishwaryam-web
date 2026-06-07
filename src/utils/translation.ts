@@ -154,7 +154,19 @@ export const translations = {
     need_help_title: "Need Help?",
     need_help_desc: "Reach out to us with questions about issues.",
     call_us: "Call Us",
-    email_us: "Email Us"
+    email_us: "Email Us",
+    my_profile: "My Profile",
+    ready_to_redeem: "Ready to Redeem",
+    price_calculator: "Price Calculator",
+    recent_transactions: "Recent Transactions",
+    completed_schemes: "Completed Schemes",
+    general_settings: "General Settings",
+    address_label: "Address",
+    kyc_details: "KYC Details",
+    change_mpin: "Change MPIN",
+    security_privacy: "Security & Privacy",
+    privacy_policy_label: "Privacy policy",
+    terms_conditions_label: "Terms and conditions"
   },
   ta: {
     app_name: "ஐஸ்வர்யம் @ உங்கள் இல்லத்தில்",
@@ -308,7 +320,19 @@ export const translations = {
     need_help_title: "உதவி தேவையா?",
     need_help_desc: "பிரச்சனைகள் குறித்த கேள்விகளுக்கு எங்களைத் தொடர்பு கொள்ளவும்.",
     call_us: "அழைக்கவும்",
-    email_us: "மின்னஞ்சல் அனுப்பவும்"
+    email_us: "மின்னஞ்சல் அனுப்பவும்",
+    my_profile: "எனது சுயவிவரம்",
+    ready_to_redeem: "மீட்கத் தயாராக உள்ளவை",
+    price_calculator: "விலை கால்குலேட்டர்",
+    recent_transactions: "சமீபத்திய பரிவர்த்தனைகள்",
+    completed_schemes: "முடிவடைந்த திட்டங்கள்",
+    general_settings: "பொது அமைப்புகள்",
+    address_label: "முகவரி",
+    kyc_details: "KYC விவரங்கள்",
+    change_mpin: "MPIN மாற்றுதல்",
+    security_privacy: "பாதுகாப்பு & தனியுரிமை",
+    privacy_policy_label: "தனியுரிமைக் கொள்கை",
+    terms_conditions_label: "விதிமுறைகள் மற்றும் நிபந்தனைகள்"
   }
 };
 
