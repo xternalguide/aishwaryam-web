@@ -267,3 +267,8 @@ div[style*="height: 100vh"] > div[style*="border-bottom"],
 div[style*="height: 100vh"] > div[style*="borderBottom"] {
   padding-top: calc(16px + env(safe-area-inset-top, 0px)) !important;
 }
+
+/* Disable default mobile browser blue highlight overlay on click/tap */
+* {
+  -webkit-tap-highlight-color: transparent !important;
+}

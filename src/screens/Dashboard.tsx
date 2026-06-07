@@ -555,6 +555,18 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
+              {/* Live Gold/Silver Prices inside Portfolio Card */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(0,0,0,0.12)', padding: '10px 16px', borderRadius: '12px', fontSize: '11px' }}>
+                <div>
+                  <span style={{ opacity: 0.6, fontSize: '8px', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>Gold (22K)</span>
+                  <span style={{ fontWeight: 'bold', color: 'var(--gold-primary)' }}>₹{((livePrice?.price22KPaise || 701000) / 100).toFixed(2)}/g</span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ opacity: 0.6, fontSize: '8px', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>Silver (99.9%)</span>
+                  <span style={{ fontWeight: 'bold', color: '#ECECEC' }}>₹{((livePrice?.priceSilverPaise || 9900) / 100).toFixed(2)}/g</span>
+                </div>
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', opacity: 0.6 }}>
                 <span>{t('locked')}: {mgToGrams(lockedGoldMg)}</span>
                 <span>{t('live_updates')}</span>
@@ -679,24 +691,59 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+              <div style={{ display: 'flex', gap: '14px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
                 {availableSchemes.map((sch) => (
                   <div
                     key={sch.id}
                     className="glass-card"
                     onClick={() => navigate(`/scheme-detail/${sch.id}`)}
                     style={{
-                      flex: '0 0 240px', borderRadius: '16px', padding: '16px', background: 'white',
-                      border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '8px', cursor: 'pointer'
+                      flex: '0 0 280px',
+                      height: '160px',
+                      borderRadius: '20px',
+                      padding: '20px',
+                      background: 'linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-deep) 100%)',
+                      border: '1.5px solid rgba(255, 215, 0, 0.25)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      boxShadow: '0 8px 16px rgba(74, 14, 78, 0.25)',
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}
                   >
-                    <h4 style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{sch.planName}</h4>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t('tenure')}: {sch.totalInstallments} {t('months')}</span>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-accent)' }}>
-                        {formatRupees(sch.installmentAmountPaise)}
+                    {/* Subtle Gold Gloss Layer */}
+                    <div style={{
+                      position: 'absolute', top: '-20%', right: '-20%', width: '120px', height: '120px',
+                      background: 'radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%)',
+                      pointerEvents: 'none'
+                    }} />
+
+                    <div>
+                      <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: 'white', margin: 0, fontFamily: 'var(--font-poppins)' }}>
+                        {sch.planName}
+                      </h4>
+                      <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', display: 'block', marginTop: '6px' }}>
+                        {t('tenure')}: <strong style={{ color: 'var(--gold-primary)' }}>{sch.totalInstallments} {t('months')}</strong>
                       </span>
-                      <ChevronRight size={16} color="var(--brand-mid)" />
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', zIndex: 2 }}>
+                      <div>
+                        <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '2px' }}>
+                          Monthly Savings
+                        </span>
+                        <span style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--gold-primary)', fontFamily: 'var(--font-poppins)' }}>
+                          {formatRupees(sch.installmentAmountPaise)}
+                        </span>
+                      </div>
+                      <div style={{
+                        width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255, 215, 0, 0.15)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        <ChevronRight size={18} color="var(--gold-primary)" />
+                      </div>
                     </div>
                   </div>
                 ))}
