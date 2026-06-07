@@ -323,7 +323,7 @@ export const Mpin: React.FC = () => {
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} style={{ position: 'relative' }}>
                     <input
-                      type="password"
+                      type="text"
                       pattern="[0-9]*"
                       inputMode="numeric"
                       maxLength={1}
@@ -339,8 +339,10 @@ export const Mpin: React.FC = () => {
                         textAlign: 'center',
                         fontSize: '24px',
                         outline: 'none',
-                        background: '#F9F9F9'
-                      }}
+                        background: '#F9F9F9',
+                        WebkitTextSecurity: 'disc',
+                        textSecurity: 'disc'
+                      } as React.CSSProperties}
                     />
                   </div>
                 ))}
@@ -396,7 +398,7 @@ export const Mpin: React.FC = () => {
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} style={{ position: 'relative' }}>
                       <input
-                        type="password"
+                        type="text"
                         pattern="[0-9]*"
                         inputMode="numeric"
                         maxLength={1}
@@ -414,8 +416,10 @@ export const Mpin: React.FC = () => {
                           textAlign: 'center',
                           fontSize: '20px',
                           outline: 'none',
-                          background: '#F9F9F9'
-                        }}
+                          background: '#F9F9F9',
+                          WebkitTextSecurity: 'disc',
+                          textSecurity: 'disc'
+                        } as React.CSSProperties}
                       />
                     </div>
                   ))}
@@ -428,7 +432,7 @@ export const Mpin: React.FC = () => {
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} style={{ position: 'relative' }}>
                       <input
-                        type="password"
+                        type="text"
                         pattern="[0-9]*"
                         inputMode="numeric"
                         maxLength={1}
@@ -445,8 +449,10 @@ export const Mpin: React.FC = () => {
                           textAlign: 'center',
                           fontSize: '20px',
                           outline: 'none',
-                          background: newMpin.length === 4 ? '#F9F9F9' : '#ECECEC'
-                        }}
+                          background: newMpin.length === 4 ? '#F9F9F9' : '#ECECEC',
+                          WebkitTextSecurity: 'disc',
+                          textSecurity: 'disc'
+                        } as React.CSSProperties}
                       />
                     </div>
                   ))}

@@ -244,3 +244,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0;
   cursor: pointer;
 }
+
+/* Premium Splash Logo Animation */
+@keyframes floatLogo {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.04);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.splash-logo-animated {
+  animation: floatLogo 3s ease-in-out infinite;
+}

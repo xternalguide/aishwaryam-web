@@ -1,16 +1,40 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SessionManager, OnboardingStage } from '../utils/SessionManager';
+import { useApp } from '../context/AppContext';
 
 export const Splash: React.FC = () => {
   const navigate = useNavigate();
+  const { isLoading } = useApp();
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const [maxTimeReached, setMaxTimeReached] = useState(false);
+
+  // Enforce minimum display time of 2.2s for the premium splash animation
+  useEffect(() => {
+    const minTimer = setTimeout(() => {
+      setMinTimeElapsed(true);
+    }, 2200);
+    return () => clearTimeout(minTimer);
+  }, []);
+
+  // Enforce maximum timeout of 5.0s to avoid getting stuck if offline
+  useEffect(() => {
+    const maxTimer = setTimeout(() => {
+      setMaxTimeReached(true);
+    }, 5000);
+    return () => clearTimeout(maxTimer);
+  }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const hasSeenWelcome = SessionManager.hasSeenWelcomeOnboarding();
-      const hasToken = SessionManager.getToken() != null;
-      const stage = SessionManager.getOnboardingStage();
+    const userId = SessionManager.getUserId();
+    const hasSeenWelcome = SessionManager.hasSeenWelcomeOnboarding();
+    const hasToken = SessionManager.getToken() != null;
+    const stage = SessionManager.getOnboardingStage();
 
+    // We wait for data pre-fetching if the user has an active session
+    const isWaitingForData = hasToken && userId && isLoading && !maxTimeReached;
+
+    if (minTimeElapsed && !isWaitingForData) {
       if (!hasSeenWelcome) {
         navigate('/welcome');
       } else if (stage === OnboardingStage.FULLY_VERIFIED) {
@@ -24,10 +48,8 @@ export const Splash: React.FC = () => {
       } else {
         navigate('/mpin/verify');
       }
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [navigate]);
+    }
+  }, [minTimeElapsed, maxTimeReached, isLoading, navigate]);
 
   return (
     <div style={{
@@ -43,6 +65,7 @@ export const Splash: React.FC = () => {
       <img
         src="/logo.png"
         alt="Aishwaryam Logo"
+        className="splash-logo-animated"
         style={{
           width: '120px',
           height: '120px',
