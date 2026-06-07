@@ -150,8 +150,11 @@ export const translations = {
     pending: "Pending",
     live_metal_rates: "Live Metal Rates",
     gold_per_g: "Gold (per g)",
-    silver_per_g: "Silver (per g)",
-    verify_pin: "Verify PIN"
+    verify_pin: "Verify PIN",
+    need_help_title: "Need Help?",
+    need_help_desc: "Reach out to us with questions about issues.",
+    call_us: "Call Us",
+    email_us: "Email Us"
   },
   ta: {
     app_name: "ஐஸ்வர்யம் @ உங்கள் இல்லத்தில்",
@@ -301,8 +304,11 @@ export const translations = {
     pending: "நிலுவையில் உள்ளது",
     live_metal_rates: "நேரடி உலோக விலைகள்",
     gold_per_g: "தங்கம் (ஒரு கிராமுக்கு)",
-    silver_per_g: "வெள்ளி (ஒரு கிராமுக்கு)",
-    verify_pin: "சமர்ப்பி"
+    verify_pin: "சமர்ப்பி",
+    need_help_title: "உதவி தேவையா?",
+    need_help_desc: "பிரச்சனைகள் குறித்த கேள்விகளுக்கு எங்களைத் தொடர்பு கொள்ளவும்.",
+    call_us: "அழைக்கவும்",
+    email_us: "மின்னஞ்சல் அனுப்பவும்"
   }
 };
 

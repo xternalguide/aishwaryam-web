@@ -20,7 +20,8 @@ import {
   PhoneCall,
   Landmark,
   Languages,
-  Headset
+  Headset,
+  Mail
 } from 'lucide-react';
 
 interface ActiveScheme {
@@ -225,6 +226,18 @@ export const Dashboard: React.FC = () => {
     if (!profile) {
       refreshData();
     }
+
+    const fetchBanners = async () => {
+      try {
+        const res = await ApiClient.get('api/Banner/active');
+        if (res.data && res.data.success) {
+          setBanners(res.data.banners || []);
+        }
+      } catch (err) {
+        console.error('Failed to load active banners:', err);
+      }
+    };
+    fetchBanners();
     
     // Auto-scroll promo banner every 5 seconds
     const interval = setInterval(() => {
@@ -269,6 +282,19 @@ export const Dashboard: React.FC = () => {
       setIsEditingNominee(false);
       alert('Nominee name updated successfully!');
     }
+  };
+
+  const getImageUrl = (url: string) => {
+    if (!url) return '';
+    if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+      ? 'http://192.168.1.36:5044/'
+      : 'https://aishwaryam.blazewing.in/';
+    const base = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+    const relative = url.startsWith('/') ? url.substring(1) : url;
+    return base + relative;
   };
 
   const formatRupees = (paise: number) => {
@@ -618,14 +644,126 @@ export const Dashboard: React.FC = () => {
 
             {/* Promo Pager banners */}
             {banners.length > 0 && (
-              <div className="promo-banner-container" style={{
-                width: '100%', height: '120px', borderRadius: '16px', background: 'var(--gradient-accent)',
-                color: 'white', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center',
-                boxShadow: '0 6px 12px rgba(194, 24, 91, 0.15)', cursor: 'pointer'
-              }} onClick={() => navigate('/scheme-explorer')}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8 }}>{t('campaign_promo')}</span>
-                <h3 style={{ fontSize: '16px', color: 'white', fontWeight: 'bold', margin: '4px 0' }}>{banners[activeBannerIdx].title}</h3>
-                <span style={{ fontSize: '11px', textDecoration: 'underline' }}>{t('campaign_promo_desc')}</span>
+              <div 
+                className="promo-banner-container" 
+                style={{
+                  width: '100%',
+                  height: '160px',
+                  borderRadius: '20px',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+                  background: '#EAEAEA',
+                  gridColumn: 'span 2',
+                }}
+              >
+                <div 
+                  style={{
+                    display: 'flex',
+                    width: `${banners.length * 100}%`,
+                    height: '100%',
+                    transition: 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
+                    transform: `translateX(-${activeBannerIdx * (100 / banners.length)}%)`
+                  }}
+                >
+                  {banners.map((banner, index) => (
+                    <div 
+                      key={banner.id || index}
+                      onClick={() => navigate(banner.tapActionUrl || '/scheme-explorer')}
+                      style={{
+                        width: `${100 / banners.length}%`,
+                        height: '100%',
+                        position: 'relative',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <img 
+                        src={getImageUrl(banner.imageBase64)} 
+                        alt={banner.title} 
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover', 
+                          display: 'block' 
+                        }} 
+                      />
+                      <div style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: '60%',
+                        background: 'linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 100%)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-end',
+                        padding: '16px 20px 24px 20px',
+                        color: 'white',
+                        boxSizing: 'border-box'
+                      }}>
+                        <span style={{ 
+                          fontSize: '9px', 
+                          textTransform: 'uppercase', 
+                          letterSpacing: '1px', 
+                          color: 'var(--gold-primary)', 
+                          fontWeight: 'bold',
+                          marginBottom: '2px' 
+                        }}>
+                          {t('campaign_promo')}
+                        </span>
+                        <h4 style={{ 
+                          margin: 0, 
+                          fontSize: '15px', 
+                          fontWeight: 'bold', 
+                          fontFamily: 'var(--font-poppins)', 
+                          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                          lineHeight: '1.2' 
+                        }}>
+                          {banner.title}
+                        </h4>
+                        <span style={{ 
+                          fontSize: '10px', 
+                          opacity: 0.9, 
+                          marginTop: '3px', 
+                          textDecoration: 'underline' 
+                        }}>
+                          {t('campaign_promo_desc')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Center Dots indicator */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: '10px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  display: 'flex',
+                  gap: '6px',
+                  zIndex: 5
+                }}>
+                  {banners.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveBannerIdx(idx);
+                      }}
+                      style={{
+                        width: activeBannerIdx === idx ? '16px' : '6px',
+                        height: '6px',
+                        borderRadius: '3px',
+                        background: activeBannerIdx === idx ? 'var(--gold-primary)' : 'rgba(255,255,255,0.5)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        transition: 'all 0.3s ease'
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
@@ -860,6 +998,95 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Need Help Card */}
+            <div
+              className="dashboard-help-card"
+              style={{
+                background: 'white',
+                border: '1.5px solid var(--border-light)',
+                borderRadius: '20px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.01)',
+                marginTop: '10px',
+                gridColumn: 'span 2',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  background: 'rgba(74, 14, 78, 0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--brand-dark)',
+                  flexShrink: 0
+                }}>
+                  <Headset size={20} />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                    {t('need_help_title')}
+                  </h4>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                    {t('need_help_desc')}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => window.open('tel:+919443000000')}
+                  style={{
+                    flex: 1,
+                    height: '42px',
+                    borderRadius: '12px',
+                    background: 'var(--gradient-brand)',
+                    color: 'white',
+                    border: 'none',
+                    fontWeight: 'bold',
+                    fontSize: '12.5px',
+                    fontFamily: 'var(--font-poppins)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(74, 14, 78, 0.12)'
+                  }}
+                >
+                  <PhoneCall size={14} color="var(--gold-primary)" />
+                  <span>{t('call_us')}</span>
+                </button>
+                <button
+                  onClick={() => window.open('mailto:support@aishwaryam.com')}
+                  style={{
+                    flex: 1,
+                    height: '42px',
+                    borderRadius: '12px',
+                    background: 'white',
+                    color: 'var(--brand-dark)',
+                    border: '1.5px solid var(--brand-dark)',
+                    fontWeight: 'bold',
+                    fontSize: '12.5px',
+                    fontFamily: 'var(--font-poppins)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Mail size={14} color="var(--brand-dark)" />
+                  <span>{t('email_us')}</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
