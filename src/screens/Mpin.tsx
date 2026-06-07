@@ -181,6 +181,10 @@ export const Mpin: React.FC = () => {
     }
 
     if (nextVal.length === length) {
+      // Auto blur to dismiss keyboard
+      if (inputsRef.current[index]) {
+        inputsRef.current[index].blur();
+      }
       onComplete(nextVal);
     }
   };
@@ -262,6 +266,30 @@ export const Mpin: React.FC = () => {
           marginTop: 'auto',
           marginBottom: 'auto'
         }}>
+          {/* Branding Logo */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
+            <img
+              src="/logo.png"
+              alt="Logo"
+              style={{
+                width: '72px',
+                height: '72px',
+                borderRadius: '20px',
+                boxShadow: '0 6px 12px rgba(74, 14, 78, 0.15)',
+                objectFit: 'cover',
+                marginBottom: '8px'
+              }}
+            />
+            <span style={{
+              fontFamily: 'var(--font-playfair)',
+              color: 'var(--brand-deep)',
+              fontSize: '18px',
+              fontWeight: 'bold',
+              letterSpacing: '0.5px'
+            }}>
+              {t('app_name')}
+            </span>
+          </div>
 
           {/* Title */}
           <h2 style={{
