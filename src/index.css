@@ -271,4 +271,19 @@ div[style*="height: 100vh"] > div[style*="borderBottom"] {
 /* Disable default mobile browser blue highlight overlay on click/tap */
 * {
   -webkit-tap-highlight-color: transparent !important;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+  outline: none !important;
+}
+
+/* Disable text selection highlight globally on mobile to prevent blue highlighting on tap/hold */
+body, button, a, [role="button"], span, div, h1, h2, h3, h4, h5, h6 {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+input, textarea {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  user-select: text !important;
 }

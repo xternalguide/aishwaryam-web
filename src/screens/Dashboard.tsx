@@ -12,8 +12,6 @@ import {
   LogOut,
   AlertTriangle,
   ChevronRight,
-  TrendingUp,
-  TrendingDown,
   Gift,
   Award,
   X,
@@ -100,11 +98,7 @@ export const Dashboard: React.FC = () => {
   // Live metal rates
   const [goldPrice22K, setGoldPrice22K] = useState(0); // 22K price paise per gram
 
-  // Dashboard metrics
-  const [goldBalanceMg, setGoldBalanceMg] = useState(0);
-  const [currentValuePaise, setCurrentValuePaise] = useState(0);
-  const [returnPercentage, setReturnPercentage] = useState(0);
-  const [lockedGoldMg, setLockedGoldMg] = useState(0);
+  // Dashboard metrics (removed for live rates top card)
 
   // Collections
   const [activeSchemes, setActiveSchemes] = useState<ActiveScheme[]>([]);
@@ -163,7 +157,6 @@ export const Dashboard: React.FC = () => {
     profile,
     livePrice,
     activeSchemes: contextActiveSchemes,
-    portfolio,
     availableSchemes: contextAvailableSchemes,
     transactions: contextTransactions,
     unreadNotifCount: contextUnreadNotifCount,
@@ -191,12 +184,6 @@ export const Dashboard: React.FC = () => {
     if (contextActiveSchemes) {
       setActiveSchemes(contextActiveSchemes);
     }
-    if (portfolio) {
-      setGoldBalanceMg(portfolio.goldBalanceMg || 0);
-      setCurrentValuePaise(portfolio.currentValuePaise || 0);
-      setReturnPercentage(portfolio.returnPercentage || 0);
-      setLockedGoldMg(portfolio.lockedGoldMg || 0);
-    }
     if (contextAvailableSchemes) {
       setAvailableSchemes(contextAvailableSchemes);
     }
@@ -213,7 +200,7 @@ export const Dashboard: React.FC = () => {
       setOfferTitle(offers[0].title);
       setOfferDesc(offers[0].description);
     }
-  }, [profile, livePrice, contextActiveSchemes, portfolio, contextAvailableSchemes, contextTransactions, contextBankAccounts, contextUnreadNotifCount, offers]);
+  }, [profile, livePrice, contextActiveSchemes, contextAvailableSchemes, contextTransactions, contextBankAccounts, contextUnreadNotifCount, offers]);
 
   useEffect(() => {
     // Redirect if onboarding not completed
@@ -515,131 +502,64 @@ export const Dashboard: React.FC = () => {
               </div>
             )}
 
-            {/* Unified Portfolio Card */}
+            {/* Unified Live Rates Card (Magenta style) */}
             <div
               className="portfolio-card"
-              onClick={() => navigate('/portfolio-analytics')}
               style={{
                 background: 'var(--gradient-brand)',
                 borderRadius: '24px',
                 padding: '20px',
                 color: 'white',
                 boxShadow: '0 12px 24px var(--brand-glow)',
-                cursor: 'pointer',
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '14px'
               }}
             >
-              <div>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.7 }}>
-                  {t('matured_balance')}
-                </span>
-                <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--gold-primary)', fontFamily: 'var(--font-poppins)', margin: '4px 0 0 0' }}>
-                  {formatRupees(currentValuePaise)}
-                </h2>
-              </div>
+              {/* Gloss Layer */}
+              <div style={{
+                position: 'absolute', top: '-20%', right: '-20%', width: '120px', height: '120px',
+                background: 'radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%)',
+                pointerEvents: 'none'
+              }} />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.06)', padding: '12px 16px', borderRadius: '12px' }}>
-                <div>
-                  <span style={{ fontSize: '9px', opacity: 0.6 }}>{t('total_vault_gold')}</span>
-                  <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{mgToGrams(goldBalanceMg)}</div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: returnPercentage < 0 ? '#EF4444' : 'var(--success-green)' }}>
-                  {returnPercentage < 0 ? <TrendingDown size={16} /> : <TrendingUp size={16} />}
-                  <span style={{ fontSize: '13px', fontWeight: 'bold' }}>
-                    {returnPercentage < 0 ? '' : '+'}{returnPercentage}%
-                  </span>
-                </div>
-              </div>
-
-              {/* Live Gold/Silver Prices inside Portfolio Card */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(0,0,0,0.12)', padding: '10px 16px', borderRadius: '12px', fontSize: '11px' }}>
-                <div>
-                  <span style={{ opacity: 0.6, fontSize: '8px', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>Gold (22K)</span>
-                  <span style={{ fontWeight: 'bold', color: 'var(--gold-primary)' }}>₹{((livePrice?.price22KPaise || 701000) / 100).toFixed(2)}/g</span>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ opacity: 0.6, fontSize: '8px', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>Silver (99.9%)</span>
-                  <span style={{ fontWeight: 'bold', color: '#ECECEC' }}>₹{((livePrice?.priceSilverPaise || 9900) / 100).toFixed(2)}/g</span>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', opacity: 0.6 }}>
-                <span>{t('locked')}: {mgToGrams(lockedGoldMg)}</span>
-                <span>{t('live_updates')}</span>
-              </div>
-            </div>
-
-            {/* Live Metal Rates Card */}
-            <div className="glass-card live-rates-card" style={{
-              borderRadius: '20px',
-              padding: '16px 20px',
-              background: 'white',
-              border: '1px solid rgba(0,0,0,0.06)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
-            }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', fontFamily: 'var(--font-poppins)' }}>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'white', fontFamily: 'var(--font-poppins)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                   {t('live_metal_rates')}
                 </span>
                 <span style={{
                   fontSize: '9px',
-                  background: 'var(--success-light)',
-                  color: 'var(--success-green)',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  color: 'var(--gold-primary)',
                   padding: '2px 8px',
                   borderRadius: '12px',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  letterSpacing: '0.5px'
                 }}>
                   ● LIVE
                 </span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                {/* Gold Rates */}
-                <div style={{ background: 'linear-gradient(135deg, #FFFDF9 0%, #FFF9F0 100%)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 215, 0, 0.2)' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--gold-deep)', display: 'block', marginBottom: '6px' }}>
-                    {t('gold_per_g')}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '4px' }}>
+                {/* Gold Rates (22K) */}
+                <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '14px 16px', borderRadius: '16px', border: '1px solid rgba(255, 215, 0, 0.2)' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--gold-primary)', display: 'block', marginBottom: '6px' }}>
+                    Gold 22K (per g)
                   </span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>24K (99.9%):</span>
-                      <span style={{ fontWeight: 'bold', color: 'var(--brand-dark)' }}>
-                        ₹{((livePrice?.price24KPaise || 754200) / 100).toFixed(2)}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>22K (91.6%):</span>
-                      <span style={{ fontWeight: 'bold', color: 'var(--brand-dark)' }}>
-                        ₹{((livePrice?.price22KPaise || 701000) / 100).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
+                  <span style={{ fontSize: '20px', fontWeight: '900', color: 'white', fontFamily: 'var(--font-poppins)' }}>
+                    ₹{((livePrice?.price22KPaise || 701000) / 100).toFixed(2)}
+                  </span>
                 </div>
 
-                {/* Silver Rates */}
-                <div style={{ background: 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0, 0, 0, 0.04)' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#6B7280', display: 'block', marginBottom: '6px' }}>
-                    {t('silver_per_g')}
+                {/* Silver Rates (99.9%) */}
+                <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '14px 16px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#ECECEC', display: 'block', marginBottom: '6px' }}>
+                    Silver 99.9% (per g)
                   </span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>99.9% Pure:</span>
-                      <span style={{ fontWeight: 'bold', color: 'var(--brand-dark)' }}>
-                        ₹{Math.max(92.5, Math.round((livePrice?.price22KPaise || 701000) * 0.0132) / 100).toFixed(2)}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>Sterling (92.5):</span>
-                      <span style={{ fontWeight: 'bold', color: 'var(--brand-dark)' }}>
-                        ₹{Math.max(85.5, Math.round((livePrice?.price22KPaise || 701000) * 0.0132 * 0.925) / 100).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
+                  <span style={{ fontSize: '20px', fontWeight: '900', color: 'white', fontFamily: 'var(--font-poppins)' }}>
+                    ₹{((livePrice?.priceSilverPaise || 9900) / 100).toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -691,58 +611,92 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
 
-              <div style={{ display: 'flex', gap: '14px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
+              <div style={{ display: 'flex', gap: '14px', overflowX: 'auto', paddingBottom: '12px', scrollbarWidth: 'none' }}>
                 {availableSchemes.map((sch) => (
                   <div
                     key={sch.id}
                     className="glass-card"
                     onClick={() => navigate(`/scheme-detail/${sch.id}`)}
                     style={{
-                      flex: '0 0 280px',
-                      height: '160px',
+                      flex: '0 0 310px',
+                      height: '190px',
                       borderRadius: '20px',
-                      padding: '20px',
+                      padding: '22px',
                       background: 'linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-deep) 100%)',
-                      border: '1.5px solid rgba(255, 215, 0, 0.25)',
+                      border: '1.5px solid rgba(255, 215, 0, 0.3)',
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
                       cursor: 'pointer',
-                      boxShadow: '0 8px 16px rgba(74, 14, 78, 0.25)',
+                      boxShadow: '0 10px 20px rgba(41, 0, 29, 0.35)',
                       position: 'relative',
                       overflow: 'hidden'
                     }}
                   >
-                    {/* Subtle Gold Gloss Layer */}
+                    {/* Gloss / Gradient Reflection effect */}
                     <div style={{
-                      position: 'absolute', top: '-20%', right: '-20%', width: '120px', height: '120px',
-                      background: 'radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%)',
-                      pointerEvents: 'none'
+                      position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%',
+                      background: 'radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 60%)',
+                      pointerEvents: 'none',
+                      transform: 'rotate(-15deg)'
                     }} />
 
-                    <div>
-                      <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: 'white', margin: 0, fontFamily: 'var(--font-poppins)' }}>
-                        {sch.planName}
-                      </h4>
-                      <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', display: 'block', marginTop: '6px' }}>
-                        {t('tenure')}: <strong style={{ color: 'var(--gold-primary)' }}>{sch.totalInstallments} {t('months')}</strong>
+                    {/* Top Row: Chip and Brand Name */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      {/* Golden Chip */}
+                      <div style={{
+                        width: '38px',
+                        height: '28px',
+                        borderRadius: '6px',
+                        background: 'linear-gradient(135deg, #FFE082 0%, #FFB300 100%)',
+                        position: 'relative',
+                        border: '1px solid #FFD54F',
+                        boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)'
+                      }}>
+                        <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: 'rgba(0,0,0,0.15)' }} />
+                        <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '1px', background: 'rgba(0,0,0,0.15)' }} />
+                      </div>
+                      
+                      {/* Brand name */}
+                      <span style={{
+                        fontFamily: 'var(--font-playfair)',
+                        fontWeight: 'bold',
+                        fontSize: '15px',
+                        color: 'var(--gold-primary)',
+                        letterSpacing: '1px'
+                      }}>
+                        Aishwaryam
                       </span>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', zIndex: 2 }}>
+                    {/* Middle Row: Scheme Name / Card Description */}
+                    <div style={{ marginTop: '12px' }}>
+                      <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: 'white', margin: 0, fontFamily: 'var(--font-poppins)', letterSpacing: '0.5px' }}>
+                        {sch.planName}
+                      </h4>
+                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginTop: '2px' }}>
+                        Gold Savings Chit
+                      </span>
+                    </div>
+
+                    {/* Bottom Row: Installment Amount and Tenure */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', zIndex: 2 }}>
                       <div>
-                        <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '2px' }}>
+                        <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '2px' }}>
                           Monthly Savings
                         </span>
-                        <span style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--gold-primary)', fontFamily: 'var(--font-poppins)' }}>
+                        <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--gold-primary)', fontFamily: 'var(--font-poppins)' }}>
                           {formatRupees(sch.installmentAmountPaise)}
                         </span>
                       </div>
-                      <div style={{
-                        width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255, 215, 0, 0.15)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}>
-                        <ChevronRight size={18} color="var(--gold-primary)" />
+
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '2px' }}>
+                          Tenure
+                        </span>
+                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'white' }}>
+                          {sch.totalInstallments} {t('months')}
+                        </span>
                       </div>
                     </div>
                   </div>
