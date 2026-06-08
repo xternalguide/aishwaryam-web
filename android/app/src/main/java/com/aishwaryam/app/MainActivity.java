@@ -13,11 +13,13 @@ import com.getcapacitor.BridgeWebViewClient;
 import com.getcapacitor.BridgeWebChromeClient;
 import android.view.WindowManager;
 import android.graphics.Color;
+import com.ionicframework.capacitor.Checkout;
 
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        registerPlugin(Checkout.class);
         
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);

@@ -5,6 +5,8 @@ import { ApiClient } from '../utils/ApiClient';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from '../utils/translation';
 import { ArrowLeft, ShieldAlert, Award, X, Calculator } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Checkout } from 'capacitor-razorpay';
 
 interface AvailableScheme {
   id: string;
@@ -207,15 +209,7 @@ export const SchemeDetail: React.FC = () => {
     try {
       const userId = SessionManager.getUserId() || 'user-id-999';
 
-      // 1. Load Razorpay script
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
-        alert('Failed to load Razorpay SDK. Please check your network connection.');
-        setIsProcessing(false);
-        return;
-      }
-
-      // 2. Create payment order on backend
+      // 1. Create payment order on backend
       const res = await ApiClient.post('api/Payment/create-order', {
         userId,
         amountPaise,
@@ -231,39 +225,6 @@ export const SchemeDetail: React.FC = () => {
           name: 'Aishwaryam Digital Gold',
           description: isJoiningFlow ? `Join ${scheme.planName}` : `Pay Installment - ${scheme.planName}`,
           order_id: orderData.orderId,
-          handler: async function (response: any) {
-            setIsProcessing(true);
-            try {
-              // 3. Verify payment order on backend
-              const verifyRes = await ApiClient.post('api/Payment/verify', {
-                userId,
-                razorpayOrderId: orderData.orderId,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature
-              });
-
-              if (verifyRes.data && verifyRes.data.success) {
-                const receiptJson = JSON.stringify({
-                  transactionId: orderData.orderId,
-                  type: 'BUY',
-                  amountPaise,
-                  goldWeightMg: verifyRes.data.goldWeightMg || Math.round(goldWeightGrams * 1000),
-                  createdAt: new Date().toISOString(),
-                  rateSource: 'Live',
-                  schemeName: scheme.planName
-                });
-                refreshData();
-                setShowJoinSheet(false);
-                navigate(`/payment-success/${encodeURIComponent(receiptJson)}`);
-              } else {
-                alert(verifyRes.data.message || 'Payment verification failed.');
-              }
-            } catch (e: any) {
-              alert('Verification failed: ' + (e.response?.data?.message || e.message));
-            } finally {
-              setIsProcessing(false);
-            }
-          },
           prefill: {
             name: profile?.fullName || '',
             email: profile?.email || '',
@@ -271,61 +232,166 @@ export const SchemeDetail: React.FC = () => {
           },
           theme: {
             color: '#4A0E4E'
-          },
-          modal: {
-            ondismiss: function () {
-              setIsProcessing(false);
-              const errorJson = JSON.stringify({
-                schemeName: scheme.planName,
-                amountPaise,
-                errorMessage: 'Payment was cancelled by the user.',
-                orderId: orderData.orderId
-              });
-              // Log failure to DB asynchronously
-              ApiClient.post('api/Payment/log-failure', {
-                userId,
-                orderId: orderData.orderId,
-                paymentId: '',
-                amountPaise,
-                errorCode: 'BAD_REQUEST_ERROR',
-                errorMessage: 'Payment dismissed by user'
-              }).catch(() => {});
-              
-              navigate(`/payment-failed/${encodeURIComponent(errorJson)}`);
-            }
           }
         };
 
-        const rzp = new (window as any).Razorpay(options);
-        
-        rzp.on('payment.failed', async function (response: any) {
-          setIsProcessing(false);
+        if (Capacitor.isNativePlatform()) {
+          // ─── Capacitor Native SDK Integration ───
           try {
-            await ApiClient.post('api/Payment/log-failure', {
+            const result = (await Checkout.open(options as any)) as any;
+            const rzpResponse = typeof result.response === 'string'
+              ? JSON.parse(result.response)
+              : result.response;
+
+            // 2. Verify payment order on backend
+            setIsProcessing(true);
+            const verifyRes = await ApiClient.post('api/Payment/verify', {
+              userId,
+              razorpayOrderId: orderData.orderId,
+              razorpayPaymentId: rzpResponse.razorpay_payment_id,
+              razorpaySignature: rzpResponse.razorpay_signature
+            });
+
+            if (verifyRes.data && verifyRes.data.success) {
+              const receiptJson = JSON.stringify({
+                transactionId: orderData.orderId,
+                type: 'BUY',
+                amountPaise,
+                goldWeightMg: verifyRes.data.goldWeightMg || Math.round(goldWeightGrams * 1000),
+                createdAt: new Date().toISOString(),
+                rateSource: 'Live',
+                schemeName: scheme.planName
+              });
+              refreshData();
+              setShowJoinSheet(false);
+              navigate(`/payment-success/${encodeURIComponent(receiptJson)}`);
+            } else {
+              alert(verifyRes.data.message || 'Payment verification failed.');
+            }
+          } catch (error: any) {
+            console.error('Native payment failed:', error);
+            const errorDescription = error.description || error.message || 'Payment was cancelled or failed.';
+            
+            // Log failure to DB asynchronously
+            ApiClient.post('api/Payment/log-failure', {
               userId,
               orderId: orderData.orderId,
-              paymentId: response.error?.metadata?.payment_id || '',
+              paymentId: error.metadata?.payment_id || '',
               amountPaise,
-              errorCode: response.error?.code || 'PAYMENT_FAILED',
-              errorMessage: response.error?.description || 'Payment failed or cancelled'
+              errorCode: error.code || 'PAYMENT_FAILED',
+              errorMessage: errorDescription
+            }).catch(() => {});
+
+            const errorJson = JSON.stringify({
+              schemeName: scheme.planName,
+              amountPaise,
+              errorMessage: errorDescription,
+              orderId: orderData.orderId
             });
-          } catch (e) {
-            console.error('Error logging payment failure:', e);
+            navigate(`/payment-failed/${encodeURIComponent(errorJson)}`);
+          } finally {
+            setIsProcessing(false);
+          }
+        } else {
+          // ─── Standard Web Checkout Fallback ───
+          // 1. Load Razorpay script
+          const scriptLoaded = await loadRazorpayScript();
+          if (!scriptLoaded) {
+            alert('Failed to load Razorpay SDK. Please check your network connection.');
+            setIsProcessing(false);
+            return;
           }
 
-          const errorJson = JSON.stringify({
-            schemeName: scheme.planName,
-            amountPaise,
-            errorMessage: response.error?.description || 'Payment was cancelled or failed.',
-            orderId: orderData.orderId
-          });
-          navigate(`/payment-failed/${encodeURIComponent(errorJson)}`);
-        });
+          const webOptions = {
+            ...options,
+            handler: async function (response: any) {
+              setIsProcessing(true);
+              try {
+                // 3. Verify payment order on backend
+                const verifyRes = await ApiClient.post('api/Payment/verify', {
+                  userId,
+                  razorpayOrderId: orderData.orderId,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature
+                });
 
-        rzp.open();
+                if (verifyRes.data && verifyRes.data.success) {
+                  const receiptJson = JSON.stringify({
+                    transactionId: orderData.orderId,
+                    type: 'BUY',
+                    amountPaise,
+                    goldWeightMg: verifyRes.data.goldWeightMg || Math.round(goldWeightGrams * 1000),
+                    createdAt: new Date().toISOString(),
+                    rateSource: 'Live',
+                    schemeName: scheme.planName
+                  });
+                  refreshData();
+                  setShowJoinSheet(false);
+                  navigate(`/payment-success/${encodeURIComponent(receiptJson)}`);
+                } else {
+                  alert(verifyRes.data.message || 'Payment verification failed.');
+                }
+              } catch (e: any) {
+                alert('Verification failed: ' + (e.response?.data?.message || e.message));
+              } finally {
+                setIsProcessing(false);
+              }
+            },
+            modal: {
+              ondismiss: function () {
+                setIsProcessing(false);
+                const errorJson = JSON.stringify({
+                  schemeName: scheme.planName,
+                  amountPaise,
+                  errorMessage: 'Payment was cancelled by the user.',
+                  orderId: orderData.orderId
+                });
+                // Log failure to DB asynchronously
+                ApiClient.post('api/Payment/log-failure', {
+                  userId,
+                  orderId: orderData.orderId,
+                  paymentId: '',
+                  amountPaise,
+                  errorCode: 'BAD_REQUEST_ERROR',
+                  errorMessage: 'Payment dismissed by user'
+                }).catch(() => {});
+                
+                navigate(`/payment-failed/${encodeURIComponent(errorJson)}`);
+              }
+            }
+          };
+
+          const rzp = new (window as any).Razorpay(webOptions);
+          
+          rzp.on('payment.failed', async function (response: any) {
+            setIsProcessing(false);
+            try {
+              await ApiClient.post('api/Payment/log-failure', {
+                userId,
+                orderId: orderData.orderId,
+                paymentId: response.error?.metadata?.payment_id || '',
+                amountPaise,
+                errorCode: response.error?.code || 'PAYMENT_FAILED',
+                errorMessage: response.error?.description || 'Payment failed or cancelled'
+              });
+            } catch (e) {
+              console.error('Error logging payment failure:', e);
+            }
+
+            const errorJson = JSON.stringify({
+              schemeName: scheme.planName,
+              amountPaise,
+              errorMessage: response.error?.description || 'Payment was cancelled or failed.',
+              orderId: orderData.orderId
+            });
+            navigate(`/payment-failed/${encodeURIComponent(errorJson)}`);
+          });
+
+          rzp.open();
+        }
       }
     } catch (err: any) {
-      alert('Error launching checkout: ' + (err.response?.data?.message || err.message));
+      alert('Error launching checkout: ' + err.message);
       setIsProcessing(false);
     }
   };
