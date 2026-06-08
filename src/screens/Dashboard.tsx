@@ -2040,31 +2040,17 @@ export const Dashboard: React.FC = () => {
       )}
 
       {/* ── BOTTOM TAB NAVIGATION BAR ── */}
-      <div style={isAndroidApp ? {
-        position: 'fixed',
-        bottom: '16px',
-        left: '16px',
-        right: '16px',
-        width: 'calc(100% - 32px)',
-        height: '64px',
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '16px',
-        border: '1px solid rgba(74, 14, 78, 0.08)',
-        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        zIndex: 100
-      } : {
+      <div style={{
         background: 'white',
         borderTop: '1px solid #ECECEC',
-        height: '64px',
+        height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         display: 'flex',
         justifyContent: 'space-around',
         alignItems: 'center',
         boxShadow: '0 -2px 10px rgba(0,0,0,0.02)',
-        zIndex: 10
+        zIndex: 10,
+        boxSizing: 'border-box'
       }}>
         <button
           onClick={() => setSelectedTab(0)}
@@ -2108,7 +2094,7 @@ export const Dashboard: React.FC = () => {
         <button
           onClick={() => navigate('/ai_assistant')}
           style={{
-            position: 'absolute', right: '16px', bottom: isAndroidApp ? '96px' : '80px', width: '56px', height: '56px',
+            position: 'absolute', right: '16px', bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))', width: '56px', height: '56px',
             borderRadius: '50%', background: 'var(--brand-deep)', color: 'white', border: 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
             boxShadow: '0 6px 16px rgba(41, 0, 29, 0.4)', zIndex: 99
