@@ -95,6 +95,9 @@ export const Dashboard: React.FC = () => {
     return saved ? parseInt(saved, 10) : 0;
   });
 
+  const [profileScrollTop, setProfileScrollTop] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   // User details
   const [userName, setUserName] = useState('');
   const [kycLevel, setKycLevel] = useState('BASIC');
@@ -290,6 +293,10 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem('DASHBOARD_ACTIVE_TAB', String(selectedTab));
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+    setProfileScrollTop(0);
   }, [selectedTab]);
 
   useEffect(() => {
@@ -475,6 +482,12 @@ export const Dashboard: React.FC = () => {
     return list;
   };
 
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (selectedTab === 2) {
+      setProfileScrollTop(e.currentTarget.scrollTop);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', maxWidth: '100%', overflowX: 'hidden', background: '#F8F9FA', position: 'relative' }}>
       
@@ -482,16 +495,15 @@ export const Dashboard: React.FC = () => {
       <div style={{
         background: selectedTab === 2 ? '#FFF9E6' : 'white',
         borderBottom: selectedTab === 2 ? 'none' : '1px solid #ECECEC',
-        paddingTop: 'calc(16px + max(env(safe-area-inset-top, 24px), 24px))',
+        paddingTop: 'max(env(safe-area-inset-top, 24px), 24px)',
         paddingLeft: '20px',
         paddingRight: '20px',
-        paddingBottom: selectedTab === 2 ? '10px' : '16px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         boxShadow: selectedTab === 2 ? 'none' : '0 2px 4px rgba(0,0,0,0.02)',
-        zIndex: 10,
-        height: '68px',
+        zIndex: selectedTab === 2 ? 20 : 10,
+        height: 'calc(68px + max(env(safe-area-inset-top, 24px), 24px))',
         boxSizing: 'border-box',
         transition: 'all 0.4s ease-in-out'
       }}>
@@ -559,7 +571,7 @@ export const Dashboard: React.FC = () => {
         style={{
           position: 'absolute',
           top: selectedTab === 2 
-            ? 'calc(130px + max(env(safe-area-inset-top, 24px), 24px))' 
+            ? `calc(130px + max(env(safe-area-inset-top, 24px), 24px) - ${profileScrollTop}px)` 
             : 'calc(16px + max(env(safe-area-inset-top, 24px), 24px))',
           left: selectedTab === 2 ? '50%' : '20px',
           width: selectedTab === 2 ? '90px' : '36px',
@@ -638,7 +650,7 @@ export const Dashboard: React.FC = () => {
         style={{
           position: 'absolute',
           top: selectedTab === 2 
-            ? 'calc(192px + max(env(safe-area-inset-top, 24px), 24px))' 
+            ? `calc(192px + max(env(safe-area-inset-top, 24px), 24px) - ${profileScrollTop}px)` 
             : 'calc(16px + max(env(safe-area-inset-top, 24px), 24px))',
           left: selectedTab === 2 ? 'calc(50% + 30px)' : '20px',
           width: '28px',
@@ -666,7 +678,7 @@ export const Dashboard: React.FC = () => {
         style={{
           position: 'absolute',
           top: selectedTab === 2 
-            ? 'calc(236px + max(env(safe-area-inset-top, 24px), 24px))' 
+            ? `calc(236px + max(env(safe-area-inset-top, 24px), 24px) - ${profileScrollTop}px)` 
             : 'calc(16px + max(env(safe-area-inset-top, 24px), 24px))',
           left: selectedTab === 2 ? '50%' : '66px',
           transform: selectedTab === 2 ? 'translateX(-50%)' : 'none',
@@ -746,7 +758,11 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* ── MAIN TAB CONTAINER ── */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: isAndroidApp ? '96px' : '32px' }}>
+      <div 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: isAndroidApp ? '96px' : '32px' }}
+      >
         
         {/* TAB 0: HOME VIEW */}
         {selectedTab === 0 && (
