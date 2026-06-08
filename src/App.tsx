@@ -39,6 +39,8 @@ import {
 import { AppProvider } from './context/AppContext';
 import { PushNotificationHandler } from './components/PushNotificationHandler';
 import { BackButtonHandler } from './components/BackButtonHandler';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Capacitor } from '@capacitor/core';
 import './App.css';
 
 // ── CUSTOM PREMIUM OFFLINE SCREEN ──────────────────────────────────────────
@@ -162,6 +164,14 @@ const App: React.FC = () => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
+    // Programmatically style and set translucent to false for native platforms
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setOverlaysWebView({ overlay: false })
+        .then(() => StatusBar.setBackgroundColor({ color: '#4A0E4E' }))
+        .then(() => StatusBar.setStyle({ style: Style.Dark }))
+        .catch(err => console.log('Capacitor StatusBar error:', err));
+    }
+
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     window.addEventListener('online', handleOnline);
