@@ -1078,6 +1078,58 @@ export const SchemeDetail: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Full-screen Loading Overlay for Payment Processing/Verification */}
+      {isProcessing && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(41, 0, 29, 0.85)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000,
+          color: 'white',
+          padding: '24px',
+          textAlign: 'center'
+        }}>
+          <div className="spinner" style={{
+            width: '50px',
+            height: '50px',
+            border: '4px solid rgba(255, 255, 255, 0.25)',
+            borderTop: '4px solid var(--gold-primary)',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            marginBottom: '24px'
+          }} />
+          <h3 style={{
+            fontSize: '18px',
+            fontWeight: 'bold',
+            color: 'var(--gold-primary)',
+            margin: '0 0 10px 0',
+            fontFamily: 'var(--font-poppins)',
+            letterSpacing: '0.5px'
+          }}>
+            Verifying Transaction...
+          </h3>
+          <p style={{
+            fontSize: '13px',
+            color: 'rgba(255, 255, 255, 0.8)',
+            margin: 0,
+            maxWidth: '300px',
+            lineHeight: '20px',
+            fontFamily: 'var(--font-poppins)'
+          }}>
+            Confirming your digital gold purchase. Please do not close the application or go back.
+          </p>
+        </div>
+      )}
     </div>
   );
 };
