@@ -26,13 +26,58 @@ public class MainActivity extends BridgeActivity {
         
         WebView webView = this.getBridge().getWebView();
         if (webView != null) {
-            webView.setFitsSystemWindows(true);
+            webView.setFitsSystemWindows(false);
             
             // Enable multiple windows support (required for Razorpay bank authentication/popups)
             webView.getSettings().setSupportMultipleWindows(true);
             webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
             
+            // Enable DOM storage and database on main WebView (CRITICAL for Razorpay session persistence)
+            webView.getSettings().setDomStorageEnabled(true);
+            webView.getSettings().setDatabaseEnabled(true);
+            webView.getSettings().setAllowFileAccess(true);
+            webView.getSettings().setAllowContentAccess(true);
+            
+            // Configure Cookies and Mixed Content on main WebView
+            android.webkit.CookieManager cookieManager = android.webkit.CookieManager.getInstance();
+            cookieManager.setAcceptCookie(true);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                cookieManager.setAcceptThirdPartyCookies(webView, true);
+                webView.getSettings().setMixedContentMode(android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+            }
+            
             webView.setWebViewClient(new BridgeWebViewClient(this.getBridge()) {
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    if (url != null && !url.startsWith("http://") && !url.startsWith("https://")) {
+                        try {
+                            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url));
+                            view.getContext().startActivity(intent);
+                            return true;
+                        } catch (Exception e) {
+                            return true;
+                        }
+                    }
+                    return super.shouldOverrideUrlLoading(view, url);
+                }
+
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                        String url = request.getUrl().toString();
+                        if (url != null && !url.startsWith("http://") && !url.startsWith("https://")) {
+                            try {
+                                android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url));
+                                view.getContext().startActivity(intent);
+                                return true;
+                            } catch (Exception e) {
+                                return true;
+                            }
+                        }
+                    }
+                    return super.shouldOverrideUrlLoading(view, request);
+                }
+
                 @Override
                 public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                     if (request.isForMainFrame()) {
@@ -59,9 +104,30 @@ public class MainActivity extends BridgeActivity {
                 public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
                     // Create new WebView instance for the popup
                     WebView newWebView = new WebView(MainActivity.this);
+                    
+                    // Enable JavaScript and popup windows
                     newWebView.getSettings().setJavaScriptEnabled(true);
                     newWebView.getSettings().setSupportMultipleWindows(true);
                     newWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+                    
+                    // Enable DOM storage and database (CRITICAL for Razorpay/banking session persistence)
+                    newWebView.getSettings().setDomStorageEnabled(true);
+                    newWebView.getSettings().setDatabaseEnabled(true);
+                    
+                    // Allow file and content access
+                    newWebView.getSettings().setAllowFileAccess(true);
+                    newWebView.getSettings().setAllowContentAccess(true);
+                    
+                    // Inherit the main WebView's User Agent
+                    newWebView.getSettings().setUserAgentString(view.getSettings().getUserAgentString());
+                    
+                    // Configure Cookies and Mixed Content (CRITICAL for modern 3DS bank pages)
+                    android.webkit.CookieManager cookieManager = android.webkit.CookieManager.getInstance();
+                    cookieManager.setAcceptCookie(true);
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                        cookieManager.setAcceptThirdPartyCookies(newWebView, true);
+                        newWebView.getSettings().setMixedContentMode(android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+                    }
                     
                     // Create a fullscreen dialog to show the new WebView
                     final Dialog dialog = new Dialog(MainActivity.this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
@@ -78,11 +144,32 @@ public class MainActivity extends BridgeActivity {
                     newWebView.setWebViewClient(new WebViewClient() {
                         @Override
                         public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                            if (url != null && !url.startsWith("http://") && !url.startsWith("https://")) {
+                                try {
+                                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url));
+                                    view.getContext().startActivity(intent);
+                                    return true;
+                                } catch (Exception e) {
+                                    return true;
+                                }
+                            }
                             return false;
                         }
                         
                         @Override
                         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                                String url = request.getUrl().toString();
+                                if (url != null && !url.startsWith("http://") && !url.startsWith("https://")) {
+                                    try {
+                                        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url));
+                                        view.getContext().startActivity(intent);
+                                        return true;
+                                    } catch (Exception e) {
+                                        return true;
+                                    }
+                                }
+                            }
                             return false;
                         }
                     });
