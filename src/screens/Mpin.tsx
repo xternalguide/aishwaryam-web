@@ -19,8 +19,8 @@ export const Mpin: React.FC = () => {
   const navigate = useNavigate();
   const { refreshData } = useApp();
   const { t } = useTranslation();
-  const { mode } = useParams<{ mode: 'setup' | 'verify' }>();
-  const isSetupMode = mode === 'setup';
+  const { mode } = useParams<{ mode: 'setup' | 'verify' | 'change' }>();
+  const isSetupMode = mode === 'setup' || mode === 'change';
 
   // Screen state machine
   const [flowState, setFlowState] = useState<MpinFlowState>(
@@ -150,7 +150,7 @@ export const Mpin: React.FC = () => {
         // Complete progress to 100% smoothly
         setLoadingProgress(100);
         await new Promise((resolve) => setTimeout(resolve, 250));
-        setSuccessMessage(flowState === MpinFlowState.SETUP_PIN ? 'PIN Set Successfully!' : 'PIN Reset Successfully!');
+        setSuccessMessage(mode === 'change' ? 'PIN Changed Successfully!' : flowState === MpinFlowState.SETUP_PIN ? 'PIN Set Successfully!' : 'PIN Reset Successfully!');
         setShowSuccessDialog(true);
       } else {
         setErrorMsg(response.data.message || 'Failed to update PIN.');
@@ -248,7 +248,10 @@ export const Mpin: React.FC = () => {
 
   const handleSuccessDismiss = () => {
     setShowSuccessDialog(false);
-    if (flowState === MpinFlowState.SETUP_PIN) {
+    if (mode === 'change') {
+      localStorage.setItem('DASHBOARD_ACTIVE_TAB', '2');
+      navigate('/dashboard');
+    } else if (flowState === MpinFlowState.SETUP_PIN) {
       SessionManager.saveOnboardingStage(OnboardingStage.MPIN_CREATED);
       navigate('/profile-setup');
     } else if (flowState === MpinFlowState.FORGOT_NEW_PIN) {
@@ -333,7 +336,7 @@ export const Mpin: React.FC = () => {
             textAlign: 'center'
           }}>
             {flowState === MpinFlowState.ENTER_PIN && 'Enter your PIN'}
-            {flowState === MpinFlowState.SETUP_PIN && 'Set your 4-Digit PIN'}
+            {flowState === MpinFlowState.SETUP_PIN && (mode === 'change' ? 'Change Login PIN' : 'Set your 4-Digit PIN')}
             {flowState === MpinFlowState.FORGOT_ENTER_OTP && 'Verify OTP'}
             {flowState === MpinFlowState.FORGOT_NEW_PIN && 'Reset your 4-Digit PIN'}
           </h2>
@@ -348,7 +351,7 @@ export const Mpin: React.FC = () => {
             padding: '0 8px'
           }}>
             {flowState === MpinFlowState.ENTER_PIN && 'Enter your 4-digit PIN to access your account.'}
-            {flowState === MpinFlowState.SETUP_PIN && 'Create a secure PIN for quick login.'}
+            {flowState === MpinFlowState.SETUP_PIN && (mode === 'change' ? 'Create and confirm your new 4-digit login PIN.' : 'Create a secure PIN for quick login.')}
             {flowState === MpinFlowState.FORGOT_ENTER_OTP && 'OTP sent to your registered phone number.'}
             {flowState === MpinFlowState.FORGOT_NEW_PIN && 'Create and repeat your new 4-digit login PIN.'}
           </p>

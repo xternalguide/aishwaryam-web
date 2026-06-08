@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SessionManager, OnboardingStage } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
@@ -16,7 +16,6 @@ import {
   Gift,
   Award,
   X,
-  PlusCircle,
   PhoneCall,
   Landmark,
   Languages,
@@ -98,11 +97,7 @@ export const Dashboard: React.FC = () => {
 
   // User details
   const [userName, setUserName] = useState('');
-  const [userPhone, setUserPhone] = useState('');
   const [kycLevel, setKycLevel] = useState('BASIC');
-  const [nomineeName, setNomineeName] = useState('');
-  const [newNomineeInput, setNewNomineeInput] = useState('');
-  const [isEditingNominee, setIsEditingNominee] = useState(false);
 
   // Live metal rates
   const [goldPrice22K, setGoldPrice22K] = useState(0); // 22K price paise per gram
@@ -131,49 +126,82 @@ export const Dashboard: React.FC = () => {
   const [isProcessingAddSavings, setIsProcessingAddSavings] = useState(false);
 
   // Profile Interactive Modals & Sub-states
-  const [showAddressModal, setShowAddressModal] = useState(false);
-  const [addressPincode, setAddressPincode] = useState(() => SessionManager.getPartialPincode());
-  const [addressState, setAddressState] = useState(() => SessionManager.getPartialState());
-  const [addressCity, setAddressCity] = useState(() => SessionManager.getPartialCity());
-  const [addressArea, setAddressArea] = useState(() => SessionManager.getPartialArea());
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [calcAmount, setCalcAmount] = useState('');
   const [calcType, setCalcType] = useState<'RUPEES' | 'GRAMS'>('RUPEES');
-  const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [showCompletedModal, setShowCompletedModal] = useState(false);
-  const [showKycModal, setShowKycModal] = useState(false);
-  const [showBankModal, setShowBankModal] = useState(false);
+
+  // Manual banner swiping/dragging states & handlers
+  const dragStartPosRef = useRef({ x: 0, y: 0 });
+  const isDraggingRef = useRef(false);
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    dragStartPosRef.current = { x: touch.clientX, y: touch.clientY };
+    isDraggingRef.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (dragStartPosRef.current.x === 0) return;
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - dragStartPosRef.current.x);
+    const dy = Math.abs(touch.clientY - dragStartPosRef.current.y);
+    if (dx > 10 || dy > 10) {
+      isDraggingRef.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (dragStartPosRef.current.x === 0) return;
+    const touch = e.changedTouches[0];
+    const distance = dragStartPosRef.current.x - touch.clientX;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe && banners.length > 0) {
+      setActiveBannerIdx((prev) => (prev + 1) % banners.length);
+    } else if (isRightSwipe && banners.length > 0) {
+      setActiveBannerIdx((prev) => (prev - 1 + banners.length) % banners.length);
+    }
+    dragStartPosRef.current = { x: 0, y: 0 };
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    dragStartPosRef.current = { x: e.clientX, y: e.clientY };
+    isDraggingRef.current = false;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (dragStartPosRef.current.x === 0) return;
+    const dx = Math.abs(e.clientX - dragStartPosRef.current.x);
+    const dy = Math.abs(e.clientY - dragStartPosRef.current.y);
+    if (dx > 10 || dy > 10) {
+      isDraggingRef.current = true;
+    }
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (dragStartPosRef.current.x === 0) return;
+    const distance = dragStartPosRef.current.x - e.clientX;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe && banners.length > 0) {
+      setActiveBannerIdx((prev) => (prev + 1) % banners.length);
+    } else if (isRightSwipe && banners.length > 0) {
+      setActiveBannerIdx((prev) => (prev - 1 + banners.length) % banners.length);
+    }
+    dragStartPosRef.current = { x: 0, y: 0 };
+  };
+
 
   // History Tab Filter States
   const [txFilter, setTxFilter] = useState<'ALL' | 'BUY' | 'SELL'>('ALL');
   const [txSort, setTxSort] = useState<'NEWEST' | 'OLDEST'>('NEWEST');
   const [selectedTxDetail, setSelectedTxDetail] = useState<TransactionItem | null>(null);
 
-  // Profile Tab Bank Accounts
-  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
-
-  // Profile Tab KYC status and documents
-  const [kycDocs, setKycDocs] = useState<any[]>([]);
-  const [kycStatusMsg, setKycStatusMsg] = useState('');
-
-  useEffect(() => {
-    const fetchKycStatus = async () => {
-      const userId = SessionManager.getUserId();
-      if (!userId) return;
-      try {
-        const res = await ApiClient.get(`api/Kyc/status/${userId}`);
-        if (res.data && res.data.success) {
-          setKycDocs(res.data.documents || []);
-          setKycStatusMsg(res.data.status || 'PENDING');
-        }
-      } catch (err) {
-        console.error('Failed to load KYC documents:', err);
-      }
-    };
-    if (selectedTab === 2) {
-      fetchKycStatus();
-    }
-  }, [selectedTab]);
+  // Profile Tab states (moved to ProfilePages.tsx)
 
   // Consume from AppContext
   const {
@@ -184,7 +212,6 @@ export const Dashboard: React.FC = () => {
     transactions: contextTransactions,
     unreadNotifCount: contextUnreadNotifCount,
     offers,
-    bankAccounts: contextBankAccounts,
     refreshData
   } = useApp();
 
@@ -192,11 +219,7 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     if (profile) {
       setUserName(profile.fullName || 'User');
-      setUserPhone(profile.phoneNumber || '');
       setKycLevel(profile.kycLevel || 'BASIC');
-      const nominee = SessionManager.getNomineeName() || profile.nomineeName || '';
-      setNomineeName(nominee);
-      setNewNomineeInput(nominee);
       if (profile.preferredLanguage && (profile.preferredLanguage === 'en' || profile.preferredLanguage === 'ta') && profile.preferredLanguage !== lang) {
         changeLanguage(profile.preferredLanguage as 'en' | 'ta');
       }
@@ -213,9 +236,6 @@ export const Dashboard: React.FC = () => {
     if (contextTransactions) {
       setTransactions(contextTransactions);
     }
-    if (contextBankAccounts) {
-      setBankAccounts(contextBankAccounts);
-    }
     if (contextUnreadNotifCount !== undefined) {
       setUnreadNotifCount(contextUnreadNotifCount);
     }
@@ -223,7 +243,7 @@ export const Dashboard: React.FC = () => {
       setOfferTitle(offers[0].title);
       setOfferDesc(offers[0].description);
     }
-  }, [profile, livePrice, contextActiveSchemes, contextAvailableSchemes, contextTransactions, contextBankAccounts, contextUnreadNotifCount, offers]);
+  }, [profile, livePrice, contextActiveSchemes, contextAvailableSchemes, contextTransactions, contextUnreadNotifCount, offers]);
 
   useEffect(() => {
     // Redirect if onboarding not completed
@@ -296,14 +316,7 @@ export const Dashboard: React.FC = () => {
     navigate('/login');
   };
 
-  const handleUpdateNominee = () => {
-    if (newNomineeInput.trim()) {
-      SessionManager.saveNomineeName(newNomineeInput);
-      setNomineeName(newNomineeInput);
-      setIsEditingNominee(false);
-      alert('Nominee name updated successfully!');
-    }
-  };
+  // Nominee update logic moved to ProfilePages.tsx
 
   const getImageUrl = (url: string) => {
     if (!url) return '';
@@ -709,133 +722,7 @@ export const Dashboard: React.FC = () => {
               </button>
             </div>
 
-            {/* Promo Pager banners */}
-            {banners.length > 0 && (
-              <div 
-                className="promo-banner-container" 
-                style={{
-                  width: '100%',
-                  height: '160px',
-                  borderRadius: '20px',
-                  overflow: 'hidden',
-                  position: 'relative',
-                  boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
-                  background: '#EAEAEA',
-                  gridColumn: 'span 2',
-                  minWidth: 0,
-                  maxWidth: '100%',
-                  boxSizing: 'border-box'
-                }}
-              >
-                <div 
-                  style={{
-                    display: 'flex',
-                    width: `${banners.length * 100}%`,
-                    height: '100%',
-                    transition: 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
-                    transform: `translateX(-${activeBannerIdx * (100 / banners.length)}%)`
-                  }}
-                >
-                  {banners.map((banner, index) => (
-                    <div 
-                      key={banner.id || index}
-                      onClick={() => navigate(banner.tapActionUrl || '/scheme-explorer')}
-                      style={{
-                        width: `${100 / banners.length}%`,
-                        height: '100%',
-                        position: 'relative',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <img 
-                        src={getImageUrl(banner.imageBase64)} 
-                        alt={banner.title} 
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          objectFit: 'cover', 
-                          display: 'block' 
-                        }} 
-                      />
-                      <div style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: '60%',
-                        background: 'linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 100%)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'flex-end',
-                        padding: '16px 20px 24px 20px',
-                        color: 'white',
-                        boxSizing: 'border-box'
-                      }}>
-                        <span style={{ 
-                          fontSize: '9px', 
-                          textTransform: 'uppercase', 
-                          letterSpacing: '1px', 
-                          color: 'var(--gold-primary)', 
-                          fontWeight: 'bold',
-                          marginBottom: '2px' 
-                        }}>
-                          {t('campaign_promo')}
-                        </span>
-                        <h4 style={{ 
-                          margin: 0, 
-                          fontSize: '15px', 
-                          fontWeight: 'bold', 
-                          fontFamily: 'var(--font-poppins)', 
-                          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                          lineHeight: '1.2' 
-                        }}>
-                          {banner.title}
-                        </h4>
-                        <span style={{ 
-                          fontSize: '10px', 
-                          opacity: 0.9, 
-                          marginTop: '3px', 
-                          textDecoration: 'underline' 
-                        }}>
-                          {t('campaign_promo_desc')}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
 
-                {/* Center Dots indicator */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: '10px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  display: 'flex',
-                  gap: '6px',
-                  zIndex: 5
-                }}>
-                  {banners.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveBannerIdx(idx);
-                      }}
-                      style={{
-                        width: activeBannerIdx === idx ? '16px' : '6px',
-                        height: '6px',
-                        borderRadius: '3px',
-                        background: activeBannerIdx === idx ? 'var(--gold-primary)' : 'rgba(255,255,255,0.5)',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0,
-                        transition: 'all 0.3s ease'
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Available Schemes List */}
             <div className="available-schemes-section" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1065,6 +952,151 @@ export const Dashboard: React.FC = () => {
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            )}
+
+            {/* Promo Pager banners (moved below schemes) */}
+            {banners.length > 0 && (
+              <div 
+                className="promo-banner-container" 
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                style={{
+                  width: '100%',
+                  height: '160px',
+                  borderRadius: '20px',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+                  background: '#EAEAEA',
+                  gridColumn: 'span 2',
+                  minWidth: 0,
+                  maxWidth: '100%',
+                  boxSizing: 'border-box',
+                  userSelect: 'none',
+                  cursor: 'grab'
+                }}
+              >
+                <div 
+                  style={{
+                    display: 'flex',
+                    width: `${banners.length * 100}%`,
+                    height: '100%',
+                    transition: 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
+                    transform: `translateX(-${activeBannerIdx * (100 / banners.length)}%)`
+                  }}
+                >
+                  {banners.map((banner, index) => (
+                    <div 
+                      key={banner.id || index}
+                      onClick={(e) => {
+                        if (isDraggingRef.current) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return;
+                        }
+                        navigate(banner.tapActionUrl || '/scheme-explorer');
+                      }}
+                      style={{
+                        width: `${100 / banners.length}%`,
+                        height: '100%',
+                        position: 'relative',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <img 
+                        src={getImageUrl(banner.imageBase64)} 
+                        alt={banner.title} 
+                        draggable="false"
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover', 
+                          display: 'block',
+                          pointerEvents: 'none'
+                        }} 
+                      />
+                      <div style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: '60%',
+                        background: 'linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 100%)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-end',
+                        padding: '16px 20px 24px 20px',
+                        color: 'white',
+                        boxSizing: 'border-box'
+                      }}>
+                        <span style={{ 
+                          fontSize: '9px', 
+                          textTransform: 'uppercase', 
+                          letterSpacing: '1px', 
+                          color: 'var(--gold-primary)', 
+                          fontWeight: 'bold',
+                          marginBottom: '2px' 
+                        }}>
+                          {t('campaign_promo')}
+                        </span>
+                        <h4 style={{ 
+                          margin: 0, 
+                          fontSize: '15px', 
+                          fontWeight: 'bold', 
+                          fontFamily: 'var(--font-poppins)', 
+                          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                          lineHeight: '1.2' 
+                        }}>
+                          {banner.title}
+                        </h4>
+                        <span style={{ 
+                          fontSize: '10px', 
+                          opacity: 0.9, 
+                          marginTop: '3px', 
+                          textDecoration: 'underline' 
+                        }}>
+                          {t('campaign_promo_desc')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Center Dots indicator */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: '10px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  display: 'flex',
+                  gap: '6px',
+                  zIndex: 5
+                }}>
+                  {banners.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveBannerIdx(idx);
+                      }}
+                      style={{
+                        width: activeBannerIdx === idx ? '16px' : '6px',
+                        height: '6px',
+                        borderRadius: '3px',
+                        background: activeBannerIdx === idx ? 'var(--gold-primary)' : 'rgba(255,255,255,0.5)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        transition: 'all 0.3s ease'
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
             )}
@@ -1426,42 +1458,6 @@ export const Dashboard: React.FC = () => {
               {/* GROUP 1: CHIT & TRANSACTION ACTIONS */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 
-                {/* Card 1: Ready to Redeem */}
-                <div 
-                  onClick={() => setShowRedeemModal(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: 'white',
-                    borderRadius: '16px',
-                    padding: '16px 20px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                    border: '1px solid rgba(74, 14, 78, 0.04)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '12px',
-                      background: '#FFF8E1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#FFB300'
-                    }}>
-                      <Gift size={20} />
-                    </div>
-                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                      {t('ready_to_redeem')}
-                    </span>
-                  </div>
-                  <ChevronRight size={18} color="var(--text-light)" />
-                </div>
-
                 {/* Card 2: Price Calculator */}
                 <div 
                   onClick={() => setShowCalculatorModal(true)}
@@ -1493,42 +1489,6 @@ export const Dashboard: React.FC = () => {
                     </div>
                     <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                       {t('price_calculator')}
-                    </span>
-                  </div>
-                  <ChevronRight size={18} color="var(--text-light)" />
-                </div>
-
-                {/* Card 3: Recent Transactions */}
-                <div 
-                  onClick={() => setSelectedTab(1)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: 'white',
-                    borderRadius: '16px',
-                    padding: '16px 20px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                    border: '1px solid rgba(74, 14, 78, 0.04)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '12px',
-                      background: '#E8F5E9',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#4CAF50'
-                    }}>
-                      <FileText size={20} />
-                    </div>
-                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                      {t('recent_transactions')}
                     </span>
                   </div>
                   <ChevronRight size={18} color="var(--text-light)" />
@@ -1587,7 +1547,7 @@ export const Dashboard: React.FC = () => {
 
                 {/* Card 5: Address */}
                 <div 
-                  onClick={() => setShowAddressModal(true)}
+                  onClick={() => navigate('/profile/address')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -1623,7 +1583,7 @@ export const Dashboard: React.FC = () => {
 
                 {/* Card 6: KYC Details */}
                 <div 
-                  onClick={() => setShowKycModal(true)}
+                  onClick={() => navigate('/profile/kyc')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -1659,7 +1619,7 @@ export const Dashboard: React.FC = () => {
 
                 {/* Card 6b: Bank Accounts */}
                 <div 
-                  onClick={() => setShowBankModal(true)}
+                  onClick={() => navigate('/profile/bank-accounts')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -1695,7 +1655,7 @@ export const Dashboard: React.FC = () => {
 
                 {/* Card 7: Change MPIN */}
                 <div 
-                  onClick={() => navigate('/mpin/setup')}
+                  onClick={() => navigate('/mpin/change')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -1746,7 +1706,7 @@ export const Dashboard: React.FC = () => {
 
                 {/* Card 8: Privacy policy */}
                 <div 
-                  onClick={() => navigate('/legal_hub')}
+                  onClick={() => navigate('/privacy-policy')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -1782,7 +1742,7 @@ export const Dashboard: React.FC = () => {
 
                 {/* Card 9: Terms and conditions */}
                 <div 
-                  onClick={() => navigate('/legal_hub')}
+                  onClick={() => navigate('/terms-conditions')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -1922,67 +1882,7 @@ export const Dashboard: React.FC = () => {
 
             {/* ── PROFILE MODALS (RENDERED CONDITIONALLY) ── */}
 
-            {/* 1. READY TO REDEEM MODAL */}
-            {showRedeemModal && (
-              <div style={{
-                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
-                display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000
-              }}>
-                <div className="glass-card" style={{
-                  width: '100%', maxWidth: '480px', background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px',
-                  padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '80vh', overflowY: 'auto'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
-                      {t('ready_to_redeem')}
-                    </h3>
-                    <button onClick={() => setShowRedeemModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                      <X size={20} />
-                    </button>
-                  </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
-                    {activeSchemes.filter(s => s.installmentsPaid >= s.totalInstallments).length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)' }}>
-                        <Gift size={48} color="var(--text-light)" style={{ marginBottom: '12px' }} />
-                        <p style={{ fontSize: '13px', margin: 0 }}>No schemes are ready for redemption yet.</p>
-                        <button 
-                          onClick={() => { setShowRedeemModal(false); setSelectedTab(0); }}
-                          style={{
-                            marginTop: '16px', padding: '10px 20px', borderRadius: '10px', background: 'var(--brand-dark)',
-                            color: 'white', border: 'none', fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer'
-                          }}
-                        >
-                          View Active Schemes
-                        </button>
-                      </div>
-                    ) : (
-                      activeSchemes.filter(s => s.installmentsPaid >= s.totalInstallments).map(sch => (
-                        <div key={sch.schemeId} style={{ padding: '16px', borderRadius: '12px', background: '#FFF9F0', border: '1px solid rgba(255,215,0,0.2)' }}>
-                          <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: '0 0 6px 0' }}>{sch.planName}</h4>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                            <span>Accumulated Gold: <b>{mgToGrams(sch.accumulatedGoldMg)}</b></span>
-                            <span>Total Investment: <b>{formatRupees(sch.totalInvestmentPaise)}</b></span>
-                          </div>
-                          <button
-                            onClick={() => {
-                              setShowRedeemModal(false);
-                              navigate(`/scheme-redemption/${sch.schemeId}`);
-                            }}
-                            style={{
-                              width: '100%', height: '38px', borderRadius: '8px', background: 'var(--gold-warm)',
-                              color: 'var(--brand-deep)', border: 'none', fontWeight: 'bold', fontSize: '12.5px', cursor: 'pointer'
-                            }}
-                          >
-                            Redeem Plan
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* 2. PRICE CALCULATOR MODAL */}
             {showCalculatorModal && (
@@ -2141,300 +2041,7 @@ export const Dashboard: React.FC = () => {
               </div>
             )}
 
-            {/* 4. ADDRESS DETAILS MODAL */}
-            {showAddressModal && (
-              <div style={{
-                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
-                display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000
-              }}>
-                <div className="glass-card" style={{
-                  width: '100%', maxWidth: '480px', background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px',
-                  padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
-                      {t('address_label')}
-                    </h3>
-                    <button onClick={() => setShowAddressModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                      <X size={20} />
-                    </button>
-                  </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div>
-                      <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Area / Street</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Gandhipuram"
-                        value={addressArea}
-                        onChange={(e) => setAddressArea(e.target.value)}
-                        style={{
-                          width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
-                          padding: '0 10px', fontSize: '13px', outline: 'none', marginTop: '4px'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>City</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Coimbatore"
-                        value={addressCity}
-                        onChange={(e) => setAddressCity(e.target.value)}
-                        style={{
-                          width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
-                          padding: '0 10px', fontSize: '13px', outline: 'none', marginTop: '4px'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>State</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Tamil Nadu"
-                        value={addressState}
-                        onChange={(e) => setAddressState(e.target.value)}
-                        style={{
-                          width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
-                          padding: '0 10px', fontSize: '13px', outline: 'none', marginTop: '4px'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Pincode</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. 641012"
-                        value={addressPincode}
-                        onChange={(e) => setAddressPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        style={{
-                          width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
-                          padding: '0 10px', fontSize: '13px', outline: 'none', marginTop: '4px'
-                        }}
-                      />
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        SessionManager.saveStep1Data({
-                          area: addressArea,
-                          city: addressCity,
-                          state: addressState,
-                          pincode: addressPincode
-                        });
-                        alert("Address updated successfully!");
-                        setShowAddressModal(false);
-                      }}
-                      style={{
-                        width: '100%', height: '44px', borderRadius: '10px', background: 'var(--brand-dark)',
-                        color: 'white', border: 'none', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', marginTop: '8px'
-                      }}
-                    >
-                      Save Address
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 5. KYC DETAILS MODAL */}
-            {showKycModal && (
-              <div style={{
-                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
-                display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000
-              }}>
-                <div className="glass-card" style={{
-                  width: '100%', maxWidth: '480px', background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px',
-                  padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '85vh', overflowY: 'auto'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
-                      {t('kyc_details')}
-                    </h3>
-                    <button onClick={() => setShowKycModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                      <X size={20} />
-                    </button>
-                  </div>
-
-                  {/* KYC summary */}
-                  <div style={{
-                    background: kycLevel === 'FULL' ? 'var(--success-light)' : 'var(--warning-light)',
-                    border: `1.5px solid ${kycLevel === 'FULL' ? 'var(--success-green)' : 'var(--warning-amber)'}`,
-                    padding: '16px', borderRadius: '16px', display: 'flex', gap: '12px', alignItems: 'center'
-                  }}>
-                    <ShieldCheck size={28} color={kycLevel === 'FULL' ? 'var(--success-green)' : 'var(--warning-amber)'} />
-                    <div>
-                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block' }}>
-                        KYC Level: {kycLevel}
-                      </span>
-                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                        {kycLevel === 'FULL' ? 'Your identity is fully verified. You can start physical gold redemptions.' : 'Please upload PAN and Aadhaar documents to complete verification.'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Personal detail lists */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12.5px', marginTop: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>{t('full_name_label')}</span>
-                      <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{userName}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>{t('phone_number_label')}</span>
-                      <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>+91 {userPhone}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>{t('nominee_label')}</span>
-                      <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{nomineeName || t('not_configured')}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '8px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>{t('verification_status_label')}</span>
-                      <span style={{ fontWeight: 'bold', color: 'var(--brand-dark)' }}>{kycStatusMsg || 'PENDING'}</span>
-                    </div>
-                  </div>
-
-                  {/* Nominee Configuration edit inline */}
-                  <div style={{ background: '#F9FAFB', padding: '12px', borderRadius: '12px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
-                      {t('nominee_config')}
-                    </span>
-                    {isEditingNominee ? (
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <input
-                          type="text"
-                          value={newNomineeInput}
-                          onChange={(e) => setNewNomineeInput(e.target.value)}
-                          style={{ flex: 1, height: '36px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 10px', fontSize: '12px' }}
-                        />
-                        <button 
-                          onClick={async () => {
-                            await handleUpdateNominee();
-                            setIsEditingNominee(false);
-                          }} 
-                          style={{ background: 'var(--brand-dark)', color: 'white', border: 'none', padding: '0 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
-                        >
-                          Save
-                        </button>
-                        <button onClick={() => setIsEditingNominee(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', padding: '0 8px', fontSize: '11px', cursor: 'pointer' }}>
-                          {t('cancel')}
-                        </button>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{nomineeName || t('not_configured')}</span>
-                        <button onClick={() => { setNewNomineeInput(nomineeName); setIsEditingNominee(true); }} style={{ background: 'transparent', border: 'none', color: 'var(--brand-mid)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>
-                          {t('edit_nominee')}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* KYC Documents */}
-                  <div style={{ marginTop: '8px', borderTop: '1px dashed #ECECEC', paddingTop: '12px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
-                      {t('kyc_documents_label')}
-                    </span>
-                    {kycDocs.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                        <span style={{ fontSize: '12px', color: 'var(--text-light)', fontStyle: 'italic', display: 'block', marginBottom: '12px' }}>
-                          {t('no_kyc_documents')}
-                        </span>
-                        <button
-                          onClick={() => {
-                            setShowKycModal(false);
-                            navigate('/onboarding');
-                          }}
-                          style={{
-                            padding: '8px 16px', borderRadius: '8px', background: 'var(--brand-dark)', color: 'white',
-                            border: 'none', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer'
-                          }}
-                        >
-                          Upload KYC Documents
-                        </button>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {kycDocs.map((doc, idx) => (
-                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F9FAFB', padding: '8px 12px', borderRadius: '8px' }}>
-                            <div>
-                              <span style={{ fontSize: '11.5px', fontWeight: 'bold', display: 'block', color: 'var(--brand-dark)' }}>
-                                {doc.documentType === 'pan' ? 'PAN Card' : 'Aadhaar Card'}
-                              </span>
-                              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                                No: {doc.documentNumber}
-                              </span>
-                            </div>
-                            <span style={{
-                              fontSize: '10px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '6px',
-                              background: doc.status === 'APPROVED' ? 'var(--success-light)' : doc.status === 'REJECTED' ? 'var(--error-light)' : 'var(--warning-light)',
-                              color: doc.status === 'APPROVED' ? 'var(--success-green)' : doc.status === 'REJECTED' ? 'var(--error-red)' : 'var(--warning-amber)'
-                            }}>
-                              {doc.status === 'APPROVED' ? t('approved_status') : doc.status === 'REJECTED' ? t('rejected_status') : t('review_status')}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 6. BANK ACCOUNTS MODAL */}
-            {showBankModal && (
-              <div style={{
-                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
-                display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000
-              }}>
-                <div className="glass-card" style={{
-                  width: '100%', maxWidth: '480px', background: 'white', borderTopLeftRadius: '24px', borderTopRightRadius: '24px',
-                  padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '80vh', overflowY: 'auto'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
-                      {t('linked_bank_accounts')}
-                    </h3>
-                    <button onClick={() => setShowBankModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                      <X size={20} />
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
-                    {bankAccounts.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)' }}>
-                        <Landmark size={40} color="var(--text-light)" style={{ marginBottom: '10px' }} />
-                        <span style={{ fontSize: '12.5px', display: 'block' }}>No bank accounts linked yet.</span>
-                      </div>
-                    ) : (
-                      bankAccounts.map((b, idx) => (
-                        <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px', borderRadius: '12px', background: '#F9FAFB', border: '1px solid rgba(0,0,0,0.04)' }}>
-                          <Landmark size={22} color="var(--success-green)" style={{ flexShrink: 0 }} />
-                          <div>
-                            <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', color: 'var(--brand-dark)' }}>{b.bankName}</span>
-                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>A/C: {b.accountNumberMasked} · IFSC: {b.ifscCode}</span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-
-                    <button
-                      onClick={() => {
-                        setShowBankModal(false);
-                        navigate('/add-bank-account');
-                      }}
-                      style={{
-                        width: '100%', height: '44px', borderRadius: '10px', background: 'var(--brand-dark)',
-                        color: 'white', border: 'none', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '8px'
-                      }}
-                    >
-                      <PlusCircle size={16} />
-                      {t('add_bank')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
           </div>
         )}
