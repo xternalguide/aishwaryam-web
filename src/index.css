@@ -326,3 +326,12 @@ input, textarea {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Razorpay Iframe Safe Area / Notification Notch Spacing Fix */
+.razorpay-container,
+.razorpay-checkout-frame,
+iframe.razorpay-checkout-frame,
+iframe[src*="razorpay"] {
+  top: env(safe-area-inset-top, 32px) !important;
+  height: calc(100% - env(safe-area-inset-top, 32px)) !important;
+}
