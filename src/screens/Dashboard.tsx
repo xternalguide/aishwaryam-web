@@ -801,7 +801,7 @@ export const Dashboard: React.FC = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', zIndex: 2 }}>
                       <div>
                         <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '2px' }}>
-                          Monthly Savings
+                          {sch.frequency === 'Daily' ? 'Daily Savings' : 'Monthly Savings'}
                         </span>
                         <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--gold-primary)', fontFamily: 'var(--font-poppins)' }}>
                           {formatRupees(sch.installmentAmountPaise)}
@@ -813,7 +813,7 @@ export const Dashboard: React.FC = () => {
                           Tenure
                         </span>
                         <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'white' }}>
-                          {sch.totalInstallments} {t('months')}
+                          {sch.totalInstallments} {sch.frequency === 'Daily' ? 'Days' : t('months')}
                         </span>
                       </div>
                     </div>
@@ -869,7 +869,7 @@ export const Dashboard: React.FC = () => {
                           <div>
                             <h4 style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{sch.planName}</h4>
                             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                              {t('paid')}: {sch.installmentsPaid} / {sch.totalInstallments} {t('months')}
+                              {t('paid')}: {sch.installmentsPaid} / {sch.totalInstallments} {sch.frequency === 'Daily' ? 'Days' : t('months')}
                             </span>
                           </div>
                           <ChevronRight size={18} style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />

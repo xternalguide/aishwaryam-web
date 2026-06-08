@@ -4,7 +4,7 @@ import { SessionManager } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from '../utils/translation';
-import { ArrowLeft, ShieldAlert, Award } from 'lucide-react';
+import { ArrowLeft, ShieldAlert, Award, X, Calculator } from 'lucide-react';
 
 interface AvailableScheme {
   id: string;
@@ -32,6 +32,9 @@ export const SchemeDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [scheme, setScheme] = useState<AvailableScheme | null>(null);
   const [isActive, setIsActive] = useState(false);
+  const [showJoinSheet, setShowJoinSheet] = useState(false);
+  const [joinAmount, setJoinAmount] = useState('100');
+  const [joinType, setJoinType] = useState<'RUPEES' | 'GRAMS'>('RUPEES');
 
   // Active chit progress states
   const [installmentsPaid, setInstallmentsPaid] = useState(0);
@@ -56,6 +59,7 @@ export const SchemeDetail: React.FC = () => {
     availableSchemes,
     activeSchemes,
     profile,
+    livePrice,
     refreshData
   } = useApp();
 
@@ -178,57 +182,113 @@ export const SchemeDetail: React.FC = () => {
     setIsLoading(false);
   }, [schemeId, availableSchemes, activeSchemes, profile]);
 
-  const handlePayInstallment = async () => {
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if ((window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const launchRazorpayCheckout = async (amountPaise: number, isJoiningFlow: boolean, goldWeightGrams: number) => {
     if (!scheme) return;
     setIsProcessing(true);
     try {
       const userId = SessionManager.getUserId() || 'user-id-999';
-      // Create payment order
+
+      // 1. Load Razorpay script
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        alert('Failed to load Razorpay SDK. Please check your network connection.');
+        setIsProcessing(false);
+        return;
+      }
+
+      // 2. Create payment order on backend
       const res = await ApiClient.post('api/Payment/create-order', {
         userId,
-        amountPaise: scheme.installmentAmountPaise,
+        amountPaise,
         schemeId: scheme.id
       });
 
       if (res.data) {
-        // Verify payment order
-        const verifyRes = await ApiClient.post('api/Payment/verify', {
-          userId,
-          orderId: res.data.orderId,
-          paymentId: 'pay_mock_' + Math.random().toString(36).substring(7),
-          signature: 'sig_mock_xyz'
-        });
+        const orderData = res.data;
+        const options = {
+          key: orderData.keyId,
+          amount: orderData.amount,
+          currency: orderData.currency,
+          name: 'Aishwaryam Digital Gold',
+          description: isJoiningFlow ? `Join ${scheme.planName}` : `Pay Installment - ${scheme.planName}`,
+          order_id: orderData.orderId,
+          handler: async function (response: any) {
+            setIsProcessing(true);
+            try {
+              // 3. Verify payment order on backend
+              const verifyRes = await ApiClient.post('api/Payment/verify', {
+                userId,
+                razorpayOrderId: orderData.orderId,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature
+              });
 
-        if (verifyRes.data && verifyRes.data.success) {
-          const receiptJson = JSON.stringify({
-            transactionId: res.data.orderId,
-            type: 'BUY',
-            amountPaise: scheme.installmentAmountPaise,
-            goldWeightMg: verifyRes.data.goldWeightMg || 3880,
-            createdAt: new Date().toISOString(),
-            rateSource: 'Live',
-            schemeName: scheme.planName
-          });
-          refreshData();
-          navigate(`/payment-success/${encodeURIComponent(receiptJson)}`);
-        }
+              if (verifyRes.data && verifyRes.data.success) {
+                const receiptJson = JSON.stringify({
+                  transactionId: orderData.orderId,
+                  type: 'BUY',
+                  amountPaise,
+                  goldWeightMg: verifyRes.data.goldWeightMg || Math.round(goldWeightGrams * 1000),
+                  createdAt: new Date().toISOString(),
+                  rateSource: 'Live',
+                  schemeName: scheme.planName
+                });
+                refreshData();
+                setShowJoinSheet(false);
+                navigate(`/payment-success/${encodeURIComponent(receiptJson)}`);
+              } else {
+                alert(verifyRes.data.message || 'Payment verification failed.');
+              }
+            } catch (e: any) {
+              alert('Verification failed: ' + (e.response?.data?.message || e.message));
+            } finally {
+              setIsProcessing(false);
+            }
+          },
+          prefill: {
+            name: profile?.fullName || '',
+            email: profile?.email || '',
+            contact: profile?.phoneNumber || ''
+          },
+          theme: {
+            color: '#4A0E4E'
+          },
+          modal: {
+            ondismiss: function () {
+              setIsProcessing(false);
+            }
+          }
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
       }
-    } catch (err) {
-      alert('Payment failed. Using mock success for verification.');
-      const receiptJson = JSON.stringify({
-        transactionId: 'pay_mock_' + Math.random().toString(36).substring(7),
-        type: 'BUY',
-        amountPaise: scheme.installmentAmountPaise,
-        goldWeightMg: 3850,
-        createdAt: new Date().toISOString(),
-        rateSource: 'Live',
-        schemeName: scheme.planName
-      });
-      refreshData();
-      navigate(`/payment-success/${encodeURIComponent(receiptJson)}`);
-    } finally {
+    } catch (err: any) {
+      alert('Error launching checkout: ' + (err.response?.data?.message || err.message));
       setIsProcessing(false);
     }
+  };
+
+  const handlePayInstallment = async () => {
+    if (!scheme) return;
+    const goldPrice22K = livePrice?.price22KPaise || 701000;
+    const fallbackGrams = (scheme.installmentAmountPaise / 1.03) / goldPrice22K;
+    launchRazorpayCheckout(scheme.installmentAmountPaise, false, fallbackGrams);
   };
 
   const handleJoinScheme = async () => {
@@ -237,10 +297,33 @@ export const SchemeDetail: React.FC = () => {
       navigate('/onboarding');
       return;
     }
-    const confirmJoin = window.confirm(`Join ${scheme?.planName}? First installment payment will be charged.`);
-    if (confirmJoin) {
-      handlePayInstallment();
+    setJoinAmount(scheme ? (scheme.installmentAmountPaise / 100).toString() : '100');
+    setJoinType('RUPEES');
+    setShowJoinSheet(true);
+  };
+
+  const handlePayJoinPlan = async () => {
+    if (!scheme) return;
+    const parsedVal = parseFloat(joinAmount) || 0;
+    if (parsedVal <= 0) return;
+
+    const goldPrice22K = livePrice?.price22KPaise || 701000;
+    let amountPaise = 0;
+    let fallbackGrams = 0;
+
+    if (joinType === 'RUPEES') {
+      amountPaise = Math.round(parsedVal * 100);
+      // Rupees-to-gold with 7.5% loyalty bonus
+      fallbackGrams = (parsedVal / 1.03 * 1.075 * 100) / goldPrice22K;
+    } else {
+      // Grams-to-Rupees (metal value + 3% GST)
+      const baseMetalVal = (parsedVal * goldPrice22K) / 100;
+      amountPaise = Math.round(baseMetalVal * 1.03);
+      // Grams with 7.5% loyalty bonus
+      fallbackGrams = parsedVal * 1.075;
     }
+
+    launchRazorpayCheckout(amountPaise, true, fallbackGrams);
   };
 
   const formatRupees = (paise: number) => {
@@ -509,6 +592,8 @@ export const SchemeDetail: React.FC = () => {
     );
   }
 
+  const goldPrice22K = livePrice?.price22KPaise || 701000;
+ 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F8F9FA' }}>
       {/* Top Bar */}
@@ -530,15 +615,15 @@ export const SchemeDetail: React.FC = () => {
           {isActive ? t('my_saving_plan') : t('plan_specifications')}
         </span>
       </div>
-
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+ 
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', boxSizing: 'border-box' }}>
         {/* Scheme Intro Header Card */}
         <div className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', marginBottom: '8px' }}>{scheme.planName}</h2>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '18px', margin: 0 }}>
             {scheme.description}
           </p>
-
+ 
           <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
             <div>
               <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>{t('tenure').toUpperCase()}</span>
@@ -556,7 +641,7 @@ export const SchemeDetail: React.FC = () => {
             </div>
           </div>
         </div>
-
+ 
         {/* Dynamic Section: Renders details if Joined */}
         {isActive ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -568,7 +653,7 @@ export const SchemeDetail: React.FC = () => {
                   {installmentsPaid} / {scheme.totalInstallments}
                 </span>
               </div>
-
+ 
               {/* Progress Line */}
               <div style={{ width: '100%', height: '8px', background: '#E5E7EB', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{
@@ -579,13 +664,13 @@ export const SchemeDetail: React.FC = () => {
                   transition: 'width 0.5s ease'
                 }} />
               </div>
-
+ 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
                 <span>{t('next_due_date')}: {nextDueDate ? new Date(nextDueDate).toLocaleDateString() : '—'}</span>
                 <span>{t('day_number')}: {schemeDayNumber}</span>
               </div>
             </div>
-
+ 
             {/* Loyalty Milestones Timeline */}
             {milestones.length > 0 && (
               <div className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -639,7 +724,7 @@ export const SchemeDetail: React.FC = () => {
                 </div>
               </div>
             )}
-
+ 
             {/* Plan Summary Table (Bilingual simplified breakdown for accessibility) */}
             <div className="glass-card" style={{ borderRadius: '16px', padding: '0', background: 'white', overflow: 'hidden', border: '1.5px solid #FFD700', boxShadow: '0 4px 16px rgba(255, 215, 0, 0.06)' }}>
               <div style={{ background: 'linear-gradient(135deg, #FFFDF9 0%, #FFF9F0 100%)', padding: '12px 16px', borderBottom: '1px solid #ECECEC' }}>
@@ -682,7 +767,7 @@ export const SchemeDetail: React.FC = () => {
                 </tbody>
               </table>
             </div>
-
+ 
             {/* Balances Grid Card */}
             <div className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('accumulated_balances')}</h3>
@@ -706,7 +791,7 @@ export const SchemeDetail: React.FC = () => {
                 </div>
               </div>
             </div>
-
+ 
             {/* Autopay Subscription config */}
             <div className="glass-card" style={{
               borderRadius: '16px', padding: '16px', background: 'white',
@@ -735,45 +820,13 @@ export const SchemeDetail: React.FC = () => {
                 </span>
               </label>
             </div>
-
-            {/* Pay installment CTA */}
-            <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-              <button
-                onClick={handlePayInstallment}
-                disabled={isProcessing}
-                style={{
-                  flex: 1, height: '52px', borderRadius: '14px', background: 'var(--gradient-accent)',
-                  color: 'white', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px var(--brand-glow)'
-                }}
-              >
-                {isProcessing ? (
-                  <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                ) : (
-                  t('pay_installment')
-                )}
-              </button>
-
-              {installmentsPaid >= scheme.totalInstallments && (
-                <button
-                  onClick={() => navigate(`/scheme-redemption/${scheme.id}`)}
-                  style={{
-                    flex: 1, height: '52px', borderRadius: '14px', background: 'var(--gradient-gold)',
-                    color: '#1A1200', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
-                    boxShadow: '0 8px 16px var(--gold-glow)'
-                  }}
-                >
-                  {t('redeem')} Plan 🎁
-                </button>
-              )}
-            </div>
           </div>
         ) : (
           /* Render Specs and Join details if NOT Joined */
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* Dynamic Custom content sections (FAQs, Highlights, Grids) */}
             {renderCustomSections()}
-
+ 
             {/* Loyalty Bonus Structure */}
             <div className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -786,7 +839,7 @@ export const SchemeDetail: React.FC = () => {
               
               {renderLoyaltyBonusStructure()}
             </div>
-
+ 
             {/* KYC warnings if basic */}
             {kycLevel === 'BASIC' && (
               <div className="glass-card" style={{
@@ -802,26 +855,229 @@ export const SchemeDetail: React.FC = () => {
                 </div>
               </div>
             )}
-
-            <button
-              onClick={handleJoinScheme}
-              disabled={isProcessing}
-              style={{
-                width: '100%', height: '56px', borderRadius: '16px', background: 'var(--brand-dark)',
-                color: 'white', border: 'none', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px var(--brand-glow)',
-                marginTop: '12px'
-              }}
-            >
-              {isProcessing ? (
-                <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid white', borderTop: '3px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-              ) : (
-                kycLevel === 'BASIC' ? t('complete_kyc_join') : t('join_scheme_plan')
-              )}
-            </button>
           </div>
         )}
       </div>
+ 
+      {/* Fixed Bottom CTA Bar */}
+      <div style={{
+        padding: '16px 20px',
+        background: 'white',
+        borderTop: '1px solid #ECECEC',
+        boxShadow: '0 -4px 12px rgba(0,0,0,0.03)',
+        zIndex: 10,
+        boxSizing: 'border-box',
+        paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))'
+      }}>
+        {isActive ? (
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={handlePayInstallment}
+              disabled={isProcessing}
+              style={{
+                flex: 1, height: '52px', borderRadius: '14px', background: 'var(--gradient-accent)',
+                color: 'white', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px var(--brand-glow)'
+              }}
+            >
+              {isProcessing ? (
+                <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              ) : (
+                t('pay_installment')
+              )}
+            </button>
+ 
+            {installmentsPaid >= scheme.totalInstallments && (
+              <button
+                onClick={() => navigate(`/scheme-redemption/${scheme.id}`)}
+                style={{
+                  flex: 1, height: '52px', borderRadius: '14px', background: 'var(--gradient-gold)',
+                  color: '#1A1200', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
+                  boxShadow: '0 8px 16px var(--gold-glow)'
+                }}
+              >
+                {t('redeem')} Plan 🎁
+              </button>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={handleJoinScheme}
+            disabled={isProcessing}
+            style={{
+              width: '100%', height: '52px', borderRadius: '14px', background: 'var(--brand-dark)',
+              color: 'white', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px var(--brand-glow)'
+            }}
+          >
+            {isProcessing ? (
+              <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            ) : (
+              kycLevel === 'BASIC' ? t('complete_kyc_join') : t('join_scheme_plan')
+            )}
+          </button>
+        )}
+      </div>
+ 
+      {/* Join Popup Sheet */}
+      {showJoinSheet && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div className="glass-card" style={{
+            width: '90%', maxWidth: '380px', background: 'white', borderRadius: '24px', padding: '24px',
+            display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Calculator size={20} color="var(--brand-dark)" />
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Join Savings Plan</h3>
+              </div>
+              <button onClick={() => setShowJoinSheet(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+ 
+            <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)', lineHeight: '16px' }}>
+              Select a purchase amount or gold weight. Your purchase will qualify for the <strong>Tier 1 Loyalty Bonus (7.5%)</strong>!
+            </span>
+ 
+            {/* Toggle tabs */}
+            <div style={{ display: 'flex', background: '#F5F5F5', padding: '4px', borderRadius: '10px' }}>
+              <button
+                onClick={() => { setJoinType('RUPEES'); setJoinAmount('100'); }}
+                style={{
+                  flex: 1, padding: '8px 0', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold',
+                  background: joinType === 'RUPEES' ? 'white' : 'transparent',
+                  color: joinType === 'RUPEES' ? 'var(--brand-dark)' : 'var(--text-muted)',
+                  boxShadow: joinType === 'RUPEES' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer'
+                }}
+              >
+                Amount (₹) to Gold
+              </button>
+              <button
+                onClick={() => { setJoinType('GRAMS'); setJoinAmount('0.1'); }}
+                style={{
+                  flex: 1, padding: '8px 0', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold',
+                  background: joinType === 'GRAMS' ? 'white' : 'transparent',
+                  color: joinType === 'GRAMS' ? 'var(--brand-dark)' : 'var(--text-muted)',
+                  boxShadow: joinType === 'GRAMS' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer'
+                }}
+              >
+                Gold (g) to Amount
+              </button>
+            </div>
+ 
+            {/* Inputs */}
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                {joinType === 'RUPEES' ? 'Enter Amount' : 'Enter Weight (grams)'}
+              </label>
+              <div style={{ position: 'relative', marginTop: '6px' }}>
+                <span style={{ position: 'absolute', left: '12px', top: '11px', fontSize: '15px', fontWeight: 'bold' }}>
+                  {joinType === 'RUPEES' ? '₹' : 'g'}
+                </span>
+                <input
+                  type="text"
+                  value={joinAmount}
+                  onChange={(e) => setJoinAmount(e.target.value.replace(/[^0-9.]/g, ''))}
+                  style={{
+                    width: '100%', height: '40px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.1)',
+                    padding: '0 12px 0 26px', fontSize: '14px', outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+ 
+            {/* Preset chips */}
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {(joinType === 'RUPEES' ? ['100', '500', '1000', '3000', '5000'] : ['0.1', '0.5', '1', '2', '5']).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setJoinAmount(p)}
+                  style={{
+                    background: joinAmount === p ? 'var(--brand-dark)' : 'white',
+                    border: '1px solid var(--brand-dark)',
+                    color: joinAmount === p ? 'white' : 'var(--brand-dark)',
+                    padding: '6px 12px', borderRadius: '16px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer'
+                  }}
+                >
+                  {joinType === 'RUPEES' ? `₹${p}` : `${p} g`}
+                </button>
+              ))}
+            </div>
+ 
+            {/* Calculations Breakdown */}
+            {parseFloat(joinAmount) > 0 && (
+              <div style={{ background: '#FFF9F0', border: '1px solid rgba(255, 215, 0, 0.2)', padding: '16px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {joinType === 'RUPEES' ? (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      <span>Savings Deposit</span>
+                      <span style={{ fontWeight: 'bold' }}>₹{parseFloat(joinAmount).toFixed(2)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      <span>GST (3% Included)</span>
+                      <span>₹{(parseFloat(joinAmount) - (parseFloat(joinAmount) / 1.03)).toFixed(2)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--brand-mid)', fontWeight: 'bold' }}>
+                      <span>Loyalty Bonus weight (7.5%)</span>
+                      <span>+ ₹{(parseFloat(joinAmount) / 1.03 * 0.075).toFixed(2)} equivalent</span>
+                    </div>
+                    <div style={{ height: '1px', background: 'rgba(0,0,0,0.05)' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                      <span>Effective gold added</span>
+                      <span style={{ color: 'var(--gold-deep)' }}>
+                        {((parseFloat(joinAmount) / 1.03 * 1.075 * 100) / goldPrice22K).toFixed(4)} grams
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      <span>Base Metal Value</span>
+                      <span style={{ fontWeight: 'bold' }}>₹{(parseFloat(joinAmount) * goldPrice22K / 100).toFixed(2)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      <span>GST (3%)</span>
+                      <span>₹{(parseFloat(joinAmount) * goldPrice22K / 100 * 0.03).toFixed(2)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--brand-mid)', fontWeight: 'bold' }}>
+                      <span>Loyalty Bonus weight (7.5%)</span>
+                      <span>+ {(parseFloat(joinAmount) * 0.075).toFixed(4)} g equivalent</span>
+                    </div>
+                    <div style={{ height: '1px', background: 'rgba(0,0,0,0.05)' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                      <span>Total Amount Payable</span>
+                      <span style={{ color: 'var(--brand-dark)' }}>
+                        ₹{(parseFloat(joinAmount) * goldPrice22K / 100 * 1.03).toFixed(2)}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+ 
+            <button
+              onClick={handlePayJoinPlan}
+              disabled={parseFloat(joinAmount) <= 0 || isProcessing}
+              style={{
+                width: '100%', height: '48px', borderRadius: '12px', background: 'var(--brand-dark)',
+                color: 'white', border: 'none', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                opacity: (parseFloat(joinAmount) <= 0 || isProcessing) ? 0.5 : 1
+              }}
+            >
+              {isProcessing ? (
+                <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              ) : (
+                'Pay & Join Plan'
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

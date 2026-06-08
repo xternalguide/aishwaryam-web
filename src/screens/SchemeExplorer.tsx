@@ -152,13 +152,13 @@ export const SchemeExplorer: React.FC = () => {
                     <div>
                       <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>INSTALLMENT</span>
                       <span style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                        {formatRupees(scheme.installmentAmountPaise)} <span style={{ fontSize: '11px', fontWeight: '500', color: 'var(--text-muted)' }}>/ month</span>
+                        {formatRupees(scheme.installmentAmountPaise)} <span style={{ fontSize: '11px', fontWeight: '500', color: 'var(--text-muted)' }}>/ {scheme.frequency === 'Daily' ? 'day' : 'month'}</span>
                       </span>
                     </div>
                     <div>
                       <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textAlign: 'right' }}>TENURE</span>
                       <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)', display: 'block', textAlign: 'right' }}>
-                        {scheme.totalInstallments} Months
+                        {scheme.totalInstallments} {scheme.frequency === 'Daily' ? 'Days' : 'Months'}
                       </span>
                     </div>
                   </div>
