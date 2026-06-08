@@ -56,21 +56,24 @@ export const SchemeExplorer: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F5F5F5' }}>
       {/* Top Bar */}
       <div style={{
-        background: 'var(--brand-dark)',
-        color: 'white',
-        padding: '16px 20px',
+        background: 'var(--gradient-brand)',
+        paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
+        paddingLeft: '20px',
+        paddingRight: '20px',
+        paddingBottom: '16px',
         display: 'flex',
         alignItems: 'center',
         gap: '16px',
-        boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+        boxShadow: '0 4px 12px rgba(41, 0, 29, 0.15)',
+        zIndex: 10
       }}>
         <button
           onClick={() => navigate(-1)}
-          style={{ background: 'transparent', border: 'none', color: 'white', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+          style={{ background: 'transparent', border: 'none', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', cursor: 'pointer', padding: 0 }}
         >
           <ArrowLeft size={24} />
         </button>
-        <span style={{ fontSize: '18px', fontWeight: 'bold', fontFamily: 'var(--font-poppins)' }}>
+        <span style={{ fontSize: '18px', fontWeight: 'bold', color: 'white', fontFamily: 'var(--font-poppins)', letterSpacing: '0.5px' }}>
           Explore Gold Schemes
         </span>
       </div>

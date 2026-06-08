@@ -174,15 +174,11 @@ export const PriceCalculatorPage: React.FC = () => {
                   <span style={{ color: 'var(--text-secondary)' }}>GST (3% Included)</span>
                   <span>₹{(parsedVal - (parsedVal / 1.03)).toFixed(2)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--brand-mid)', fontWeight: 'bold' }}>
-                  <span>Loyalty Bonus Weight (7.5%)</span>
-                  <span>+ ₹{(parsedVal / 1.03 * 0.075).toFixed(2)} equivalent</span>
-                </div>
                 <div style={{ height: '1px', background: 'rgba(74, 14, 78, 0.08)' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: '900', color: 'var(--brand-dark)' }}>
                   <span>Effective Gold Added</span>
                   <span style={{ color: 'var(--gold-deep)' }}>
-                    {((parsedVal / 1.03 * 1.075 * 100) / goldPrice22K).toFixed(4)} grams
+                    {((parsedVal / 1.03 * 100) / goldPrice22K).toFixed(4)} grams
                   </span>
                 </div>
               </div>
@@ -199,7 +195,7 @@ export const PriceCalculatorPage: React.FC = () => {
                 <div style={{ height: '1px', background: 'rgba(74, 14, 78, 0.08)' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: '900', color: 'var(--brand-dark)' }}>
                   <span>Total Amount Payable</span>
-                  <span style={{ color: 'var(--brand-accent)' }}>
+                  <span style={{ color: 'var(--brand-dark)' }}>
                     ₹{(parsedVal * goldPrice22K / 100 * 1.03).toFixed(2)}
                   </span>
                 </div>
