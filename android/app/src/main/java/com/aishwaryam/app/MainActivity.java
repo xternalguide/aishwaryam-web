@@ -130,7 +130,13 @@ public class MainActivity extends BridgeActivity {
                     }
                     
                     // Create a fullscreen dialog to show the new WebView
-                    final Dialog dialog = new Dialog(MainActivity.this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                    newWebView.setLayoutParams(new android.view.ViewGroup.LayoutParams(
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                    ));
+                    newWebView.setBackgroundColor(Color.WHITE);
+                    
+                    final Dialog dialog = new Dialog(MainActivity.this, android.R.style.Theme_Light_NoTitleBar_Fullscreen);
                     dialog.setContentView(newWebView);
                     dialog.show();
 
