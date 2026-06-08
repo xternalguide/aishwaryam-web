@@ -9,7 +9,7 @@ import { ArrowLeft, Landmark, ShieldCheck, MapPin, PlusCircle, User } from 'luci
 const ProfileHeader: React.FC<{ title: string; onBack: () => void }> = ({ title, onBack }) => (
   <div style={{
     background: 'var(--gradient-brand)',
-    paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
+    paddingTop: 'calc(16px + max(env(safe-area-inset-top, 24px), 24px))',
     paddingLeft: '20px',
     paddingRight: '20px',
     paddingBottom: '16px',

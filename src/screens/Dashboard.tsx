@@ -482,7 +482,7 @@ export const Dashboard: React.FC = () => {
       <div style={{
         background: selectedTab === 2 ? '#FFF9E6' : 'white',
         borderBottom: selectedTab === 2 ? 'none' : '1px solid #ECECEC',
-        paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
+        paddingTop: 'calc(16px + max(env(safe-area-inset-top, 24px), 24px))',
         paddingLeft: '20px',
         paddingRight: '20px',
         paddingBottom: selectedTab === 2 ? '10px' : '16px',
@@ -559,8 +559,8 @@ export const Dashboard: React.FC = () => {
         style={{
           position: 'absolute',
           top: selectedTab === 2 
-            ? 'calc(130px + env(safe-area-inset-top, 0px))' 
-            : 'calc(16px + env(safe-area-inset-top, 0px))',
+            ? 'calc(130px + max(env(safe-area-inset-top, 24px), 24px))' 
+            : 'calc(16px + max(env(safe-area-inset-top, 24px), 24px))',
           left: selectedTab === 2 ? '50%' : '20px',
           width: selectedTab === 2 ? '90px' : '36px',
           height: selectedTab === 2 ? '90px' : '36px',
@@ -638,8 +638,8 @@ export const Dashboard: React.FC = () => {
         style={{
           position: 'absolute',
           top: selectedTab === 2 
-            ? 'calc(192px + env(safe-area-inset-top, 0px))' 
-            : 'calc(16px + env(safe-area-inset-top, 0px))',
+            ? 'calc(192px + max(env(safe-area-inset-top, 24px), 24px))' 
+            : 'calc(16px + max(env(safe-area-inset-top, 24px), 24px))',
           left: selectedTab === 2 ? 'calc(50% + 30px)' : '20px',
           width: '28px',
           height: '28px',
@@ -666,8 +666,8 @@ export const Dashboard: React.FC = () => {
         style={{
           position: 'absolute',
           top: selectedTab === 2 
-            ? 'calc(236px + env(safe-area-inset-top, 0px))' 
-            : 'calc(16px + env(safe-area-inset-top, 0px))',
+            ? 'calc(236px + max(env(safe-area-inset-top, 24px), 24px))' 
+            : 'calc(16px + max(env(safe-area-inset-top, 24px), 24px))',
           left: selectedTab === 2 ? '50%' : '66px',
           transform: selectedTab === 2 ? 'translateX(-50%)' : 'none',
           width: selectedTab === 2 ? '300px' : '180px',
