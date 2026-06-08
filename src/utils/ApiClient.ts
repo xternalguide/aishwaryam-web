@@ -2,7 +2,14 @@ import axios from 'axios';
 import type { AxiosInstance, AxiosResponse } from 'axios';
 import { SessionManager } from './SessionManager';
 
-const BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+const isLocalHost = 
+  window.location.hostname === 'localhost' || 
+  window.location.hostname === '127.0.0.1' || 
+  window.location.hostname.startsWith('192.168.') || 
+  window.location.hostname.startsWith('10.') || 
+  window.location.protocol === 'file:';
+
+const BASE_URL = isLocalHost
   ? 'http://192.168.1.36:5044/'
   : 'https://aishwaryam.blazewing.in/';
 
