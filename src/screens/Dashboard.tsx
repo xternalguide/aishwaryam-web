@@ -341,9 +341,6 @@ export const Dashboard: React.FC = () => {
     if (profile) {
       setUserName(profile.fullName || 'User');
       setKycLevel(profile.kycLevel || 'BASIC');
-      if (profile.preferredLanguage && (profile.preferredLanguage === 'en' || profile.preferredLanguage === 'ta') && profile.preferredLanguage !== lang) {
-        changeLanguage(profile.preferredLanguage as 'en' | 'ta');
-      }
     }
 
     if (contextActiveSchemes) {

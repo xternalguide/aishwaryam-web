@@ -90,16 +90,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }
       if (profileRes.status === 'fulfilled' && profileRes.value.data) {
-        setProfile(profileRes.value.data);
-        localStorage.setItem('CACHE_PROFILE', JSON.stringify(profileRes.value.data));
-        const serverLang = profileRes.value.data.preferredLanguage;
-        if (serverLang && (serverLang === 'en' || serverLang === 'ta')) {
-          const localLang = SessionManager.getLanguage();
-          if (serverLang !== localLang) {
-            SessionManager.saveLanguage(serverLang as any);
-            window.dispatchEvent(new Event('languageChange'));
-          }
+        const data = profileRes.value.data;
+        const localPref = localStorage.getItem('PREFERRED_LANGUAGE');
+        
+        if (!localPref && data.preferredLanguage && (data.preferredLanguage === 'en' || data.preferredLanguage === 'ta')) {
+          // If no local preference exists yet, initialize it from the server setting
+          SessionManager.saveLanguage(data.preferredLanguage as 'en' | 'ta');
+          window.dispatchEvent(new Event('languageChange'));
+        } else {
+          // Otherwise, local selection is the source of truth; sync context profile to match it
+          data.preferredLanguage = SessionManager.getLanguage();
         }
+
+        setProfile(data);
+        localStorage.setItem('CACHE_PROFILE', JSON.stringify(data));
       }
       if (priceRes.status === 'fulfilled' && priceRes.value.data) {
         setLivePrice(priceRes.value.data);
@@ -193,6 +197,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 8000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleLanguageChange = () => {
+      const newLang = SessionManager.getLanguage();
+      setProfile((prev: any) => {
+        if (prev) {
+          const updated = { ...prev, preferredLanguage: newLang };
+          localStorage.setItem('CACHE_PROFILE', JSON.stringify(updated));
+          return updated;
+        }
+        return prev;
+      });
+    };
+    window.addEventListener('languageChange', handleLanguageChange);
+    return () => {
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
   }, []);
 
   return (

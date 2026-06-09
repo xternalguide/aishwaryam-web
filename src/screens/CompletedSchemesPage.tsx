@@ -76,9 +76,11 @@ export const CompletedSchemesPage: React.FC = () => {
               <Award size={44} />
             </div>
             <div>
-              <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>No Completed Schemes Yet</h4>
+              <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                {t('no_completed_schemes')}
+              </h4>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, lineHeight: '18px' }}>
-                Keep saving to complete a scheme and claim your loyalty gold bonus!
+                {t('completed_schemes_desc')}
               </p>
             </div>
             <button
@@ -97,7 +99,7 @@ export const CompletedSchemesPage: React.FC = () => {
                 boxShadow: '0 4px 12px var(--brand-glow)'
               }}
             >
-              Explore Saving Schemes
+              {t('explore_schemes_cta')}
             </button>
           </div>
         ) : (
@@ -111,27 +113,27 @@ export const CompletedSchemesPage: React.FC = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F3F4F6', paddingBottom: '10px' }}>
                   <div>
                     <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{sch.planName}</h4>
-                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Matured on {new Date(sch.maturityDate).toLocaleDateString()}</span>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{t('matured_on')} {new Date(sch.maturityDate).toLocaleDateString()}</span>
                   </div>
                   <span style={{
                     fontSize: '10px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '12px',
                     background: 'var(--success-light)', color: 'var(--success-green)', border: '1px solid rgba(16, 185, 129, 0.2)'
                   }}>
-                    COMPLETED
+                    {t('completed_badge')}
                   </span>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12.5px' }}>
                   <div>
-                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '11px' }}>Total Saved Amount</span>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '11px' }}>{t('total_saved_amount')}</span>
                     <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{formatRupees(sch.totalSavingsAddedPaise)}</span>
                   </div>
                   <div>
-                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '11px' }}>Total Bonus Earned</span>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '11px' }}>{t('total_bonus_earned')}</span>
                     <span style={{ fontWeight: 'bold', color: 'var(--brand-accent)' }}>{formatRupees(sch.totalBonusEarnedPaise)}</span>
                   </div>
                   <div style={{ gridColumn: 'span 2' }}>
-                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '11px' }}>Total Accumulated Gold</span>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '11px' }}>{t('total_accumulated_gold')}</span>
                     <span style={{ fontWeight: 'bold', color: 'var(--gold-deep)', fontSize: '14px' }}>{mgToGrams(sch.accumulatedGoldMg)}</span>
                   </div>
                 </div>
@@ -145,7 +147,7 @@ export const CompletedSchemesPage: React.FC = () => {
                       fontWeight: 'bold', fontSize: '12px', cursor: 'pointer'
                     }}
                   >
-                    View History
+                    {t('view_history_btn')}
                   </button>
                   {sch.status?.toLowerCase() !== 'claimed' ? (
                     <button
@@ -156,7 +158,7 @@ export const CompletedSchemesPage: React.FC = () => {
                         fontWeight: 'bold', fontSize: '12px', cursor: 'pointer'
                       }}
                     >
-                      Redeem Plan
+                      {t('redeem_plan')}
                     </button>
                   ) : (
                     <button
@@ -167,7 +169,7 @@ export const CompletedSchemesPage: React.FC = () => {
                         fontWeight: 'bold', fontSize: '12px', cursor: 'default'
                       }}
                     >
-                      Redeemed
+                      {t('redeemed_status')}
                     </button>
                   )}
                 </div>

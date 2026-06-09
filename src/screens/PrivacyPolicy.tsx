@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useTranslation } from '../utils/translation';
 
 export const PrivacyPolicy: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  
   const [isAccepted, setIsAccepted] = useState(() => {
     return localStorage.getItem('PRIVACY_POLICY_ACCEPTED') === 'true';
   });
@@ -16,57 +19,57 @@ export const PrivacyPolicy: React.FC = () => {
   const handleAccept = () => {
     localStorage.setItem('PRIVACY_POLICY_ACCEPTED', 'true');
     setIsAccepted(true);
-    alert('Thank you for accepting our Privacy Policy.');
+    alert(t('privacy_thank_accept'));
     handleBack();
   };
 
   const sections = [
     {
-      title: 'Information Collection',
-      text: 'The platform collects personally identifiable information (“Personal Data”), including but not limited to name, contact information, demographic details, identification numbers, address, and login activity for the purpose of account creation and service delivery.'
+      title: t('privacy_sec1_title'),
+      text: t('privacy_sec1_text')
     },
     {
-      title: 'Purpose of Processing',
-      text: 'Personal Data is processed for:',
+      title: t('privacy_sec2_title'),
+      text: t('privacy_sec2_text'),
       bullets: [
-        'Account registration and authentication',
-        'Compliance with legal and regulatory requirements',
-        'Communication of transactional or service-related information',
-        'Enhancing platform features, security, and user experience',
-        'Fraud detection and prevention',
-        'Internal analytics and performance improvement'
+        t('privacy_sec2_bullet1'),
+        t('privacy_sec2_bullet2'),
+        t('privacy_sec2_bullet3'),
+        t('privacy_sec2_bullet4'),
+        t('privacy_sec2_bullet5'),
+        t('privacy_sec2_bullet6')
       ]
     },
     {
-      title: 'Data Retention',
-      text: 'Personal Data will be retained only as long as necessary for service usage, compliance, or dispute resolution.'
+      title: t('privacy_sec3_title'),
+      text: t('privacy_sec3_text')
     },
     {
-      title: 'Data Disclosure',
-      text: 'Personal Data may be disclosed to authorized entities only:',
+      title: t('privacy_sec4_title'),
+      text: t('privacy_sec4_text'),
       bullets: [
-        'Government or regulatory authorities upon lawful request',
-        'Verified third-party service providers under confidentiality obligations',
-        'Internal departments requiring information for service fulfillment'
+        t('privacy_sec4_bullet1'),
+        t('privacy_sec4_bullet2'),
+        t('privacy_sec4_bullet3')
       ]
     },
     {
-      title: 'User Rights and Control',
-      text: 'Users have the right to:',
+      title: t('privacy_sec5_title'),
+      text: t('privacy_sec5_text'),
       bullets: [
-        'Access their stored Personal Data',
-        'Request rectification or deletion of inaccurate, outdated, or unnecessary information',
-        'Withdraw consent where applicable',
-        'Raise grievances regarding data use or privacy'
+        t('privacy_sec5_bullet1'),
+        t('privacy_sec5_bullet2'),
+        t('privacy_sec5_bullet3'),
+        t('privacy_sec5_bullet4')
       ]
     },
     {
-      title: 'Security Measures',
-      text: 'The company implements administrative, technical, and physical safeguards to protect Personal Data from breach, unauthorized access, destruction, or alteration.'
+      title: t('privacy_sec6_title'),
+      text: t('privacy_sec6_text')
     },
     {
-      title: 'Policy Amendments',
-      text: 'The company reserves the right to modify or update this Privacy Policy at any time. Continued use of the platform constitutes acceptance of the modified policy.'
+      title: t('privacy_sec7_title'),
+      text: t('privacy_sec7_text')
     }
   ];
 
@@ -92,7 +95,7 @@ export const PrivacyPolicy: React.FC = () => {
           <ArrowLeft size={24} color="var(--gold-primary)" />
         </button>
         <span style={{ fontSize: '18px', fontWeight: 'bold', color: 'white', fontFamily: 'var(--font-poppins)', textAlign: 'center', flex: 1, marginRight: '40px', letterSpacing: '0.5px' }}>
-          Privacy Policy
+          {t('privacy_title')}
         </span>
       </div>
 
@@ -119,7 +122,7 @@ export const PrivacyPolicy: React.FC = () => {
         ))}
 
         <div style={{ fontSize: '12px', color: 'var(--text-light)', marginTop: '10px', fontStyle: 'italic', fontFamily: 'var(--font-poppins)' }}>
-          No description available.
+          {t('privacy_no_desc')}
         </div>
         
         {/* Extra spacer for scroll buffer */}
@@ -155,7 +158,7 @@ export const PrivacyPolicy: React.FC = () => {
               boxShadow: '0 4px 12px var(--brand-glow)'
             }}
           >
-            Accept & Continue
+            {t('privacy_accept_continue')}
           </button>
         </div>
       )}

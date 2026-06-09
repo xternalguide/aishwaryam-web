@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useTranslation } from '../utils/translation';
 
 export const TermsConditions: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleBack = () => {
     localStorage.setItem('DASHBOARD_ACTIVE_TAB', '2');
@@ -12,43 +14,43 @@ export const TermsConditions: React.FC = () => {
 
   const sections = [
     {
-      title: '1. Agreement to Terms',
-      text: 'By accessing and utilizing the Aishwaryam Digital Gold platform, you agree to be bound by these Terms and Conditions. These terms govern your subscription to and participation in all digital metal accumulation schemes.'
+      title: t('terms_sec1_title'),
+      text: t('terms_sec1_text')
     },
     {
-      title: '2. Savings Scheme Details',
-      text: 'Aishwaryam provides automated metal accumulation savings plans (chits) designed to help you save systematically:',
+      title: t('terms_sec2_title'),
+      text: t('terms_sec2_text'),
       bullets: [
-        'Tenure: Schemes operate for a fixed tenure (typically 11 months or 12 months).',
-        'Installments: Installments must be paid monthly. The minimum installment begins at ₹100.',
-        'Bullion Quality: Every payment purchases certified 24K Gold (99.9% purity) or 99.9% Silver at the live market rates in effect at the time of transaction verification.'
+        t('terms_sec2_bullet1'),
+        t('terms_sec2_bullet2'),
+        t('terms_sec2_bullet3')
       ]
     },
     {
-      title: '3. GST and Taxes',
-      text: 'As per prevailing Government of India regulations, a 3% Goods and Services Tax (GST) is applicable on all digital bullion purchases. The GST amount is calculated and included in the total value of each monthly installment chit transaction.'
+      title: t('terms_sec3_title'),
+      text: t('terms_sec3_text')
     },
     {
-      title: '4. Loyalty Bonus Milestones',
-      text: 'Aishwaryam rewards disciplined savers with loyalty bonus weights added to their metal accounts, calculated based on the day number of the installment deposit:',
+      title: t('terms_sec4_title'),
+      text: t('terms_sec4_text'),
       bullets: [
-        'Early Deposit Bonus: Payments completed on Day 1 to Day 75 of the scheme cycle qualify for a 7.5% loyalty bonus weight.',
-        'Late Deposit Bonus: The bonus weight percentage reduces progressively for payments completed after Day 75.',
-        'Bonus Credit: Bonus weights are locked in your locker and credited fully upon successful completion/maturity of the scheme.'
+        t('terms_sec4_bullet1'),
+        t('terms_sec4_bullet2'),
+        t('terms_sec4_bullet3')
       ]
     },
     {
-      title: '5. Redemption Guidelines',
-      text: 'Upon completing all monthly installments, users can redeem their accumulated metal balance through three distinct channels:',
+      title: t('terms_sec5_title'),
+      text: t('terms_sec5_text'),
       bullets: [
-        'Showroom Jewelry Collection: Exchange your metal balance for physical ornaments at any of our authorized retail jewelry showroom partners with zero making wastage/charges.',
-        'Home Delivery: Request secure doorstep delivery of 24K gold coins or silver bars in available denominations. Shipments are fully insured.',
-        'Cash Liquidation: Liquidate/sell your metal balance back to the platform at live market sell rates and transfer cash immediately to your linked bank account.'
+        t('terms_sec5_bullet1'),
+        t('terms_sec5_bullet2'),
+        t('terms_sec5_bullet3')
       ]
     },
     {
-      title: '6. Cancellations and Pre-closures',
-      text: 'Active schemes cannot be cancelled or refunded in cash prior to maturity. In the event of early termination, accumulated savings balances will remain locked as physical metal weight and can only be redeemed as gold/silver ornaments or coins at the end of the tenure.'
+      title: t('terms_sec6_title'),
+      text: t('terms_sec6_text')
     }
   ];
 
@@ -74,14 +76,14 @@ export const TermsConditions: React.FC = () => {
           <ArrowLeft size={24} color="var(--gold-primary)" />
         </button>
         <span style={{ fontSize: '18px', fontWeight: 'bold', color: 'white', fontFamily: 'var(--font-poppins)', textAlign: 'center', flex: 1, marginRight: '40px', letterSpacing: '0.5px' }}>
-          Terms & Conditions
+          {t('terms_title')}
         </span>
       </div>
 
       {/* Content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: '22px', boxSizing: 'border-box' }}>
         <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '0 0 10px 0', lineHeight: '20px', fontStyle: 'italic', fontFamily: 'var(--font-poppins)' }}>
-          Please read these Terms and Conditions carefully before enrolling in our saving schemes.
+          {t('terms_subtitle')}
         </p>
 
         {sections.map((section, idx) => (

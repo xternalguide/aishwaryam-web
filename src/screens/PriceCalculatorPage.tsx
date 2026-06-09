@@ -72,7 +72,9 @@ export const PriceCalculatorPage: React.FC = () => {
               <Calculator size={22} />
             </div>
             <div>
-              <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Live Rate Estimation</h4>
+              <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                {t('live_rate_estimation')}
+              </h4>
             </div>
           </div>
 
@@ -88,7 +90,7 @@ export const PriceCalculatorPage: React.FC = () => {
                 transition: 'all 0.2s'
               }}
             >
-              Amount (₹) to Gold (g)
+              {t('amount_to_gold')}
             </button>
             <button 
               onClick={() => { setCalcType('GRAMS'); setCalcAmount(''); }}
@@ -100,14 +102,14 @@ export const PriceCalculatorPage: React.FC = () => {
                 transition: 'all 0.2s'
               }}
             >
-              Gold (g) to Amount (₹)
+              {t('gold_to_amount')}
             </button>
           </div>
 
           {/* Input block */}
           <div>
             <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
-              {calcType === 'RUPEES' ? 'Amount' : 'Weight'}
+              {calcType === 'RUPEES' ? t('calc_amount_label') : t('calc_weight_label')}
             </label>
             <div style={{ position: 'relative' }}>
               <span style={{ position: 'absolute', left: '16px', top: '15px', fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
@@ -160,40 +162,40 @@ export const PriceCalculatorPage: React.FC = () => {
             boxShadow: '0 8px 24px rgba(255, 215, 0, 0.05)'
           }}>
             <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', borderBottom: '1px solid rgba(74, 14, 78, 0.05)', paddingBottom: '8px' }}>
-              Estimated Breakdown
+              {t('estimated_breakdown')}
             </h4>
 
             {calcType === 'RUPEES' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Savings Deposit</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{t('savings_deposit')}</span>
                   <span style={{ fontWeight: 'bold' }}>₹{parsedVal.toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>GST (3% Included)</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{t('gst_included')}</span>
                   <span>₹{(parsedVal - (parsedVal / 1.03)).toFixed(2)}</span>
                 </div>
                 <div style={{ height: '1px', background: 'rgba(74, 14, 78, 0.08)' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: '900', color: 'var(--brand-dark)' }}>
-                  <span>Effective Gold Added</span>
+                  <span>{t('effective_gold_added')}</span>
                   <span style={{ color: 'var(--gold-deep)' }}>
-                    {((parsedVal / 1.03 * 100) / goldPrice22K).toFixed(4)} grams
+                    {((parsedVal / 1.03 * 100) / goldPrice22K).toFixed(4)} {t('grams_suffix')}
                   </span>
                 </div>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Base Metal Value (22K)</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{t('base_metal_value_22k')}</span>
                   <span style={{ fontWeight: 'bold' }}>₹{(parsedVal * goldPrice22K / 100).toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>GST (3%)</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{t('gst_3_percent')}</span>
                   <span>₹{(parsedVal * goldPrice22K / 100 * 0.03).toFixed(2)}</span>
                 </div>
                 <div style={{ height: '1px', background: 'rgba(74, 14, 78, 0.08)' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: '900', color: 'var(--brand-dark)' }}>
-                  <span>Total Amount Payable</span>
+                  <span>{t('total_amount_payable')}</span>
                   <span style={{ color: 'var(--brand-dark)' }}>
                     ₹{(parsedVal * goldPrice22K / 100 * 1.03).toFixed(2)}
                   </span>
