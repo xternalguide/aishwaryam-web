@@ -1848,7 +1848,7 @@ export const SchemeDetail: React.FC = () => {
             lineHeight: '20px',
             fontFamily: 'var(--font-poppins)'
           }}>
-            Confirming your digital gold purchase. Please do not close the application or go back.
+            Confirming your purchase. Please do not close the application or go back.
           </p>
         </div>
       )}

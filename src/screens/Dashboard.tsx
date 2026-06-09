@@ -27,7 +27,9 @@ import {
   Lock,
   FileText,
   Pencil,
-  ShieldCheck
+  ShieldCheck,
+  PlusCircle,
+  Clock
 } from 'lucide-react';
 import goldSavingsBanner from '../assets/gold_savings_banner.png';
 
@@ -69,6 +71,9 @@ interface TransactionItem {
   id: string;
   userSchemeId: string;
   transactionType: string;
+  type?: string;
+  schemeName?: string;
+  bonusPercentage?: number;
   installmentNumber: number;
   amountPaise: number;
   baseAmountPaise: number;
@@ -186,9 +191,106 @@ export const Dashboard: React.FC = () => {
 
 
   // History Tab Filter States
-  const [txFilter, setTxFilter] = useState<'ALL' | 'BUY' | 'SELL'>('ALL');
+  const [txFilter, setTxFilter] = useState<'ALL' | 'BONUS' | 'PURCHASES' | 'SCHEME'>('ALL');
   const [txSort, setTxSort] = useState<'NEWEST' | 'OLDEST'>('NEWEST');
-  const [selectedTxDetail, setSelectedTxDetail] = useState<TransactionItem | null>(null);
+  const [selectedTxDetail, setSelectedTxDetail] = useState<any | null>(null);
+
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editDob, setEditDob] = useState('');
+  const [editGender, setEditGender] = useState('');
+  const [editNomineeName, setEditNomineeName] = useState('');
+  const [editNomineePhone, setEditNomineePhone] = useState('');
+  const [editNomineeRelation, setEditNomineeRelation] = useState('');
+  const [editImageBase64, setEditImageBase64] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  const openEditProfile = () => {
+    setEditName(profile?.fullName || '');
+    setEditEmail(profile?.email || '');
+    setEditDob(profile?.dateOfBirth || '');
+    setEditGender(profile?.gender || '');
+    setEditNomineeName(profile?.nomineeName || '');
+    setEditNomineePhone(profile?.nomineePhoneNumber || '');
+    setEditNomineeRelation(profile?.nomineeRelationship || '');
+    setEditImageBase64(profile?.profilePictureBase64 || null);
+    setUploadError(null);
+    setShowEditProfileModal(true);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      setUploadError("Only JPG, JPEG, and PNG formats are allowed.");
+      setEditImageBase64(null);
+      return;
+    }
+
+    const maxSize = 2 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setUploadError("Image size must be less than 2MB.");
+      setEditImageBase64(null);
+      return;
+    }
+
+    setUploadError(null);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEditImageBase64(reader.result as string);
+    };
+    reader.onerror = () => {
+      setUploadError("Failed to read file.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editName.trim()) {
+      alert("Full Name is required.");
+      return;
+    }
+
+    if (editEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editEmail.trim())) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    if (editNomineePhone.trim() && !/^\d{10}$/.test(editNomineePhone.trim())) {
+      alert("Nominee mobile number must be exactly 10 digits.");
+      return;
+    }
+
+    setIsSavingProfile(true);
+    try {
+      const userId = SessionManager.getUserId();
+      if (!userId) return;
+
+      await ApiClient.put(`api/User/profile/${userId}`, {
+        fullName: editName.trim(),
+        email: editEmail.trim() || null,
+        dateOfBirth: editDob ? editDob : null,
+        gender: editGender || null,
+        nomineeName: editNomineeName.trim() || null,
+        nomineePhoneNumber: editNomineePhone.trim() || null,
+        nomineeRelationship: editNomineeRelation || null,
+        profilePictureBase64: editImageBase64
+      });
+
+      alert("Profile updated successfully!");
+      setShowEditProfileModal(false);
+      refreshData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to update profile.");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   // Profile Tab states (moved to ProfilePages.tsx)
 
@@ -341,10 +443,25 @@ export const Dashboard: React.FC = () => {
           isCredit: true
         };
       case 'REDEMPTION':
+      case 'SELL':
         return {
           label: 'Maturity Redemption',
           icon: <ShieldCheck size={16} color="var(--success-green)" />,
           bgColor: 'rgba(16, 185, 129, 0.08)',
+          isCredit: false
+        };
+      case 'SCHEME_JOIN':
+        return {
+          label: 'Joined Scheme',
+          icon: <PlusCircle size={16} color="var(--brand-accent)" />,
+          bgColor: 'rgba(255, 215, 0, 0.08)',
+          isCredit: true
+        };
+      case 'REDEMPTION_REQUEST':
+        return {
+          label: 'Redemption Requested',
+          icon: <Clock size={16} color="var(--warning-amber)" />,
+          bgColor: 'rgba(245, 127, 23, 0.08)',
           isCredit: false
         };
       default:
@@ -359,16 +476,13 @@ export const Dashboard: React.FC = () => {
 
   // History Tab Filtering Logic
   const getFilteredTransactions = () => {
-    let list = transactions.filter(t => 
-      t.transactionType === 'INSTALLMENT' || 
-      t.transactionType === 'BONUS' || 
-      t.transactionType === 'EVENT_BONUS' || 
-      t.transactionType === 'REDEMPTION'
-    );
-    if (txFilter === 'BUY') {
-      list = list.filter((t) => t.transactionType === 'INSTALLMENT' || t.transactionType === 'BONUS' || t.transactionType === 'EVENT_BONUS');
-    } else if (txFilter === 'SELL') {
-      list = list.filter((t) => t.transactionType === 'REDEMPTION');
+    let list = transactions;
+    if (txFilter === 'BONUS') {
+      list = list.filter((t) => t.transactionType === 'BONUS' || t.transactionType === 'EVENT_BONUS' || t.type === 'BONUS' || t.type === 'EVENT_BONUS');
+    } else if (txFilter === 'PURCHASES') {
+      list = list.filter((t) => t.transactionType === 'INSTALLMENT' || t.transactionType === 'BUY' || t.type === 'INSTALLMENT' || t.type === 'BUY');
+    } else if (txFilter === 'SCHEME') {
+      list = list.filter((t) => t.transactionType === 'SCHEME_JOIN' || t.transactionType === 'REDEMPTION_REQUEST' || t.transactionType === 'REDEMPTION' || t.transactionType === 'SELL' || t.type === 'SCHEME_JOIN' || t.type === 'REDEMPTION_REQUEST' || t.type === 'REDEMPTION' || t.type === 'SELL');
     }
 
     if (txSort === 'NEWEST') {
@@ -1084,8 +1198,8 @@ export const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {['ALL', 'BUY', 'SELL'].map((f) => (
+        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {['ALL', 'BONUS', 'PURCHASES', 'SCHEME'].map((f) => (
             <button
               key={f}
               onClick={() => setTxFilter(f as any)}
@@ -1101,10 +1215,11 @@ export const Dashboard: React.FC = () => {
                 boxShadow: txFilter === f ? '0 4px 12px var(--brand-glow)' : 'none',
                 borderWidth: '1px',
                 borderStyle: 'solid',
-                borderColor: txFilter === f ? 'transparent' : 'rgba(0,0,0,0.08)'
+                borderColor: txFilter === f ? 'transparent' : 'rgba(0,0,0,0.08)',
+                whiteSpace: 'nowrap'
               }}
             >
-              {f === 'ALL' ? t('all_activity') : f === 'BUY' ? t('savings') : t('redeemed')}
+              {f === 'ALL' ? 'All Activities' : f === 'BONUS' ? 'Bonus' : f === 'PURCHASES' ? 'Purchases' : 'Scheme Activities'}
             </button>
           ))}
         </div>
@@ -1150,7 +1265,11 @@ export const Dashboard: React.FC = () => {
                         </span>
                       </td>
                       <td style={{ padding: '18px 24px', fontSize: '13.5px', fontWeight: 'bold', color: isBuy ? 'var(--success-green)' : 'var(--error-red)', textAlign: 'right' }}>
-                        {isBuy ? '+' : '-'}{formatRupees(tx.amountPaise)}
+                        {(tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS' || tx.type === 'BONUS' || tx.type === 'EVENT_BONUS') ? (
+                          <span style={{ color: 'var(--text-light)', fontWeight: 'normal' }}>-</span>
+                        ) : (
+                          `${isBuy ? '+' : '-'}${formatRupees(tx.amountPaise)}`
+                        )}
                       </td>
                     </tr>
                   );
@@ -1198,15 +1317,26 @@ export const Dashboard: React.FC = () => {
                   </div>
 
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{
-                      fontSize: '13px', fontWeight: 'bold',
-                      color: isBuy ? 'var(--success-green)' : 'var(--error-red)'
-                    }}>
-                      {isBuy ? '+' : '-'}{formatRupees(tx.amountPaise)}
-                    </span>
-                    <span style={{ fontSize: '10px', color: 'var(--brand-accent)', display: 'block', marginTop: '2px', fontWeight: 'bold' }}>
-                      {mgToGrams(tx.goldWeightMg)}
-                    </span>
+                    {(tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS' || tx.type === 'BONUS' || tx.type === 'EVENT_BONUS') ? (
+                      <span style={{
+                        fontSize: '13px', fontWeight: 'bold',
+                        color: 'var(--success-green)'
+                      }}>
+                        +{mgToGrams(tx.goldWeightMg)}
+                      </span>
+                    ) : (
+                      <>
+                        <span style={{
+                          fontSize: '13px', fontWeight: 'bold',
+                          color: isBuy ? 'var(--success-green)' : 'var(--error-red)'
+                        }}>
+                          {isBuy ? '+' : '-'}{formatRupees(tx.amountPaise)}
+                        </span>
+                        <span style={{ fontSize: '10px', color: 'var(--brand-accent)', display: 'block', marginTop: '2px', fontWeight: 'bold' }}>
+                          {mgToGrams(tx.goldWeightMg)}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               );
@@ -1575,37 +1705,32 @@ export const Dashboard: React.FC = () => {
                     border: '3px solid white',
                     boxShadow: '0 4px 10px rgba(0,0,0,0.06)'
                   }}>
-                    <svg viewBox="0 0 100 100" width="100%" height="100%">
-                      <circle cx="50" cy="50" r="48" fill="#E8EAF6" />
-                      <path d="M25,50 C25,30 35,22 50,22 C65,22 75,30 75,50 C75,55 70,55 70,50 C70,35 62,30 50,30 C38,30 30,35 30,50 C30,55 25,55 25,50 Z" fill="#6D4C41" />
-                      <circle cx="32" cy="52" r="5" fill="#FFCC80" />
-                      <circle cx="68" cy="52" r="5" fill="#FFCC80" />
-                      <circle cx="50" cy="50" r="18" fill="#FFE0B2" />
-                      <path d="M32,45 C35,32 45,34 50,38 C55,34 65,32 68,45 C62,38 55,40 50,42 C45,40 38,38 32,45 Z" fill="#5D4037" />
-                      <path d="M32,40 C35,28 65,28 68,40" fill="none" stroke="#5D4037" strokeWidth="4" strokeLinecap="round" />
-                      <circle cx="44" cy="48" r="1.5" fill="#212121" />
-                      <circle cx="56" cy="48" r="1.5" fill="#212121" />
-                      <rect x="38" y="44" width="12" height="8" rx="3" fill="none" stroke="#37474F" strokeWidth="1.5" />
-                      <rect x="50" y="44" width="12" height="8" rx="3" fill="none" stroke="#37474F" strokeWidth="1.5" />
-                      <line x1="48" y1="47" x2="52" y2="47" stroke="#37474F" strokeWidth="1.5" />
-                      <path d="M47,54 Q50,56 53,54" fill="none" stroke="#E53935" strokeWidth="1" strokeLinecap="round" />
-                      <rect x="47" y="59" width="6" height="8" fill="#FFE0B2" />
-                      <path d="M30,85 L70,85 L65,65 C60,61 40,61 35,65 Z" fill="#1565C0" />
-                      <path d="M43,62 L50,72 L57,62 Z" fill="#FFFFFF" />
-                      <path d="M36,65 L44,78 L50,85 L56,78 L64,65 Z" fill="#0D47A1" />
-                    </svg>
+                    {profile?.profilePictureBase64 ? (
+                      <img src={profile.profilePictureBase64} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Avatar" />
+                    ) : (
+                      <svg viewBox="0 0 100 100" width="100%" height="100%">
+                        <circle cx="50" cy="50" r="48" fill="#E8EAF6" />
+                        <path d="M25,50 C25,30 35,22 50,22 C65,22 75,30 75,50 C75,55 70,55 70,50 C70,35 62,30 50,30 C38,30 30,35 30,50 C30,55 25,55 25,50 Z" fill="#6D4C41" />
+                        <circle cx="32" cy="52" r="5" fill="#FFCC80" />
+                        <circle cx="68" cy="52" r="5" fill="#FFCC80" />
+                        <circle cx="50" cy="50" r="18" fill="#FFE0B2" />
+                        <path d="M32,45 C35,32 45,34 50,38 C55,34 65,32 68,45 C62,38 55,40 50,42 C45,40 38,38 32,45 Z" fill="#5D4037" />
+                        <path d="M32,40 C35,28 65,28 68,40" fill="none" stroke="#5D4037" strokeWidth="4" strokeLinecap="round" />
+                        <circle cx="44" cy="48" r="1.5" fill="#212121" />
+                        <circle cx="56" cy="48" r="1.5" fill="#212121" />
+                        <rect x="38" y="44" width="12" height="8" rx="3" fill="none" stroke="#37474F" strokeWidth="1.5" />
+                        <rect x="50" y="44" width="12" height="8" rx="3" fill="none" stroke="#37474F" strokeWidth="1.5" />
+                        <line x1="48" y1="47" x2="52" y2="47" stroke="#37474F" strokeWidth="1.5" />
+                        <path d="M47,54 Q50,56 53,54" fill="none" stroke="#E53935" strokeWidth="1" strokeLinecap="round" />
+                        <rect x="47" y="59" width="6" height="8" fill="#FFE0B2" />
+                        <path d="M30,85 L70,85 L65,65 C60,61 40,61 35,65 Z" fill="#1565C0" />
+                        <path d="M43,62 L50,72 L57,62 Z" fill="#FFFFFF" />
+                        <path d="M36,65 L44,78 L50,85 L56,78 L64,65 Z" fill="#0D47A1" />
+                      </svg>
+                    )}
                   </div>
                   <button 
-                    onClick={() => {
-                      const newName = prompt("Enter new full name:", userName);
-                      if (newName && newName.trim()) {
-                        setUserName(newName.trim());
-                        const userId = SessionManager.getUserId();
-                        if (userId) {
-                          ApiClient.put(`api/User/profile/${userId}`, { fullName: newName.trim() });
-                        }
-                      }
-                    }}
+                    onClick={openEditProfile}
                     style={{
                       position: 'absolute',
                       bottom: '0px',
@@ -2006,31 +2131,69 @@ export const Dashboard: React.FC = () => {
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Transaction ID</span>
-                <span style={{ fontWeight: 'bold' }}>{selectedTxDetail.id}</span>
+            {(selectedTxDetail.transactionType === 'BONUS' || selectedTxDetail.transactionType === 'EVENT_BONUS' || selectedTxDetail.type === 'BONUS' || selectedTxDetail.type === 'EVENT_BONUS') ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Transaction ID</span>
+                  <span style={{ fontWeight: 'bold' }}>{selectedTxDetail.id}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Date & Time</span>
+                  <span style={{ fontWeight: 'bold' }}>
+                    {new Date(selectedTxDetail.createdAt).toLocaleDateString()} {new Date(selectedTxDetail.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Scheme Name</span>
+                  <span style={{ fontWeight: 'bold' }}>{selectedTxDetail.schemeName || 'N/A'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Bonus Percentage</span>
+                  <span style={{ fontWeight: 'bold' }}>
+                    {selectedTxDetail.bonusPercentage ? `${selectedTxDetail.bonusPercentage}%` : 'N/A'}
+                  </span>
+                </div>
+                <div style={{ height: '1px', background: '#ECECEC', margin: '4px 0' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold' }}>
+                  <span>Bonus Gold Earned</span>
+                  <span style={{ color: 'var(--success-green)' }}>{mgToGrams(selectedTxDetail.goldWeightMg)}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Date & Time</span>
-                <span style={{ fontWeight: 'bold' }}>
-                  {new Date(selectedTxDetail.createdAt).toLocaleDateString()} {new Date(selectedTxDetail.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Transaction ID</span>
+                  <span style={{ fontWeight: 'bold' }}>{selectedTxDetail.id}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Date & Time</span>
+                  <span style={{ fontWeight: 'bold' }}>
+                    {new Date(selectedTxDetail.createdAt).toLocaleDateString()} {new Date(selectedTxDetail.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                {selectedTxDetail.schemeName && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Scheme Name</span>
+                    <span style={{ fontWeight: 'bold' }}>{selectedTxDetail.schemeName}</span>
+                  </div>
+                )}
+                {selectedTxDetail.type !== 'SCHEME_JOIN' && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Gold Weight</span>
+                    <span style={{ fontWeight: 'bold', color: '#FFB300' }}>{mgToGrams(selectedTxDetail.goldWeightMg)}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Status</span>
+                  <span style={{ fontWeight: 'bold', color: 'var(--success-green)' }}>{selectedTxDetail.status}</span>
+                </div>
+                <div style={{ height: '1px', background: '#ECECEC', margin: '4px 0' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold' }}>
+                  <span>{selectedTxDetail.type === 'SCHEME_JOIN' ? 'Installment Size' : 'Amount Paid'}</span>
+                  <span style={{ color: 'var(--brand-accent)' }}>{formatRupees(selectedTxDetail.amountPaise)}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Gold Weight</span>
-                <span style={{ fontWeight: 'bold', color: '#FFB300' }}>{mgToGrams(selectedTxDetail.goldWeightMg)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Status</span>
-                <span style={{ fontWeight: 'bold', color: 'var(--success-green)' }}>{selectedTxDetail.status}</span>
-              </div>
-              <div style={{ height: '1px', background: '#ECECEC', margin: '4px 0' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold' }}>
-                <span>Amount Paid</span>
-                <span style={{ color: 'var(--brand-accent)' }}>{formatRupees(selectedTxDetail.amountPaise)}</span>
-              </div>
-            </div>
+            )}
 
             <button
               onClick={() => alert('Receipt downloaded successfully!')}
@@ -2041,6 +2204,181 @@ export const Dashboard: React.FC = () => {
             >
               Download Receipt
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── EDIT PROFILE MODAL ── */}
+      {showEditProfileModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, overflowY: 'auto'
+        }}>
+          <div className="glass-card" style={{
+            width: '90%', maxWidth: '450px', background: 'white', borderRadius: '24px', padding: '24px',
+            display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            maxHeight: '90vh', overflowY: 'auto'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Edit Profile</h3>
+              <button onClick={() => setShowEditProfileModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Image Upload Block */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '85px', height: '85px', borderRadius: '50%', overflow: 'hidden', background: '#F1F3F4',
+                  border: '3px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.06)'
+                }}>
+                  {editImageBase64 ? (
+                    <img src={editImageBase64} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Preview" />
+                  ) : (
+                    <User size={36} color="var(--text-muted)" />
+                  )}
+                </div>
+                <label style={{
+                  fontSize: '12px', fontWeight: 'bold', color: 'var(--brand-mid)', cursor: 'pointer',
+                  padding: '6px 16px', borderRadius: '16px', border: '1.5px solid var(--brand-mid)', background: 'transparent'
+                }}>
+                  Change Photo
+                  <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+                </label>
+                {uploadError && (
+                  <span style={{ fontSize: '11px', color: 'var(--error-red)', textAlign: 'center' }}>{uploadError}</span>
+                )}
+                <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Allowed formats: JPG, JPEG, PNG (Max 2MB)</span>
+              </div>
+
+              {/* Name */}
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Full Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                />
+              </div>
+
+              {/* Mobile Number (Read-only) */}
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Mobile Number</label>
+                <input
+                  type="text"
+                  value={profile?.phoneNumber ? `+91 ${profile.phoneNumber}` : ''}
+                  disabled
+                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: '#F1F3F4', color: 'var(--text-secondary)' }}
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Email Address</label>
+                <input
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {/* DOB */}
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Date of Birth</label>
+                  <input
+                    type="date"
+                    value={editDob}
+                    onChange={(e) => setEditDob(e.target.value)}
+                    style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: 'white' }}
+                  />
+                </div>
+
+                {/* Gender */}
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Gender</label>
+                  <select
+                    value={editGender}
+                    onChange={(e) => setEditGender(e.target.value)}
+                    style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: 'white' }}
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ height: '1px', background: '#ECECEC', margin: '4px 0' }} />
+              <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Nominee Details</h4>
+
+              {/* Nominee Name */}
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Nominee Name</label>
+                <input
+                  type="text"
+                  value={editNomineeName}
+                  onChange={(e) => setEditNomineeName(e.target.value)}
+                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {/* Nominee Mobile */}
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Nominee Mobile</label>
+                  <input
+                    type="text"
+                    value={editNomineePhone}
+                    onChange={(e) => setEditNomineePhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                  />
+                </div>
+
+                {/* Nominee Relationship */}
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Relationship</label>
+                  <select
+                    value={editNomineeRelation}
+                    onChange={(e) => setEditNomineeRelation(e.target.value)}
+                    style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: 'white' }}
+                  >
+                    <option value="">Select</option>
+                    {["Father", "Mother", "Wife", "Husband", "Son", "Daughter", "Brother", "Guardian"].map((rel) => (
+                      <option key={rel} value={rel}>{rel}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+              <button
+                onClick={handleSaveProfile}
+                disabled={isSavingProfile}
+                style={{
+                  flex: 1, height: '44px', borderRadius: '10px', background: 'var(--gradient-brand)',
+                  color: 'white', border: 'none', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer',
+                  opacity: isSavingProfile ? 0.7 : 1, boxShadow: '0 4px 10px var(--brand-glow)'
+                }}
+              >
+                {isSavingProfile ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                onClick={() => setShowEditProfileModal(false)}
+                style={{
+                  flex: 1, height: '44px', borderRadius: '10px', background: 'transparent',
+                  color: 'var(--text-secondary)', border: '1px solid rgba(0,0,0,0.15)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
