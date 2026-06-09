@@ -44,8 +44,8 @@ export const Splash: React.FC = () => {
       } else if (stage === OnboardingStage.MPIN_CREATED) {
         navigate('/profile-setup');
       } else {
-        // Already logged in: directly route to dashboard and keep session active
-        navigate('/dashboard');
+        // Option B: Show the MPIN screen on reopen, bypassing the login/OTP screens
+        navigate('/mpin/verify');
       }
     }
   }, [minTimeElapsed, maxTimeReached, isLoading, navigate]);
