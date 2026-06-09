@@ -1477,11 +1477,16 @@ export const Dashboard: React.FC = () => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
-                width: '36px', height: '36px', borderRadius: '50%', background: 'var(--brand-glow)',
-                color: 'var(--brand-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '36px', height: '36px', borderRadius: '50%',
+                overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, background: 'var(--brand-glow)', color: 'var(--brand-dark)',
                 fontWeight: 'bold', fontSize: '15px'
               }}>
-                {userName.slice(0, 1).toUpperCase()}
+                {profile?.profilePictureBase64 ? (
+                  <img src={profile.profilePictureBase64} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Avatar" />
+                ) : (
+                  <User size={20} color="var(--brand-dark)" />
+                )}
               </div>
               <div style={{ overflow: 'hidden' }}>
                 <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -1533,15 +1538,18 @@ export const Dashboard: React.FC = () => {
             zIndex: 10
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {!isDesktop && (
-                <div style={{
-                  width: '36px', height: '36px', borderRadius: '50%', background: 'var(--brand-glow)',
-                  color: 'var(--brand-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 'bold', fontSize: '15px'
-                }}>
-                  {userName.slice(0, 1).toUpperCase()}
-                </div>
-              )}
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '50%',
+                overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, background: 'var(--brand-glow)', color: 'var(--brand-dark)',
+                fontWeight: 'bold', fontSize: '15px'
+              }}>
+                {profile?.profilePictureBase64 ? (
+                  <img src={profile.profilePictureBase64} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Avatar" />
+                ) : (
+                  <User size={20} color="var(--brand-dark)" />
+                )}
+              </div>
               <div>
                 <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>
                   {isDesktop ? `Welcome Back, ${userName}` : `${t('hello')}, ${userName}`}
