@@ -98,7 +98,7 @@ export const Welcome: React.FC = () => {
         {/* Top Header Row with Language Selector & Skip */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', width: '100%' }}>
           {/* Language Toggle EN/தமிழ் */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {/* <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '11px', fontWeight: 'bold', color: lang === 'en' ? 'white' : 'rgba(255,255,255,0.6)' }}>EN</span>
             <button
               onClick={() => changeLanguage(lang === 'en' ? 'ta' : 'en')}
@@ -116,8 +116,7 @@ export const Welcome: React.FC = () => {
               }} />
             </button>
             <span style={{ fontSize: '11px', fontWeight: 'bold', color: lang === 'ta' ? 'var(--gold-warm)' : 'rgba(255,255,255,0.6)' }}>தமிழ்</span>
-          </div>
-
+          </div> */}
           {!isLast && (
             <button
               onClick={handleSkip}
