@@ -40,6 +40,7 @@ export const SchemeDetail: React.FC = () => {
   const [joinType, setJoinType] = useState<'RUPEES' | 'GRAMS'>('RUPEES');
   const [userSchemeId, setUserSchemeId] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isJoinFormCompleted, setIsJoinFormCompleted] = useState(false);
 
   // Active chit progress states
   const [installmentsPaid, setInstallmentsPaid] = useState(0);
@@ -295,6 +296,7 @@ export const SchemeDetail: React.FC = () => {
       setJoinedAt(userActiveScheme.joinedAt || userActiveScheme.JoinedAt || '');
       setMaturityDate(userActiveScheme.maturityDate || userActiveScheme.MaturityDate || '');
       setSchemeStatus(userActiveScheme.status || userActiveScheme.Status || '');
+      setIsJoinFormCompleted(userActiveScheme.isJoinFormCompleted || userActiveScheme.IsJoinFormCompleted || false);
 
       // Setup milestones
       setMilestones(parseMilestones(
@@ -304,6 +306,7 @@ export const SchemeDetail: React.FC = () => {
     } else {
       setIsActive(false);
       setUserSchemeId(null);
+      setIsJoinFormCompleted(false);
     }
 
     // 4. Fetch profile for KYC verification checks
@@ -530,6 +533,33 @@ export const SchemeDetail: React.FC = () => {
     }
   };
 
+  const handleInitiatePayment = () => {
+    if (!isJoinFormCompleted) {
+      setSetupNomineeName(profile?.nomineeName || '');
+      setSetupNomineePhone(profile?.nomineePhoneNumber || '');
+      setSetupNomineeRelationship(profile?.nomineeRelationship || '');
+ 
+      if (userAddresses && userAddresses.length > 0) {
+        const defaultAddr = userAddresses.find(a => a.isDefault) || userAddresses[0];
+        setSetupState(defaultAddr.state || '');
+        setSetupCity(defaultAddr.city || '');
+        setSetupStreet(defaultAddr.streetAddress || defaultAddr.street || '');
+        setSetupPincode(defaultAddr.pincode || '');
+      } else {
+        setSetupState('');
+        setSetupCity('');
+        setSetupStreet('');
+        setSetupPincode('');
+      }
+ 
+      setPendingAction('PAY');
+      setShowSetupModal(true);
+      return;
+    }
+ 
+    setShowJoinSheet(true);
+  };
+
   const handleJoinScheme = async () => {
     if (!scheme) return;
     if (kycLevel === 'BASIC') {
@@ -546,60 +576,26 @@ export const SchemeDetail: React.FC = () => {
       return;
     }
 
-    const hasNominee = profile?.nomineeName && profile?.nomineePhoneNumber && profile?.nomineeRelationship;
-    const hasAddress = userAddresses && userAddresses.length > 0;
+    setIsProcessing(true);
+    try {
+      const joinRes = await ApiClient.post('api/Scheme/join', {
+        userId: SessionManager.getUserId(),
+        schemeMasterId: scheme.id
+      });
 
-    if (hasNominee && hasAddress) {
-      setIsProcessing(true);
-      try {
-        const defaultAddr = userAddresses.find(a => a.isDefault) || userAddresses[0];
-        const joinRes = await ApiClient.post('api/Scheme/join', {
-          userId: SessionManager.getUserId(),
-          schemeMasterId: scheme.id,
-          nomineeName: profile.nomineeName,
-          nomineePhone: profile.nomineePhoneNumber,
-          nomineeRelationship: profile.nomineeRelationship,
-          state: defaultAddr.state || '',
-          city: defaultAddr.city || '',
-          streetAddress: defaultAddr.streetAddress || defaultAddr.street || '',
-          pincode: defaultAddr.pincode || ''
-        });
-
-        if (joinRes.data && (joinRes.data.success || joinRes.data.Success)) {
-          const newSchemeId = joinRes.data.schemeId || joinRes.data.SchemeId;
-          setUserSchemeId(newSchemeId);
-          await refreshData();
-          setShowSuccessPopup(true);
-        } else {
-          alert(joinRes.data?.message || 'Failed to join scheme.');
-        }
-      } catch (err: any) {
-        alert(err.response?.data?.message || 'Failed to join scheme.');
-      } finally {
-        setIsProcessing(false);
+      if (joinRes.data && (joinRes.data.success || joinRes.data.Success)) {
+        const newSchemeId = joinRes.data.schemeId || joinRes.data.SchemeId;
+        setUserSchemeId(newSchemeId);
+        await refreshData();
+        setShowSuccessPopup(true);
+      } else {
+        alert(joinRes.data?.message || 'Failed to join scheme.');
       }
-      return;
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to join scheme.');
+    } finally {
+      setIsProcessing(false);
     }
-
-    setSetupNomineeName(profile?.nomineeName || '');
-    setSetupNomineePhone(profile?.nomineePhoneNumber || '');
-    setSetupNomineeRelationship(profile?.nomineeRelationship || '');
-
-    if (userAddresses && userAddresses.length > 0) {
-      const defaultAddr = userAddresses.find(a => a.isDefault) || userAddresses[0];
-      setSetupState(defaultAddr.state || '');
-      setSetupCity(defaultAddr.city || '');
-      setSetupStreet(defaultAddr.streetAddress || defaultAddr.street || '');
-      setSetupPincode(defaultAddr.pincode || '');
-    } else {
-      setSetupState('');
-      setSetupCity('');
-      setSetupStreet('');
-      setSetupPincode('');
-    }
-
-    setPendingAction('JOIN');
-    setShowSetupModal(true);
   };
 
   const handleSaveSetup = async () => {
@@ -662,8 +658,30 @@ export const SchemeDetail: React.FC = () => {
           alert(joinRes.data?.message || 'Failed to join scheme.');
         }
       } else if (pendingAction === 'PAY') {
-        setShowSetupModal(false);
-        setShowJoinSheet(true);
+        if (userSchemeId) {
+          const submitRes = await ApiClient.post(`api/Scheme/${userSchemeId}/submit-form`, {
+            userId,
+            nomineeName: setupNomineeName,
+            nomineePhone: setupNomineePhone,
+            nomineeRelationship: setupNomineeRelationship,
+            state: setupState,
+            city: setupCity,
+            streetAddress: setupStreet,
+            pincode: setupPincode
+          });
+ 
+          if (submitRes.data && (submitRes.data.success || submitRes.data.Success)) {
+            setIsJoinFormCompleted(true);
+            await refreshData();
+            setShowSetupModal(false);
+            setShowJoinSheet(true);
+          } else {
+            alert(submitRes.data?.message || 'Failed to save scheme join form.');
+          }
+        } else {
+          setShowSetupModal(false);
+          setShowJoinSheet(true);
+        }
       }
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to update profile details.");
@@ -1424,20 +1442,7 @@ export const SchemeDetail: React.FC = () => {
             ) : (
               <>
                 <button
-                  onClick={() => {
-                    const hasNominee = profile?.nomineeName && profile?.nomineePhoneNumber && profile?.nomineeRelationship;
-                    const hasAddress = userAddresses.length > 0;
-
-                    if (!hasNominee || !hasAddress) {
-                      setSetupNomineeName(profile?.nomineeName || '');
-                      setSetupNomineePhone(profile?.nomineePhoneNumber || '');
-                      setSetupNomineeRelationship(profile?.nomineeRelationship || '');
-                      setPendingAction('PAY');
-                      setShowSetupModal(true);
-                      return;
-                    }
-                    setShowJoinSheet(true);
-                  }}
+                  onClick={handleInitiatePayment}
                   disabled={isProcessing}
                   style={{
                     flex: 1, height: '52px', borderRadius: '14px', background: 'var(--gradient-accent)',
@@ -1672,7 +1677,7 @@ export const SchemeDetail: React.FC = () => {
               <button
                 onClick={() => {
                   setShowSuccessPopup(false);
-                  setShowJoinSheet(true);
+                  handleInitiatePayment();
                 }}
                 style={{
                   width: '100%', height: '48px', borderRadius: '12px', background: 'var(--gradient-accent)',

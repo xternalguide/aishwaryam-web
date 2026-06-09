@@ -74,7 +74,7 @@ export const Splash: React.FC = () => {
                 marginBottom: '8px'
               }}
             />
-        <h1 style={{ color: 'var(--gold-primary)', fontFamily: 'var(--font-playfair)', fontSize: '36px', marginBottom: '8px' }}>
+        <h1 style={{ color: 'var(--gold-primary)', fontFamily: 'var(--font-playfair)', fontSize: '26px', marginBottom: '8px' }}>
           AISHWARYAM @ YOUR HOME
         </h1>
         {/* <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', letterSpacing: '2px' }}>
