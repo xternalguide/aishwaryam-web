@@ -40,15 +40,25 @@ instance.interceptors.request.use(
   }
 );
 
-let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+interface Subscriber {
+  resolve: (token: string) => void;
+  reject: (err: any) => void;
+}
 
-const subscribeTokenRefresh = (cb: (token: string) => void) => {
-  refreshSubscribers.push(cb);
+let isRefreshing = false;
+let refreshSubscribers: Subscriber[] = [];
+
+const subscribeTokenRefresh = (resolve: (token: string) => void, reject: (err: any) => void) => {
+  refreshSubscribers.push({ resolve, reject });
 };
 
 const onRefreshed = (token: string) => {
-  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers.forEach((sub) => sub.resolve(token));
+  refreshSubscribers = [];
+};
+
+const onRefreshFailed = (err: any) => {
+  refreshSubscribers.forEach((sub) => sub.reject(err));
   refreshSubscribers = [];
 };
 
@@ -63,13 +73,18 @@ instance.interceptors.response.use(
       originalRequest._retry = true;
 
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          subscribeTokenRefresh((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
+        return new Promise((resolve, reject) => {
+          subscribeTokenRefresh(
+            (token) => {
+              if (originalRequest.headers) {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+              }
+              resolve(instance(originalRequest));
+            },
+            (err) => {
+              reject(err);
             }
-            resolve(instance(originalRequest));
-          });
+          );
         });
       }
 
@@ -96,19 +111,35 @@ instance.interceptors.response.use(
             return instance(originalRequest);
           } else {
             isRefreshing = false;
+            const customError = new Error(res.data?.message || 'Session expired');
+            onRefreshFailed(customError);
             SessionManager.clearSession();
             window.location.hash = '#/login';
+            return Promise.reject(customError);
           }
-        } catch (refreshErr) {
+        } catch (refreshErr: any) {
           isRefreshing = false;
-          // Refresh failed, clear session and redirect
-          SessionManager.clearSession();
-          window.location.hash = '#/login';
+          // Check if this was a terminal server rejection (400 or 401) vs a network/server transient error
+          const status = refreshErr.response?.status;
+          if (status === 400 || status === 401) {
+            onRefreshFailed(refreshErr);
+            SessionManager.clearSession();
+            window.location.hash = '#/login';
+            return Promise.reject(refreshErr);
+          } else {
+            // Transient error (network down, 503, etc.). Do NOT clear session.
+            // Notify other queued requests of the failure so they don't hang, and reject current request.
+            onRefreshFailed(refreshErr);
+            console.warn('Token refresh failed due to network or server error. Retaining session.', refreshErr);
+            return Promise.reject(refreshErr);
+          }
         }
       } else {
         isRefreshing = false;
+        const noTokenErr = new Error('No refresh token available');
         SessionManager.clearSession();
         window.location.hash = '#/login';
+        return Promise.reject(noTokenErr);
       }
     }
 

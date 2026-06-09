@@ -257,6 +257,7 @@ export const Mpin: React.FC = () => {
     } else if (flowState === MpinFlowState.FORGOT_NEW_PIN) {
       setFlowState(MpinFlowState.ENTER_PIN);
     } else if (flowState === MpinFlowState.ENTER_PIN) {
+      localStorage.setItem('DASHBOARD_ACTIVE_TAB', '0');
       navigate('/dashboard');
     }
   };
