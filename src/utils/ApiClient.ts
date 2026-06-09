@@ -71,19 +71,11 @@ instance.interceptors.response.use(
         } catch (refreshErr) {
           // Refresh failed, clear session and redirect
           SessionManager.clearSession();
-          if (SessionManager.getOnboardingStage() === 'FULLY_VERIFIED') {
-            window.location.hash = '#/mpin/verify';
-          } else {
-            window.location.hash = '#/login';
-          }
+          window.location.hash = '#/login';
         }
       } else {
         SessionManager.clearSession();
-        if (SessionManager.getOnboardingStage() === 'FULLY_VERIFIED') {
-          window.location.hash = '#/mpin/verify';
-        } else {
-          window.location.hash = '#/login';
-        }
+        window.location.hash = '#/login';
       }
     }
 
