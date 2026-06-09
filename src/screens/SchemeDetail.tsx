@@ -546,6 +546,41 @@ export const SchemeDetail: React.FC = () => {
       return;
     }
 
+    const hasNominee = profile?.nomineeName && profile?.nomineePhoneNumber && profile?.nomineeRelationship;
+    const hasAddress = userAddresses && userAddresses.length > 0;
+
+    if (hasNominee && hasAddress) {
+      setIsProcessing(true);
+      try {
+        const defaultAddr = userAddresses.find(a => a.isDefault) || userAddresses[0];
+        const joinRes = await ApiClient.post('api/Scheme/join', {
+          userId: SessionManager.getUserId(),
+          schemeMasterId: scheme.id,
+          nomineeName: profile.nomineeName,
+          nomineePhone: profile.nomineePhoneNumber,
+          nomineeRelationship: profile.nomineeRelationship,
+          state: defaultAddr.state || '',
+          city: defaultAddr.city || '',
+          streetAddress: defaultAddr.streetAddress || defaultAddr.street || '',
+          pincode: defaultAddr.pincode || ''
+        });
+
+        if (joinRes.data && (joinRes.data.success || joinRes.data.Success)) {
+          const newSchemeId = joinRes.data.schemeId || joinRes.data.SchemeId;
+          setUserSchemeId(newSchemeId);
+          await refreshData();
+          setShowSuccessPopup(true);
+        } else {
+          alert(joinRes.data?.message || 'Failed to join scheme.');
+        }
+      } catch (err: any) {
+        alert(err.response?.data?.message || 'Failed to join scheme.');
+      } finally {
+        setIsProcessing(false);
+      }
+      return;
+    }
+
     setSetupNomineeName(profile?.nomineeName || '');
     setSetupNomineePhone(profile?.nomineePhoneNumber || '');
     setSetupNomineeRelationship(profile?.nomineeRelationship || '');
