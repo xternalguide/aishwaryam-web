@@ -969,171 +969,176 @@ export const Dashboard: React.FC = () => {
       )}
 
       {banners.length > 0 && (
-        <div 
-          className="promo-banner-container" 
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          style={{
-            width: '100%',
-            height: '160px',
-            borderRadius: '20px',
-            overflow: 'hidden',
-            position: 'relative',
-            boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
-            background: '#EAEAEA',
-            minWidth: 0,
-            maxWidth: '100%',
-            boxSizing: 'border-box',
-            userSelect: 'none',
-            cursor: 'grab'
-          }}
-        >
+        <>
+          <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: '4px 0 0 0' }}>
+            Special Promotion
+          </h3>
           <div 
+            className="promo-banner-container" 
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
             style={{
-              display: 'flex',
-              width: `${banners.length * 100}%`,
-              height: '100%',
-              transition: 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
-              transform: `translateX(-${activeBannerIdx * (100 / banners.length)}%)`
+              width: '100%',
+              height: '160px',
+              borderRadius: '20px',
+              overflow: 'hidden',
+              position: 'relative',
+              boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+              background: '#EAEAEA',
+              minWidth: 0,
+              maxWidth: '100%',
+              boxSizing: 'border-box',
+              userSelect: 'none',
+              cursor: 'grab'
             }}
           >
-            {banners.map((banner, index) => (
-              <div 
-                key={banner.id || index}
-                onClick={(e) => {
-                  if (isDraggingRef.current) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return;
-                  }
-                  navigate(banner.tapActionUrl || '/scheme-explorer');
-                }}
-                style={{
-                  width: `${100 / banners.length}%`,
-                  height: '100%',
-                  position: 'relative',
-                  cursor: 'pointer'
-                }}
-              >
-                {(() => {
-                  const bannerKey = banner.id || banner.title || index.toString();
-                  if (!imageErrors[bannerKey]) {
-                    return (
-                      <img 
-                        src={getImageUrl(banner.imageBase64)} 
-                        alt={banner.title} 
-                        draggable="false"
-                        onError={() => {
-                          setImageErrors(prev => ({ ...prev, [bannerKey]: true }));
-                        }}
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          objectFit: 'cover', 
-                          display: 'block',
-                          pointerEvents: 'none'
-                        }} 
-                      />
-                    );
-                  } else {
-                    return (
-                      <div style={{
-                        width: '100%',
-                        height: '100%',
-                        background: 'linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-deep) 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'relative',
-                        overflow: 'hidden'
-                      }}>
-                        <div style={{ position: 'absolute', top: '-20%', left: '-20%', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,215,0,0.1)', pointerEvents: 'none' }} />
-                        <div style={{ position: 'absolute', bottom: '-20%', right: '-20%', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,215,0,0.05)', pointerEvents: 'none' }} />
-                      </div>
-                    );
-                  }
-                })()}
-                <div style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: '60%',
-                  background: 'linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 100%)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
-                  padding: '16px 20px 24px 20px',
-                  color: 'white',
-                  boxSizing: 'border-box'
-                }}>
-                  <span style={{ 
-                    fontSize: '9px', 
-                    textTransform: 'uppercase', 
-                    letterSpacing: '1px', 
-                    color: 'var(--gold-primary)', 
-                    fontWeight: 'bold',
-                    marginBottom: '2px' 
+            <div 
+              style={{
+                display: 'flex',
+                width: `${banners.length * 100}%`,
+                height: '100%',
+                transition: 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
+                transform: `translateX(-${activeBannerIdx * (100 / banners.length)}%)`
+              }}
+            >
+              {banners.map((banner, index) => (
+                <div 
+                  key={banner.id || index}
+                  onClick={(e) => {
+                    if (isDraggingRef.current) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return;
+                    }
+                    navigate(banner.tapActionUrl || '/scheme-explorer');
+                  }}
+                  style={{
+                    width: `${100 / banners.length}%`,
+                    height: '100%',
+                    position: 'relative',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {(() => {
+                    const bannerKey = banner.id || banner.title || index.toString();
+                    if (!imageErrors[bannerKey]) {
+                      return (
+                        <img 
+                          src={getImageUrl(banner.imageBase64)} 
+                          alt={banner.title} 
+                          draggable="false"
+                          onError={() => {
+                            setImageErrors(prev => ({ ...prev, [bannerKey]: true }));
+                          }}
+                          style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            objectFit: 'cover', 
+                            display: 'block',
+                            pointerEvents: 'none'
+                          }} 
+                        />
+                      );
+                    } else {
+                      return (
+                        <div style={{
+                          width: '100%',
+                          height: '100%',
+                          background: 'linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-deep) 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{ position: 'absolute', top: '-20%', left: '-20%', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,215,0,0.1)', pointerEvents: 'none' }} />
+                          <div style={{ position: 'absolute', bottom: '-20%', right: '-20%', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,215,0,0.05)', pointerEvents: 'none' }} />
+                        </div>
+                      );
+                    }
+                  })()}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: '60%',
+                    background: 'linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 100%)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end',
+                    padding: '16px 20px 24px 20px',
+                    color: 'white',
+                    boxSizing: 'border-box'
                   }}>
-                    {t('campaign_promo')}
-                  </span>
-                  <h4 style={{ 
-                    margin: 0, 
-                    fontSize: '15px', 
-                    fontWeight: 'bold', 
-                    fontFamily: 'var(--font-poppins)', 
-                    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                    lineHeight: '1.2' 
-                  }}>
-                    {banner.title}
-                  </h4>
-                  <span style={{ 
-                    fontSize: '10px', 
-                    opacity: 0.9, 
-                    marginTop: '3px', 
-                    textDecoration: 'underline' 
-                  }}>
-                    {t('campaign_promo_desc')}
-                  </span>
+                    <span style={{ 
+                      fontSize: '9px', 
+                      textTransform: 'uppercase', 
+                      letterSpacing: '1px', 
+                      color: 'var(--gold-primary)', 
+                      fontWeight: 'bold',
+                      marginBottom: '2px' 
+                    }}>
+                      {t('campaign_promo')}
+                    </span>
+                    <h4 style={{ 
+                      margin: 0, 
+                      fontSize: '15px', 
+                      fontWeight: 'bold', 
+                      fontFamily: 'var(--font-poppins)', 
+                      textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                      lineHeight: '1.2' 
+                    }}>
+                      {banner.title}
+                    </h4>
+                    <span style={{ 
+                      fontSize: '10px', 
+                      opacity: 0.9, 
+                      marginTop: '3px', 
+                      textDecoration: 'underline' 
+                    }}>
+                      {t('campaign_promo_desc')}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          <div style={{
-            position: 'absolute',
-            bottom: '10px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            gap: '6px',
-            zIndex: 5
-          }}>
-            {banners.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveBannerIdx(idx);
-                }}
-                style={{
-                  width: activeBannerIdx === idx ? '16px' : '6px',
-                  height: '6px',
-                  borderRadius: '3px',
-                  background: activeBannerIdx === idx ? 'var(--gold-primary)' : 'rgba(255,255,255,0.5)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  transition: 'all 0.3s ease'
-                }}
-              />
-            ))}
+            <div style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              gap: '6px',
+              zIndex: 5
+            }}>
+              {banners.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveBannerIdx(idx);
+                  }}
+                  style={{
+                    width: activeBannerIdx === idx ? '16px' : '6px',
+                    height: '6px',
+                    borderRadius: '3px',
+                    background: activeBannerIdx === idx ? 'var(--gold-primary)' : 'rgba(255,255,255,0.5)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    transition: 'all 0.3s ease'
+                  }}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

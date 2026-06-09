@@ -690,25 +690,52 @@ export const MyBonuses: React.FC = () => {
 export const Notifications: React.FC = () => {
   const navigate = useNavigate();
   const { notifications, refreshData } = useApp();
+  const [localNotifs, setLocalNotifs] = useState<any[]>([]);
 
   useEffect(() => {
     refreshData().catch(err => console.error("Error refreshing notifications:", err));
   }, []);
 
-  const notifs = notifications && notifications.length > 0 ? notifications : [
+  useEffect(() => {
+    if (notifications) {
+      setLocalNotifs(notifications);
+    }
+  }, [notifications]);
+
+  const handleClearNotification = async (id: string) => {
+    // Optimistic UI update
+    setLocalNotifs(prev => prev.filter(n => n.id !== id));
+    
+    try {
+      if (id && id !== 'n1') {
+        await ApiClient.delete(`api/Notification/${id}`);
+      }
+      refreshData(true);
+    } catch (err) {
+      console.error("Error clearing notification:", err);
+      refreshData();
+    }
+  };
+
+  const displayNotifs = localNotifs.length > 0 ? localNotifs : (notifications && notifications.length > 0 ? notifications : [
     { id: 'n1', title: 'Payment Confirmed', message: 'Your 5th installment of ₹3,000 has been verified. 3.85g of Gold added to your locker.', createdAt: new Date().toISOString() }
-  ];
+  ]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F8F9FA' }}>
       <Header title="Notifications" onBack={() => navigate(-1)} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {notifs.map((n) => (
-          <div key={n.id} className="glass-card" style={{ padding: '16px', borderRadius: '12px', background: 'white', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+        {displayNotifs.map((n) => (
+          <div 
+            key={n.id} 
+            className="glass-card" 
+            onClick={() => handleClearNotification(n.id)}
+            style={{ padding: '16px', borderRadius: '12px', background: 'white', display: 'flex', gap: '12px', alignItems: 'flex-start', cursor: 'pointer', position: 'relative' }}
+          >
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--brand-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Bell size={18} color="var(--brand-dark)" />
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, marginRight: '36px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{n.title}</span>
                 <span style={{ fontSize: '10px', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '3px' }}>
@@ -717,8 +744,33 @@ export const Notifications: React.FC = () => {
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '16px', margin: 0 }}>{n.message}</p>
             </div>
+            <button 
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-light)',
+                cursor: 'pointer',
+                fontSize: '11px',
+                opacity: 0.5
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClearNotification(n.id);
+              }}
+            >
+              ✕
+            </button>
           </div>
         ))}
+        {localNotifs.length === 0 && (!notifications || notifications.length === 0) && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', color: 'var(--text-light)', gap: '12px' }}>
+            <span style={{ fontSize: '40px' }}>🔔</span>
+            <span style={{ fontSize: '13px', fontWeight: '500' }}>No new notifications</span>
+          </div>
+        )}
       </div>
     </div>
   );
