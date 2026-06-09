@@ -9,13 +9,12 @@ import { Onboarding } from './screens/Onboarding';
 import { Dashboard } from './screens/Dashboard';
 import { SchemeExplorer } from './screens/SchemeExplorer';
 import { SchemeDetail } from './screens/SchemeDetail';
-import { AddBankAccount } from './screens/AddBankAccount';
 import { PortfolioAnalytics } from './screens/PortfolioAnalytics';
 import { PaymentSuccess } from './screens/PaymentSuccess';
 import { PaymentFailed } from './screens/PaymentFailed';
 import { PrivacyPolicy } from './screens/PrivacyPolicy';
 import { TermsConditions } from './screens/TermsConditions';
-import { ProfileAddress, ProfileKyc, ProfileBankAccounts } from './screens/ProfilePages';
+import { ProfileAddress, ProfileKyc } from './screens/ProfilePages';
 import { ChangeMpin } from './screens/ChangeMpin';
 import { PriceCalculatorPage } from './screens/PriceCalculatorPage';
 import { CompletedSchemesPage } from './screens/CompletedSchemesPage';
@@ -208,7 +207,6 @@ const App: React.FC = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/scheme-explorer" element={<SchemeExplorer />} />
             <Route path="/scheme-detail/:schemeId" element={<SchemeDetail />} />
-            <Route path="/add-bank-account" element={<AddBankAccount />} />
             <Route path="/portfolio-analytics" element={<PortfolioAnalytics />} />
             <Route path="/payment-success/:receiptJson" element={<PaymentSuccess />} />
             <Route path="/payment-failed/:errorJson" element={<PaymentFailed />} />
@@ -216,7 +214,6 @@ const App: React.FC = () => {
             {/* Profile Sub Pages */}
             <Route path="/profile/address" element={<ProfileAddress />} />
             <Route path="/profile/kyc" element={<ProfileKyc />} />
-            <Route path="/profile/bank-accounts" element={<ProfileBankAccounts />} />
             <Route path="/profile/price-calculator" element={<PriceCalculatorPage />} />
             <Route path="/profile/completed-schemes" element={<CompletedSchemesPage />} />
 

@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { SessionManager, OnboardingStage } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
 import { useApp } from '../context/AppContext';
-import { ArrowLeft, Calendar, ShieldCheck, Landmark, CheckCircle, Upload } from 'lucide-react';
+import { ArrowLeft, Calendar, ShieldCheck, CheckCircle, Upload } from 'lucide-react';
 
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { refreshData } = useApp();
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = 2;
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -103,7 +103,6 @@ export const Onboarding: React.FC = () => {
   }, []);
 
   // --- Step 2 State Variables ---
-  const [fetchedPanName, setFetchedPanName] = useState('');
   const [showKycPendingModal, setShowKycPendingModal] = useState(false);
   const [panNumber, setPanNumber] = useState('');
   const [panError, setPanError] = useState<string | null>(null);
@@ -142,25 +141,7 @@ export const Onboarding: React.FC = () => {
     }
   };
 
-  // Sync KYC name & Bank account holder name defaults from Profile Name
-  useEffect(() => {
-    if (name) {
-      setFetchedPanName(name.toUpperCase());
-      if (!accountName) {
-        setAccountName(name);
-      }
-    }
-  }, [name]);
 
-  // --- Step 3 State Variables ---
-  const [accountName, setAccountName] = useState('');
-  const [bankName, setBankName] = useState('');
-  const [branchName, setBranchName] = useState('');
-  const [ifscCode, setIfscCode] = useState('');
-  const [ifscError, setIfscError] = useState<string | null>(null);
-  const [accountNumber, setAccountNumber] = useState('');
-  const [accountNumberError, setAccountNumberError] = useState<string | null>(null);
-  const [confirmAccountNumber, setConfirmAccountNumber] = useState('');
 
   // Date validators
 
@@ -275,37 +256,7 @@ export const Onboarding: React.FC = () => {
     }
   };
 
-  // IFSC auto-fill & validation
-  const handleIfscChange = (val: string) => {
-    const clean = val.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 11);
-    setIfscCode(clean);
-    if (clean.length === 11) {
-      const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
-      if (!ifscRegex.test(clean)) {
-        setIfscError('Invalid IFSC format (e.g. SBIN0000843)');
-        setBankName('');
-        setBranchName('');
-      } else {
-        setIfscError(null);
-        setBankName('State Bank of India');
-        setBranchName('T. Nagar Branch');
-      }
-    } else {
-      setIfscError(null);
-      setBankName('');
-      setBranchName('');
-    }
-  };
 
-  const handleAccountNumberChange = (val: string) => {
-    const clean = val.replace(/\D/g, '');
-    setAccountNumber(clean);
-    if (clean.length > 0 && (clean.length < 9 || clean.length > 18)) {
-      setAccountNumberError('Account number must be between 9 and 18 digits');
-    } else {
-      setAccountNumberError(null);
-    }
-  };
 
   const calculateAge = (dateStr: string): number | null => {
     if (!dateStr) return null;
@@ -391,41 +342,23 @@ export const Onboarding: React.FC = () => {
         });
         await refreshData();
         
-        // Show pending modal for 3 seconds before moving to step 3
+        // Show pending modal for 3 seconds before navigating to dashboard
         setShowKycPendingModal(true);
-        setTimeout(() => {
+        setTimeout(async () => {
           setShowKycPendingModal(false);
-          setCurrentStep(3);
+          SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
+          await refreshData();
+          navigate('/dashboard');
         }, 3000);
       } catch (err: any) {
         // Fallback for network/test error
         setShowKycPendingModal(true);
-        setTimeout(() => {
+        setTimeout(async () => {
           setShowKycPendingModal(false);
-          setCurrentStep(3);
+          SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
+          await refreshData();
+          navigate('/dashboard');
         }, 3000);
-      } finally {
-        setIsSaving(false);
-      }
-    } else if (currentStep === 3) {
-      setIsSaving(true);
-      setSaveError(null);
-      try {
-        await ApiClient.post('api/Banking/add-account', {
-          userId,
-          accountHolderName: accountName,
-          accountNumber,
-          ifscCode,
-          bankName
-        });
-        SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
-        await refreshData();
-        navigate('/dashboard');
-      } catch (err: any) {
-        // Fallback for network error
-        SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
-        await refreshData();
-        navigate('/dashboard');
       } finally {
         setIsSaving(false);
       }
@@ -434,8 +367,6 @@ export const Onboarding: React.FC = () => {
 
   const handleSkip = async () => {
     if (currentStep === 2) {
-      setCurrentStep(3);
-    } else if (currentStep === 3) {
       SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
       navigate('/dashboard');
       refreshData().catch(err => console.error("Error refreshing data:", err));
@@ -462,7 +393,7 @@ export const Onboarding: React.FC = () => {
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
           <span style={{ fontSize: '16px', fontWeight: 'bold', fontFamily: 'var(--font-poppins)' }}>
-            Aishwaryam · Step {currentStep} of 3
+            Aishwaryam · Step {currentStep} of {totalSteps}
           </span>
         </div>
       </div>
@@ -470,7 +401,7 @@ export const Onboarding: React.FC = () => {
       <div className="responsive-form-container" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column' }}>
         {/* Progress Stepper */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '12px 0 24px 0' }}>
-          {[1, 2, 3].map((num) => (
+          {[1, 2].map((num) => (
             <React.Fragment key={num}>
               <div style={{
                 width: '32px',
@@ -1027,166 +958,6 @@ export const Onboarding: React.FC = () => {
               </div>
             </div>
           )}
-
-          {currentStep === 3 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Landmark color="var(--brand-accent)" size={24} />
-                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Step 3: Financial Setup</h2>
-              </div>
-
-              {/* Financial Box */}
-              <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Account Holder Name</label>
-                  <input
-                    type="text"
-                    placeholder="Must match KYC Name"
-                    value={accountName}
-                    onChange={(e) => {
-                      if (/^[a-zA-Z\s]*$/.test(e.target.value)) {
-                        setAccountName(e.target.value);
-                      }
-                    }}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '8px',
-                      border: accountName && accountName.toUpperCase() !== fetchedPanName ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
-                      padding: '0 12px',
-                      fontSize: '14px',
-                      outline: 'none',
-                      marginTop: '4px'
-                    }}
-                  />
-                  {accountName && accountName.toUpperCase() !== fetchedPanName && (
-                    <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
-                      Name must match KYC name: {fetchedPanName}
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>IFSC Code</label>
-                  <input
-                    type="text"
-                    placeholder="Enter 11-digit IFSC"
-                    value={ifscCode}
-                    onChange={(e) => handleIfscChange(e.target.value)}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '8px',
-                      border: ifscError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
-                      padding: '0 12px',
-                      fontSize: '14px',
-                      outline: 'none',
-                      marginTop: '4px'
-                    }}
-                  />
-                  {ifscError && (
-                    <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
-                      {ifscError}
-                    </span>
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Bank Name</label>
-                    <input
-                      type="text"
-                      disabled
-                      value={bankName}
-                      placeholder="Auto-populated"
-                      style={{
-                        width: '100%',
-                        height: '48px',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(0,0,0,0.08)',
-                        padding: '0 12px',
-                        fontSize: '14px',
-                        background: '#F3F4F6',
-                        color: 'var(--text-secondary)',
-                        marginTop: '4px'
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Branch</label>
-                    <input
-                      type="text"
-                      disabled
-                      value={branchName}
-                      placeholder="Auto-populated"
-                      style={{
-                        width: '100%',
-                        height: '48px',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(0,0,0,0.08)',
-                        padding: '0 12px',
-                        fontSize: '14px',
-                        background: '#F3F4F6',
-                        color: 'var(--text-secondary)',
-                        marginTop: '4px'
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Account Number</label>
-                  <input
-                    type="password"
-                    placeholder="Enter Bank Account Number"
-                    value={accountNumber}
-                    onChange={(e) => handleAccountNumberChange(e.target.value)}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '8px',
-                      border: accountNumberError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
-                      padding: '0 12px',
-                      fontSize: '14px',
-                      outline: 'none',
-                      marginTop: '4px'
-                    }}
-                  />
-                  {accountNumberError && (
-                    <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
-                      {accountNumberError}
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Confirm Account Number</label>
-                  <input
-                    type="text"
-                    placeholder="Re-enter Account Number"
-                    value={confirmAccountNumber}
-                    onChange={(e) => setConfirmAccountNumber(e.target.value.replace(/\D/g, ''))}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      borderRadius: '8px',
-                      border: confirmAccountNumber && confirmAccountNumber !== accountNumber ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
-                      padding: '0 12px',
-                      fontSize: '14px',
-                      outline: 'none',
-                      marginTop: '4px'
-                    }}
-                  />
-                  {confirmAccountNumber && confirmAccountNumber !== accountNumber && (
-                    <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
-                      Account numbers do not match
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {saveError && (
@@ -1229,15 +1000,7 @@ export const Onboarding: React.FC = () => {
                   !panImage || !aadhaarFrontImage || !aadhaarBackImage ||
                   panNumber.length !== 10 || panError !== null ||
                   aadhaarNumber.length !== 12 || aadhaarError !== null
-                )) ||
-                (currentStep === 3 &&
-                  (!accountName ||
-                    !bankName ||
-                    !accountNumber ||
-                    ifscError !== null ||
-                    accountNumberError !== null ||
-                    accountNumber !== confirmAccountNumber ||
-                    accountName.toUpperCase() !== fetchedPanName))
+                ))
               }
               style={{
                 flex: 1,
@@ -1261,15 +1024,7 @@ export const Onboarding: React.FC = () => {
                     !panImage || !aadhaarFrontImage || !aadhaarBackImage ||
                     panNumber.length !== 10 || panError !== null ||
                     aadhaarNumber.length !== 12 || aadhaarError !== null
-                  )) ||
-                  (currentStep === 3 &&
-                    (!accountName ||
-                      !bankName ||
-                      !accountNumber ||
-                      ifscError !== null ||
-                      accountNumberError !== null ||
-                      accountNumber !== confirmAccountNumber ||
-                      accountName.toUpperCase() !== fetchedPanName))
+                  ))
                 ) ? 0.5 : 1
               }}
             >

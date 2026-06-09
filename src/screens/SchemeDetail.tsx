@@ -85,6 +85,98 @@ export const SchemeDetail: React.FC = () => {
     refreshData
   } = useApp();
 
+  const [userAddresses, setUserAddresses] = useState<any[]>([]);
+  const [showSetupModal, setShowSetupModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'JOIN' | 'PAY' | null>(null);
+
+  // Nominee form fields
+  const [setupNomineeName, setSetupNomineeName] = useState('');
+  const [setupNomineePhone, setSetupNomineePhone] = useState('');
+  const [setupNomineeRelationship, setSetupNomineeRelationship] = useState('');
+
+  // Address form fields
+  const [setupState, setSetupState] = useState('');
+  const [setupCity, setSetupCity] = useState('');
+  const [setupStreet, setSetupStreet] = useState('');
+  const [setupPincode, setSetupPincode] = useState('');
+  const [setupPinError, setSetupPinError] = useState<string | null>(null);
+
+  const RELATIONSHIPS = ["Father", "Mother", "Wife", "Husband", "Son", "Daughter", "Brother", "Guardian"];
+  const STATES = ["Tamil Nadu", "Puducherry", "Kerala", "Karnataka"];
+  const CITIES_BY_STATE: Record<string, string[]> = {
+    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem", "Trichy", "Tirunelveli"],
+    "Puducherry": ["Puducherry", "Karaikal"],
+    "Kerala": ["Kochi", "Thiruvananthapuram"],
+    "Karnataka": ["Bengaluru", "Mysuru"]
+  };
+  const PIN_PREFIXES: Record<string, string[]> = {
+    "Chennai": ["600"],
+    "Coimbatore": ["641"],
+    "Madurai": ["625"],
+    "Salem": ["636"],
+    "Trichy": ["620"],
+    "Tirunelveli": ["627"],
+    "Puducherry": ["605"],
+    "Karaikal": ["609"],
+    "Kochi": ["682"],
+    "Thiruvananthapuram": ["695"],
+    "Bengaluru": ["560"],
+    "Mysuru": ["570"]
+  };
+
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      const userId = SessionManager.getUserId();
+      if (!userId) return;
+      try {
+        const res = await ApiClient.get(`api/Address/user/${userId}`);
+        if (res.data) {
+          setUserAddresses(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to load addresses in SchemeDetail", err);
+      }
+    };
+    fetchAddresses();
+  }, [profile]);
+
+  const handleSetupPincodeChange = (value: string) => {
+    const numericValue = value.replace(/\D/g, '').slice(0, 6);
+    setSetupPincode(numericValue);
+
+    if (numericValue.length > 0) {
+      if (!setupCity) {
+        setSetupPinError("Please select a City first.");
+        return;
+      }
+      const prefixes = PIN_PREFIXES[setupCity] || [];
+      const isValidPrefix = prefixes.some(prefix => numericValue.startsWith(prefix));
+      if (!isValidPrefix) {
+        setSetupPinError(`PIN Code must start with ${prefixes.join(', ')} for ${setupCity}.`);
+      } else if (numericValue.length < 6) {
+        setSetupPinError("PIN Code must be exactly 6 digits.");
+      } else {
+        setSetupPinError(null);
+      }
+    } else {
+      setSetupPinError(null);
+    }
+  };
+
+  useEffect(() => {
+    if (setupPincode && setupCity) {
+      const prefixes = PIN_PREFIXES[setupCity] || [];
+      const isValidPrefix = prefixes.some(prefix => setupPincode.startsWith(prefix));
+      if (!isValidPrefix) {
+        setSetupPinError(`PIN Code must start with ${prefixes.join(', ')} for ${setupCity}.`);
+      } else if (setupPincode.length < 6) {
+        setSetupPinError("PIN Code must be exactly 6 digits.");
+      } else {
+        setSetupPinError(null);
+      }
+    }
+  }, [setupCity]);
+
   const parseMilestones = (
     bonusConfigJson: string | null,
     activeDays: number
@@ -423,6 +515,19 @@ export const SchemeDetail: React.FC = () => {
       navigate('/onboarding');
       return;
     }
+
+    const hasNominee = profile?.nomineeName && profile?.nomineePhoneNumber && profile?.nomineeRelationship;
+    const hasAddress = userAddresses.length > 0;
+
+    if (!hasNominee || !hasAddress) {
+      setSetupNomineeName(profile?.nomineeName || '');
+      setSetupNomineePhone(profile?.nomineePhoneNumber || '');
+      setSetupNomineeRelationship(profile?.nomineeRelationship || '');
+      setPendingAction('JOIN');
+      setShowSetupModal(true);
+      return;
+    }
+
     setIsProcessing(true);
     try {
       const userId = SessionManager.getUserId() || 'user-id-999';
@@ -442,6 +547,71 @@ export const SchemeDetail: React.FC = () => {
       }
     } catch (err: any) {
       alert('Failed to join scheme: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSaveSetup = async () => {
+    const userId = SessionManager.getUserId();
+    if (!userId) return;
+    
+    const hasAddress = userAddresses.length > 0;
+    setIsProcessing(true);
+    
+    try {
+      // 1. Save nominee details
+      await ApiClient.put(`api/User/profile/${userId}`, {
+        nomineeName: setupNomineeName,
+        nomineePhoneNumber: setupNomineePhone,
+        nomineeRelationship: setupNomineeRelationship
+      });
+
+      // 2. Save address if missing
+      if (!hasAddress) {
+        await ApiClient.post(`api/Address/add`, {
+          userId,
+          state: setupState,
+          city: setupCity,
+          streetAddress: setupStreet,
+          pincode: setupPincode,
+          isDefault: true
+        });
+      }
+
+      alert("Profile details updated successfully!");
+      
+      // Refresh context profile and local address list
+      await refreshData();
+      
+      // Reload user addresses list
+      const res = await ApiClient.get(`api/Address/user/${userId}`);
+      if (res.data) {
+        setUserAddresses(res.data);
+      }
+
+      setShowSetupModal(false);
+
+      // 3. Proceed to the pending action
+      if (pendingAction === 'JOIN') {
+        setIsProcessing(true);
+        const joinRes = await ApiClient.post('api/Scheme/join', {
+          userId,
+          schemeMasterId: scheme!.id
+        });
+        if (joinRes.data && (joinRes.data.success || joinRes.data.Success)) {
+          const newSchemeId = joinRes.data.schemeId || joinRes.data.SchemeId;
+          setUserSchemeId(newSchemeId);
+          await refreshData();
+          setShowSuccessPopup(true);
+        } else {
+          alert(joinRes.data?.message || 'Failed to join scheme.');
+        }
+      } else if (pendingAction === 'PAY') {
+        setShowJoinSheet(true);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to update profile details.");
     } finally {
       setIsProcessing(false);
     }
@@ -1189,7 +1359,20 @@ export const SchemeDetail: React.FC = () => {
             ) : (
               <>
                 <button
-                  onClick={() => setShowJoinSheet(true)}
+                  onClick={() => {
+                    const hasNominee = profile?.nomineeName && profile?.nomineePhoneNumber && profile?.nomineeRelationship;
+                    const hasAddress = userAddresses.length > 0;
+
+                    if (!hasNominee || !hasAddress) {
+                      setSetupNomineeName(profile?.nomineeName || '');
+                      setSetupNomineePhone(profile?.nomineePhoneNumber || '');
+                      setSetupNomineeRelationship(profile?.nomineeRelationship || '');
+                      setPendingAction('PAY');
+                      setShowSetupModal(true);
+                      return;
+                    }
+                    setShowJoinSheet(true);
+                  }}
                   disabled={isProcessing}
                   style={{
                     flex: 1, height: '52px', borderRadius: '14px', background: 'var(--gradient-accent)',
@@ -1224,6 +1407,172 @@ export const SchemeDetail: React.FC = () => {
           </button>
         )}
       </div>
+
+      {/* Nominee & Address Setup Modal */}
+      {showSetupModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1002,
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div className="glass-card" style={{
+            width: '90%', maxWidth: '400px', background: 'white', borderRadius: '24px', padding: '24px',
+            display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+            maxHeight: '90vh', overflowY: 'auto'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
+                Required Profile Details
+              </h3>
+              <button onClick={() => setShowSetupModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '16px' }}>
+              To proceed with your gold savings scheme, please provide your nominee details and primary address as required by Chit Fund regulations.
+            </span>
+
+            {/* Nominee details */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Nominee Information</span>
+              <div>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Nominee Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter nominee name"
+                  value={setupNomineeName}
+                  onChange={(e) => setSetupNomineeName(e.target.value)}
+                  style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Nominee Mobile</label>
+                <input
+                  type="text"
+                  placeholder="10-digit mobile number"
+                  value={setupNomineePhone}
+                  onChange={(e) => setSetupNomineePhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Relationship</label>
+                <select
+                  value={setupNomineeRelationship}
+                  onChange={(e) => setSetupNomineeRelationship(e.target.value)}
+                  style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: 'white' }}
+                >
+                  <option value="">Select Relationship</option>
+                  {RELATIONSHIPS.map((rel) => (
+                    <option key={rel} value={rel}>{rel}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Address details */}
+            {userAddresses.length === 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px', borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: '12px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Primary Address</span>
+                
+                <div>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>State</label>
+                  <select
+                    value={setupState}
+                    onChange={(e) => {
+                      setSetupState(e.target.value);
+                      setSetupCity('');
+                      setSetupPincode('');
+                      setSetupPinError(null);
+                    }}
+                    style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: 'white' }}
+                  >
+                    <option value="">Select State</option>
+                    {STATES.map((st) => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>City</label>
+                  <select
+                    value={setupCity}
+                    onChange={(e) => {
+                      setSetupCity(e.target.value);
+                      setSetupPincode('');
+                      setSetupPinError(null);
+                    }}
+                    disabled={!setupState}
+                    style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: !setupState ? '#F3F4F6' : 'white' }}
+                  >
+                    <option value="">Select City</option>
+                    {(CITIES_BY_STATE[setupState] || []).map((ct) => (
+                      <option key={ct} value={ct}>{ct}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Street Address</label>
+                  <input
+                    type="text"
+                    placeholder="Flat/House no., street name"
+                    value={setupStreet}
+                    onChange={(e) => setSetupStreet(e.target.value)}
+                    style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>PIN Code</label>
+                  <input
+                    type="text"
+                    placeholder="6-digit PIN Code"
+                    value={setupPincode}
+                    onChange={(e) => handleSetupPincodeChange(e.target.value)}
+                    style={{ width: '100%', height: '38px', borderRadius: '8px', border: setupPinError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                  />
+                  {setupPinError && (
+                    <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
+                      {setupPinError}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Save & Proceed button */}
+            <button
+              onClick={handleSaveSetup}
+              disabled={
+                isProcessing ||
+                !setupNomineeName.trim() ||
+                setupNomineePhone.length !== 10 ||
+                !setupNomineeRelationship ||
+                (userAddresses.length === 0 && (!setupState || !setupCity || !setupStreet.trim() || setupPincode.length !== 6 || setupPinError !== null))
+              }
+              style={{
+                width: '100%', height: '46px', borderRadius: '12px', background: 'var(--gradient-brand)',
+                color: 'white', border: 'none', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer',
+                marginTop: '10px', boxShadow: '0 4px 10px var(--brand-glow)',
+                opacity: (
+                  isProcessing ||
+                  !setupNomineeName.trim() ||
+                  setupNomineePhone.length !== 10 ||
+                  !setupNomineeRelationship ||
+                  (userAddresses.length === 0 && (!setupState || !setupCity || !setupStreet.trim() || setupPincode.length !== 6 || setupPinError !== null))
+                ) ? 0.5 : 1
+              }}
+            >
+              {isProcessing ? 'Saving...' : 'Save & Proceed'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Success Popup Modal */}
       {showSuccessPopup && (

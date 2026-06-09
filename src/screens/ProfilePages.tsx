@@ -4,7 +4,7 @@ import { SessionManager } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from '../utils/translation';
-import { ArrowLeft, Landmark, ShieldCheck, MapPin, PlusCircle } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, MapPin, PlusCircle, Trash2, Edit } from 'lucide-react';
 
 const ProfileHeader: React.FC<{ title: string; onBack: () => void }> = ({ title, onBack }) => (
   <div className="app-header-bar" style={{
@@ -28,110 +28,424 @@ const ProfileHeader: React.FC<{ title: string; onBack: () => void }> = ({ title,
   </div>
 );
 
+const STATES = ["Tamil Nadu", "Puducherry", "Kerala", "Karnataka"];
+
+const CITIES_BY_STATE: Record<string, string[]> = {
+  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem", "Trichy", "Tirunelveli"],
+  "Puducherry": ["Puducherry", "Karaikal"],
+  "Kerala": ["Kochi", "Thiruvananthapuram"],
+  "Karnataka": ["Bengaluru", "Mysuru"]
+};
+
+const PIN_PREFIXES: Record<string, string[]> = {
+  "Chennai": ["600"],
+  "Coimbatore": ["641"],
+  "Madurai": ["625"],
+  "Salem": ["636"],
+  "Trichy": ["620"],
+  "Tirunelveli": ["627"],
+  "Puducherry": ["605"],
+  "Karaikal": ["609"],
+  "Kochi": ["682"],
+  "Thiruvananthapuram": ["695"],
+  "Bengaluru": ["560"],
+  "Mysuru": ["570"]
+};
+
 // ── PROFILE ADDRESS PAGE ──────────────────────────────────────────────────
 export const ProfileAddress: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const userId = SessionManager.getUserId() || '';
 
-  const [addressArea, setAddressArea] = useState(() => SessionManager.getPartialArea());
-  const [addressCity, setAddressCity] = useState(() => SessionManager.getPartialCity());
-  const [addressState, setAddressState] = useState(() => SessionManager.getPartialState());
-  const [addressPincode, setAddressPincode] = useState(() => SessionManager.getPartialPincode());
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  
+  const [formState, setFormState] = useState("");
+  const [formCity, setFormCity] = useState("");
+  const [formStreet, setFormStreet] = useState("");
+  const [formPincode, setFormPincode] = useState("");
+  const [formIsDefault, setFormIsDefault] = useState(false);
+
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    loadAddresses();
+  }, []);
+
+  const loadAddresses = async () => {
+    if (!userId) return;
+    setIsLoading(true);
+    try {
+      const res = await ApiClient.get(`api/Address/user/${userId}`);
+      if (res.data) {
+        setAddresses(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to load addresses", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleBack = () => {
     localStorage.setItem('DASHBOARD_ACTIVE_TAB', '2');
     navigate('/dashboard');
   };
 
-  const handleSave = () => {
-    SessionManager.saveStep1Data({
-      area: addressArea,
-      city: addressCity,
-      state: addressState,
-      pincode: addressPincode
-    });
-    alert("Address updated successfully!");
-    handleBack();
+  const handleStateChange = (state: string) => {
+    setFormState(state);
+    setFormCity("");
+    setFormPincode("");
+    setPinError(null);
   };
+
+  const handleCityChange = (city: string) => {
+    setFormCity(city);
+    setFormPincode("");
+    setPinError(null);
+  };
+
+  const handlePincodeChange = (value: string) => {
+    const numericValue = value.replace(/\D/g, '').slice(0, 6);
+    setFormPincode(numericValue);
+
+    if (numericValue.length > 0) {
+      if (!formCity) {
+        setPinError("Please select a City first.");
+        return;
+      }
+      const prefixes = PIN_PREFIXES[formCity] || [];
+      const isValidPrefix = prefixes.some(prefix => numericValue.startsWith(prefix));
+      if (!isValidPrefix) {
+        setPinError(`PIN Code must start with ${prefixes.join(', ')} for ${formCity}.`);
+      } else if (numericValue.length < 6) {
+        setPinError("PIN Code must be exactly 6 digits.");
+      } else {
+        setPinError(null);
+      }
+    } else {
+      setPinError(null);
+    }
+  };
+
+  const startAdd = () => {
+    if (addresses.length >= 3) {
+      alert("Maximum limit of 3 addresses reached. Please delete an address before adding a new one.");
+      return;
+    }
+    setEditId(null);
+    setFormState("");
+    setFormCity("");
+    setFormStreet("");
+    setFormPincode("");
+    setFormIsDefault(false);
+    setPinError(null);
+    setShowForm(true);
+  };
+
+  const startEdit = (addr: any) => {
+    setEditId(addr.id);
+    setFormState(addr.state);
+    setFormCity(addr.city);
+    setFormStreet(addr.streetAddress);
+    setFormPincode(addr.pincode);
+    setFormIsDefault(addr.isDefault);
+    setPinError(null);
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
+    if (!formState || !formCity || !formStreet.trim() || formPincode.length !== 6 || pinError) {
+      alert("Please fill all fields correctly.");
+      return;
+    }
+    try {
+      if (editId) {
+        await ApiClient.put(`api/Address/update/${editId}`, {
+          state: formState,
+          city: formCity,
+          streetAddress: formStreet,
+          pincode: formPincode,
+          isDefault: formIsDefault
+        });
+      } else {
+        await ApiClient.post(`api/Address/add`, {
+          userId,
+          state: formState,
+          city: formCity,
+          streetAddress: formStreet,
+          pincode: formPincode,
+          isDefault: formIsDefault
+        });
+      }
+      setShowForm(false);
+      loadAddresses();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to save address.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this address?")) return;
+    try {
+      await ApiClient.delete(`api/Address/delete/${id}`);
+      loadAddresses();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to delete address.");
+    }
+  };
+
+  const handleSetDefault = async (id: string) => {
+    try {
+      await ApiClient.put(`api/Address/set-default/${id}`);
+      loadAddresses();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to set default address.");
+    }
+  };
+
+  const isFormValid = formState && formCity && formStreet.trim() && formPincode.length === 6 && !pinError;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F8F9FA' }}>
       <ProfileHeader title={t('address_label')} onBack={handleBack} />
-      
+
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div className="glass-card" style={{ padding: '20px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', borderLeft: '4.5px solid var(--brand-accent)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <MapPin size={22} color="var(--brand-accent)" />
-            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Edit Your Address</h4>
-          </div>
+        
+        {showForm ? (
+          /* Address Form View */
+          <div className="glass-card" style={{ padding: '20px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', borderLeft: '4.5px solid var(--brand-accent)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <MapPin size={22} color="var(--brand-accent)" />
+              <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                {editId ? 'Edit Address' : 'Add New Address'}
+              </h4>
+            </div>
 
-          <div>
-            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Area / Street</label>
-            <input
-              type="text"
-              placeholder="e.g. Gandhipuram"
-              value={addressArea}
-              onChange={(e) => setAddressArea(e.target.value)}
-              style={{
-                width: '100%', height: '44px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
-                padding: '0 12px', fontSize: '14px', outline: 'none', marginTop: '6px'
-              }}
-            />
-          </div>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>State</label>
+              <select
+                value={formState}
+                onChange={(e) => handleStateChange(e.target.value)}
+                style={{
+                  width: '100%', height: '44px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
+                  padding: '0 12px', fontSize: '14px', outline: 'none', marginTop: '6px', background: 'white'
+                }}
+              >
+                <option value="">Select State</option>
+                {STATES.map((state) => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>City</label>
-            <input
-              type="text"
-              placeholder="e.g. Coimbatore"
-              value={addressCity}
-              onChange={(e) => setAddressCity(e.target.value)}
-              style={{
-                width: '100%', height: '44px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
-                padding: '0 12px', fontSize: '14px', outline: 'none', marginTop: '6px'
-              }}
-            />
-          </div>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>City</label>
+              <select
+                value={formCity}
+                onChange={(e) => handleCityChange(e.target.value)}
+                disabled={!formState}
+                style={{
+                  width: '100%', height: '44px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
+                  padding: '0 12px', fontSize: '14px', outline: 'none', marginTop: '6px', background: !formState ? '#F3F4F6' : 'white'
+                }}
+              >
+                <option value="">Select City</option>
+                {(CITIES_BY_STATE[formState] || []).map((city) => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>State</label>
-            <input
-              type="text"
-              placeholder="e.g. Tamil Nadu"
-              value={addressState}
-              onChange={(e) => setAddressState(e.target.value)}
-              style={{
-                width: '100%', height: '44px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
-                padding: '0 12px', fontSize: '14px', outline: 'none', marginTop: '6px'
-              }}
-            />
-          </div>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Street Address</label>
+              <input
+                type="text"
+                placeholder="Enter street name, flat/house no."
+                value={formStreet}
+                onChange={(e) => setFormStreet(e.target.value)}
+                style={{
+                  width: '100%', height: '44px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
+                  padding: '0 12px', fontSize: '14px', outline: 'none', marginTop: '6px'
+                }}
+              />
+            </div>
 
-          <div>
-            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Pincode</label>
-            <input
-              type="text"
-              placeholder="e.g. 641012"
-              value={addressPincode}
-              onChange={(e) => setAddressPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              style={{
-                width: '100%', height: '44px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)',
-                padding: '0 12px', fontSize: '14px', outline: 'none', marginTop: '6px'
-              }}
-            />
-          </div>
-        </div>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>PIN Code</label>
+              <input
+                type="text"
+                placeholder="6-digit PIN Code"
+                value={formPincode}
+                onChange={(e) => handlePincodeChange(e.target.value)}
+                style={{
+                  width: '100%', height: '44px', borderRadius: '8px', border: pinError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
+                  padding: '0 12px', fontSize: '14px', outline: 'none', marginTop: '6px'
+                }}
+              />
+              {pinError && (
+                <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
+                  {pinError}
+                </span>
+              )}
+            </div>
 
-        <button
-          onClick={handleSave}
-          style={{
-            width: '100%', height: '52px', borderRadius: '14px', background: 'var(--gradient-brand)',
-            color: 'white', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
-            boxShadow: '0 8px 16px var(--brand-glow)'
-          }}
-        >
-          Save Address
-        </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+              <input
+                type="checkbox"
+                id="defaultCheck"
+                checked={formIsDefault}
+                onChange={(e) => setFormIsDefault(e.target.checked)}
+                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+              <label htmlFor="defaultCheck" style={{ fontSize: '13px', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                Set as Default Address
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+              <button
+                onClick={handleSave}
+                disabled={!isFormValid}
+                style={{
+                  flex: 1, height: '46px', borderRadius: '10px', background: 'var(--gradient-brand)',
+                  color: 'white', border: 'none', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer',
+                  opacity: isFormValid ? 1 : 0.5, boxShadow: '0 4px 10px var(--brand-glow)'
+                }}
+              >
+                Save Address
+              </button>
+              <button
+                onClick={() => setShowForm(false)}
+                style={{
+                  flex: 1, height: '46px', borderRadius: '10px', background: 'transparent',
+                  color: 'var(--text-secondary)', border: '1px solid rgba(0,0,0,0.15)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Address List View */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            
+            {addresses.length >= 3 && (
+              <div style={{ background: '#FFF9C4', border: '1px solid #FBC02D', color: '#F57F17', padding: '12px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' }}>
+                Maximum limit of 3 addresses reached. Please delete an address before creating a new one.
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 'bold' }}>
+                Saved Addresses ({addresses.length}/3)
+              </span>
+              {addresses.length < 3 && (
+                <button
+                  onClick={startAdd}
+                  style={{
+                    background: 'transparent', border: 'none', color: 'var(--brand-mid)',
+                    fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                  }}
+                >
+                  <PlusCircle size={16} /> Add Address
+                </button>
+              )}
+            </div>
+
+            {isLoading ? (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-light)' }}>
+                Loading addresses...
+              </div>
+            ) : addresses.length === 0 ? (
+              <div className="glass-card" style={{ padding: '30px', borderRadius: '16px', background: 'white', textAlign: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                <MapPin size={40} color="var(--text-light)" style={{ marginBottom: '12px' }} />
+                <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: '0 0 16px 0' }}>
+                  No addresses saved yet.
+                </p>
+                <button
+                  onClick={startAdd}
+                  style={{
+                    padding: '10px 20px', borderRadius: '10px', background: 'var(--gradient-brand)', color: 'white',
+                    border: 'none', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 10px var(--brand-glow)'
+                  }}
+                >
+                  Add Your Address
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {addresses.map((addr) => (
+                  <div
+                    key={addr.id}
+                    className="glass-card"
+                    style={{
+                      padding: '16px 20px', borderRadius: '16px', background: 'white',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.02)', borderLeft: addr.isDefault ? '4px solid var(--success-green)' : '1px solid rgba(0,0,0,0.05)',
+                      display: 'flex', flexDirection: 'column', gap: '12px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
+                          {addr.city}, {addr.state}
+                        </span>
+                        {addr.isDefault && (
+                          <span style={{ fontSize: '10px', fontWeight: 'bold', background: '#E8F5E9', color: 'var(--success-green)', padding: '2px 8px', borderRadius: '12px' }}>
+                            Default
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <button
+                          onClick={() => startEdit(addr)}
+                          style={{ background: 'transparent', border: 'none', color: 'var(--brand-mid)', cursor: 'pointer', padding: 0 }}
+                          title="Edit"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(addr.id)}
+                          style={{ background: 'transparent', border: 'none', color: 'var(--error-red)', cursor: 'pointer', padding: 0 }}
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: '13.5px', color: 'var(--text-primary)', lineHeight: '18px' }}>
+                      {addr.streetAddress}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                        PIN Code: {addr.pincode}
+                      </span>
+
+                      {!addr.isDefault && (
+                        <button
+                          onClick={() => handleSetDefault(addr.id)}
+                          style={{
+                            background: 'transparent', border: 'none', color: 'var(--brand-mid)',
+                            fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0
+                          }}
+                        >
+                          Set as Default
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );
@@ -141,10 +455,16 @@ export const ProfileAddress: React.FC = () => {
 export const ProfileKyc: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { profile } = useApp();
+  const { profile, refreshData } = useApp();
 
   const [nomineeName, setNomineeName] = useState('');
+  const [nomineePhone, setNomineePhone] = useState('');
+  const [nomineeRelationship, setNomineeRelationship] = useState('');
+
   const [newNomineeInput, setNewNomineeInput] = useState('');
+  const [newNomineePhone, setNewNomineePhone] = useState('');
+  const [newNomineeRelationship, setNewNomineeRelationship] = useState('');
+
   const [isEditingNominee, setIsEditingNominee] = useState(false);
   const [kycDocs, setKycDocs] = useState<any[]>([]);
   const [kycStatusMsg, setKycStatusMsg] = useState('PENDING');
@@ -153,15 +473,25 @@ export const ProfileKyc: React.FC = () => {
   const userName = profile?.fullName || 'User';
   const userPhone = profile?.phoneNumber || '';
 
+  const RELATIONSHIPS = ["Father", "Mother", "Wife", "Husband", "Son", "Daughter", "Brother", "Guardian"];
+
   const handleBack = () => {
     localStorage.setItem('DASHBOARD_ACTIVE_TAB', '2');
     navigate('/dashboard');
   };
 
   useEffect(() => {
-    const nominee = SessionManager.getNomineeName() || profile?.nomineeName || '';
-    setNomineeName(nominee);
-    setNewNomineeInput(nominee);
+    const name = profile?.nomineeName || SessionManager.getNomineeName() || '';
+    const phone = profile?.nomineePhoneNumber || '';
+    const relationship = profile?.nomineeRelationship || '';
+
+    setNomineeName(name);
+    setNomineePhone(phone);
+    setNomineeRelationship(relationship);
+
+    setNewNomineeInput(name);
+    setNewNomineePhone(phone);
+    setNewNomineeRelationship(relationship);
 
     const fetchKycStatus = async () => {
       const userId = SessionManager.getUserId();
@@ -179,12 +509,39 @@ export const ProfileKyc: React.FC = () => {
     fetchKycStatus();
   }, [profile]);
 
-  const handleUpdateNominee = () => {
-    if (newNomineeInput.trim()) {
+  const handleUpdateNominee = async () => {
+    if (!newNomineeInput.trim()) {
+      alert("Nominee Name is required.");
+      return;
+    }
+    if (!newNomineePhone.trim() || !/^\d{10}$/.test(newNomineePhone)) {
+      alert("Valid 10-digit Nominee Mobile Number is required.");
+      return;
+    }
+    if (!newNomineeRelationship) {
+      alert("Nominee Relationship is required.");
+      return;
+    }
+
+    const userId = SessionManager.getUserId();
+    if (!userId) return;
+
+    try {
+      await ApiClient.put(`api/User/profile/${userId}`, {
+        nomineeName: newNomineeInput,
+        nomineePhoneNumber: newNomineePhone,
+        nomineeRelationship: newNomineeRelationship
+      });
+      
       SessionManager.saveNomineeName(newNomineeInput);
       setNomineeName(newNomineeInput);
+      setNomineePhone(newNomineePhone);
+      setNomineeRelationship(newNomineeRelationship);
       setIsEditingNominee(false);
-      alert('Nominee name updated successfully!');
+      alert('Nominee details updated successfully!');
+      refreshData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to update nominee details.');
     }
   };
 
@@ -228,8 +585,16 @@ export const ProfileKyc: React.FC = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '10px' }}>
               <span style={{ color: 'var(--text-muted)' }}>{t('nominee_label')}</span>
-              <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{nomineeName || t('not_configured')}</span>
+              <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                {nomineeName ? `${nomineeName} (${nomineeRelationship})` : t('not_configured')}
+              </span>
             </div>
+            {nomineePhone && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #F3F4F6', paddingBottom: '10px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Nominee Phone</span>
+                <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>+91 {nomineePhone}</span>
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '4px' }}>
               <span style={{ color: 'var(--text-muted)' }}>{t('verification_status_label')}</span>
               <span style={{ fontWeight: 'bold', color: 'var(--brand-dark)' }}>{kycStatusMsg || 'PENDING'}</span>
@@ -243,27 +608,68 @@ export const ProfileKyc: React.FC = () => {
             {t('nominee_config')}
           </span>
           {isEditingNominee ? (
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input
-                type="text"
-                value={newNomineeInput}
-                onChange={(e) => setNewNomineeInput(e.target.value)}
-                style={{ flex: 1, height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', background: 'white' }}
-              />
-              <button 
-                onClick={handleUpdateNominee} 
-                style={{ background: 'var(--gradient-brand)', color: 'white', border: 'none', padding: '0 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 6px var(--brand-glow)' }}
-              >
-                Save
-              </button>
-              <button onClick={() => setIsEditingNominee(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', padding: '0 8px', fontSize: '12px', cursor: 'pointer' }}>
-                {t('cancel')}
-              </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Nominee Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter nominee name"
+                  value={newNomineeInput}
+                  onChange={(e) => setNewNomineeInput(e.target.value)}
+                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', background: 'white', marginTop: '4px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Nominee Mobile</label>
+                <input
+                  type="text"
+                  placeholder="10-digit mobile number"
+                  value={newNomineePhone}
+                  onChange={(e) => setNewNomineePhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', background: 'white', marginTop: '4px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Relationship</label>
+                <select
+                  value={newNomineeRelationship}
+                  onChange={(e) => setNewNomineeRelationship(e.target.value)}
+                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', background: 'white', marginTop: '4px' }}
+                >
+                  <option value="">Select Relationship</option>
+                  {RELATIONSHIPS.map((rel) => (
+                    <option key={rel} value={rel}>{rel}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                <button 
+                  onClick={handleUpdateNominee} 
+                  style={{ background: 'var(--gradient-brand)', color: 'white', border: 'none', padding: '0 16px', height: '36px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 6px var(--brand-glow)' }}
+                >
+                  Save Nominee
+                </button>
+                <button onClick={() => setIsEditingNominee(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', padding: '0 8px', fontSize: '12px', cursor: 'pointer' }}>
+                  {t('cancel')}
+                </button>
+              </div>
             </div>
           ) : (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{nomineeName || t('not_configured')}</span>
-              <button onClick={() => { setNewNomineeInput(nomineeName); setIsEditingNominee(true); }} style={{ background: 'transparent', border: 'none', color: 'var(--brand-mid)', fontWeight: 'bold', fontSize: '12.5px', cursor: 'pointer' }}>
+              <div>
+                <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', display: 'block' }}>
+                  {nomineeName || t('not_configured')}
+                </span>
+                {nomineePhone && (
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                    Phone: {nomineePhone} | Relationship: {nomineeRelationship}
+                  </span>
+                )}
+              </div>
+              <button onClick={() => { setNewNomineeInput(nomineeName); setNewNomineePhone(nomineePhone); setNewNomineeRelationship(nomineeRelationship); setIsEditingNominee(true); }} style={{ background: 'transparent', border: 'none', color: 'var(--brand-mid)', fontWeight: 'bold', fontSize: '12.5px', cursor: 'pointer' }}>
                 {t('edit_nominee')}
               </button>
             </div>
@@ -315,69 +721,6 @@ export const ProfileKyc: React.FC = () => {
             </div>
           )}
         </div>
-
-      </div>
-    </div>
-  );
-};
-
-// ── PROFILE LINKED BANK ACCOUNTS PAGE ──────────────────────────────────────
-export const ProfileBankAccounts: React.FC = () => {
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { bankAccounts } = useApp();
-
-  const handleBack = () => {
-    localStorage.setItem('DASHBOARD_ACTIVE_TAB', '2');
-    navigate('/dashboard');
-  };
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F8F9FA' }}>
-      <ProfileHeader title={t('linked_bank_accounts')} onBack={handleBack} />
-
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        
-        <div className="glass-card" style={{ padding: '20px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', borderLeft: '4.5px solid var(--brand-accent)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-            <Landmark size={22} color="var(--brand-accent)" />
-            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Your Linked Accounts</h4>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {bankAccounts.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-muted)' }}>
-                <Landmark size={44} color="var(--text-light)" style={{ marginBottom: '12px' }} />
-                <span style={{ fontSize: '13px', display: 'block' }}>No bank accounts linked yet.</span>
-              </div>
-            ) : (
-              bankAccounts.map((b, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '14px', borderRadius: '12px', background: '#F9FAFB', border: '1px solid rgba(0,0,0,0.04)' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Landmark size={20} color="var(--success-green)" />
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '13.5px', fontWeight: 'bold', display: 'block', color: 'var(--brand-dark)' }}>{b.bankName}</span>
-                    <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>A/C: {b.accountNumberMasked} · IFSC: {b.ifscCode}</span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <button
-          onClick={() => navigate('/add-bank-account')}
-          style={{
-            width: '100%', height: '52px', borderRadius: '14px', background: 'var(--gradient-brand)',
-            color: 'white', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            boxShadow: '0 8px 16px var(--brand-glow)', marginTop: '8px'
-          }}
-        >
-          <PlusCircle size={18} />
-          {t('add_bank')}
-        </button>
 
       </div>
     </div>

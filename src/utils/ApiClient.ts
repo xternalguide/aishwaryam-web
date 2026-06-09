@@ -98,5 +98,10 @@ export const ApiClient = {
   // PUT wraps Axios request
   put: async <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
     return await instance.put<T>(url, data, config);
+  },
+
+  // DELETE wraps Axios request
+  delete: async <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
+    return await instance.delete<T>(url, config);
   }
 };

@@ -1770,29 +1770,6 @@ export const Dashboard: React.FC = () => {
                     </div>
 
                     <div 
-                      onClick={() => navigate('/profile/bank-accounts')}
-                      style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        background: 'white', borderRadius: '16px', padding: '16px 20px',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.03)', border: '1px solid rgba(74, 14, 78, 0.04)',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                        <div style={{
-                          width: '40px', height: '40px', borderRadius: '12px', background: '#FFF3E0',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F57C00'
-                        }}>
-                          <Landmark size={20} />
-                        </div>
-                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                          {t('linked_bank_accounts')}
-                        </span>
-                      </div>
-                      <ChevronRight size={18} color="var(--text-light)" />
-                    </div>
-
-                    <div 
                       onClick={() => navigate('/mpin/change')}
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
