@@ -92,6 +92,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (profileRes.status === 'fulfilled' && profileRes.value.data) {
         setProfile(profileRes.value.data);
         localStorage.setItem('CACHE_PROFILE', JSON.stringify(profileRes.value.data));
+        const serverLang = profileRes.value.data.preferredLanguage;
+        if (serverLang && (serverLang === 'en' || serverLang === 'ta')) {
+          const localLang = SessionManager.getLanguage();
+          if (serverLang !== localLang) {
+            SessionManager.saveLanguage(serverLang as any);
+            window.dispatchEvent(new Event('languageChange'));
+          }
+        }
       }
       if (priceRes.status === 'fulfilled' && priceRes.value.data) {
         setLivePrice(priceRes.value.data);

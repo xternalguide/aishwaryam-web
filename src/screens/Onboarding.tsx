@@ -4,10 +4,12 @@ import { SessionManager, OnboardingStage } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
 import { useApp } from '../context/AppContext';
 import { ArrowLeft, Calendar, ShieldCheck, CheckCircle, Upload } from 'lucide-react';
+import { useTranslation } from '../utils/translation';
 
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { refreshData } = useApp();
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 2;
 
@@ -325,14 +327,14 @@ export const Onboarding: React.FC = () => {
         await ApiClient.post('api/Kyc/submit', {
           userId,
           documentType: 'AADHAAR_FRONT',
-          documentNumber: aadhaarNumber,
+          documentNumber: aadhaarNumber.replace(/\s/g, ''),
           documentUrl: aadhaarFrontImage || 'https://placeholder.url/aadhaar-front.jpg'
         });
         // Submit Aadhaar Back
         await ApiClient.post('api/Kyc/submit', {
           userId,
           documentType: 'AADHAAR_BACK',
-          documentNumber: aadhaarNumber,
+          documentNumber: aadhaarNumber.replace(/\s/g, ''),
           documentUrl: aadhaarBackImage || 'https://placeholder.url/aadhaar-back.jpg'
         });
         // Update user KYC level to PENDING
@@ -374,7 +376,7 @@ export const Onboarding: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--surface-light)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: 'var(--surface-light)' }}>
       {/* Header */}
       <div className="app-header-bar" style={{
         background: 'var(--brand-dark)',
@@ -474,6 +476,11 @@ export const Onboarding: React.FC = () => {
                       min="1926-06-06"
                       max={maxDobStr}
                       onKeyDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        try {
+                          (e.target as any).showPicker();
+                        } catch (err) {}
+                      }}
                       onChange={(e) => {
                         const formatted = convertFromInputDateFormat(e.target.value);
                         setDob(formatted);
@@ -557,6 +564,11 @@ export const Onboarding: React.FC = () => {
                         min={dob ? convertToInputDateFormat(dob) : "1940-01-01"}
                         max={todayStr}
                         onKeyDown={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                          try {
+                            (e.target as any).showPicker();
+                          } catch (err) {}
+                        }}
                         onChange={(e) => {
                           const formatted = convertFromInputDateFormat(e.target.value);
                           setWeddingDate(formatted);
@@ -859,15 +871,22 @@ export const Onboarding: React.FC = () => {
                     placeholder="Enter 12-digit Aadhaar Number"
                     value={aadhaarNumber}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 12);
-                      setAadhaarNumber(val);
-                      if (val.length === 12) {
+                      const raw = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      let formatted = '';
+                      for (let i = 0; i < raw.length; i++) {
+                        if (i === 4 || i === 8) {
+                          formatted += ' ';
+                        }
+                        formatted += raw[i];
+                      }
+                      setAadhaarNumber(formatted);
+                      if (raw.length === 12) {
                         setAadhaarError(null);
                       } else {
                         setAadhaarError('Aadhaar number must be exactly 12 digits');
                       }
                     }}
-                    maxLength={12}
+                    maxLength={14}
                     style={{
                       width: '100%',
                       height: '44px',
@@ -999,7 +1018,7 @@ export const Onboarding: React.FC = () => {
                 (currentStep === 2 && (
                   !panImage || !aadhaarFrontImage || !aadhaarBackImage ||
                   panNumber.length !== 10 || panError !== null ||
-                  aadhaarNumber.length !== 12 || aadhaarError !== null
+                  aadhaarNumber.replace(/\s/g, '').length !== 12 || aadhaarError !== null
                 ))
               }
               style={{
@@ -1023,7 +1042,7 @@ export const Onboarding: React.FC = () => {
                   (currentStep === 2 && (
                     !panImage || !aadhaarFrontImage || !aadhaarBackImage ||
                     panNumber.length !== 10 || panError !== null ||
-                    aadhaarNumber.length !== 12 || aadhaarError !== null
+                    aadhaarNumber.replace(/\s/g, '').length !== 12 || aadhaarError !== null
                   ))
                 ) ? 0.5 : 1
               }}
@@ -1086,7 +1105,7 @@ export const Onboarding: React.FC = () => {
             animation: 'scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
           }}>
             <div style={{ padding: '20px', borderBottom: '1px solid #ECECEC', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--brand-dark)' }}>Terms of Service</h3>
+              <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--brand-dark)' }}>{t('terms_of_service')}</h3>
               <button
                 onClick={() => setShowTermsModal(false)}
                 style={{ background: 'transparent', border: 'none', fontSize: '20px', color: 'var(--text-light)', cursor: 'pointer', fontWeight: 'bold' }}
@@ -1099,13 +1118,13 @@ export const Onboarding: React.FC = () => {
                 <div style={{ whiteSpace: 'pre-wrap' }}>{dbTerms}</div>
               ) : (
                 <>
-                  <p>Welcome to Aishwaryam. These Terms of Service govern your use of the Aishwaryam Digital Metal Platform and services.</p>
-                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>1. Savings Scheme</h4>
-                  <p>Aishwaryam provides metal accumulation chits. Installment savings plan starting at ₹100 allows users to save in pure 24K gold and 99.9% silver. Instalments are calculated at live market gold rates at the time of transaction.</p>
-                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>2. Physical Backing</h4>
-                  <p>Every purchase is backed by physical gold/silver stored securely in independent insured third-party vault lockers.</p>
-                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>3. Maturity and Redemptions</h4>
-                  <p>Upon scheme maturity, the accumulated metal weight can be exchanged for physical jewelry at designated partner showrooms, or shipped as physical bullion coins, or sold back for cash payouts directly into the user's linked bank account.</p>
+                  <p>{t('terms_welcome_desc')}</p>
+                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>{t('savings_scheme_terms')}</h4>
+                  <p>{t('terms_savings_scheme_desc')}</p>
+                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>{t('physical_backing_terms')}</h4>
+                  <p>{t('terms_physical_backing_desc')}</p>
+                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>{t('maturity_redemptions_terms')}</h4>
+                  <p>{t('terms_maturity_redemptions_desc')}</p>
                 </>
               )}
             </div>
@@ -1123,7 +1142,7 @@ export const Onboarding: React.FC = () => {
                   cursor: 'pointer'
                 }}
               >
-                Close
+                {t('btn_close')}
               </button>
             </div>
           </div>
@@ -1157,7 +1176,7 @@ export const Onboarding: React.FC = () => {
             animation: 'scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
           }}>
             <div style={{ padding: '20px', borderBottom: '1px solid #ECECEC', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--brand-dark)' }}>Privacy Policy</h3>
+              <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--brand-dark)' }}>{t('privacy_policy_title')}</h3>
               <button
                 onClick={() => setShowPrivacyModal(false)}
                 style={{ background: 'transparent', border: 'none', fontSize: '20px', color: 'var(--text-light)', cursor: 'pointer', fontWeight: 'bold' }}
@@ -1170,13 +1189,13 @@ export const Onboarding: React.FC = () => {
                 <div style={{ whiteSpace: 'pre-wrap' }}>{dbPrivacy}</div>
               ) : (
                 <>
-                  <p>We values your privacy and is committed to protecting your personal information.</p>
-                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>1. Data Collection</h4>
-                  <p>We collect personal information such as Name, Phone Number, Email, Date of Birth, and Nominee details during registration. For KYC verification, documents like Aadhaar Card and PAN Card are collected.</p>
-                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>2. Data Encryption and Security</h4>
-                  <p>All user profiles, bank account details, and KYC scanned images are encrypted and securely stored. We use industry-standard encryption protocols to protect your transactions and identity data.</p>
-                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>3. Data Sharing</h4>
-                  <p>We do not sell or lease your personal information to third parties. Data is shared with bank transfer partners, custodian vaults, and government regulatory agencies strictly for transactions compliance.</p>
+                  <p>{t('privacy_welcome_desc')}</p>
+                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>{t('data_collection_policy')}</h4>
+                  <p>{t('privacy_data_collection_desc')}</p>
+                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>{t('data_encryption_policy')}</h4>
+                  <p>{t('privacy_data_encryption_desc')}</p>
+                  <h4 style={{ color: 'var(--brand-dark)', margin: '14px 0 6px 0', fontSize: '14px' }}>{t('data_sharing_policy')}</h4>
+                  <p>{t('privacy_data_sharing_desc')}</p>
                 </>
               )}
             </div>
@@ -1194,7 +1213,7 @@ export const Onboarding: React.FC = () => {
                   cursor: 'pointer'
                 }}
               >
-                Close
+                {t('btn_close')}
               </button>
             </div>
           </div>

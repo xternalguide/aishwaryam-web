@@ -580,6 +580,17 @@ export const Mpin: React.FC = () => {
                     value={otp[i] || ''}
                     onChange={(e) => handlePinBoxChange(i, e.target.value, setOtp, otp, otpRef, 6, handleVerifyOtp)}
                     onKeyDown={(e) => handleKeyDown(i, e, otp, setOtp, otpRef)}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pastedData = e.clipboardData.getData('text').trim();
+                      if (pastedData.length === 6 && /^\d+$/.test(pastedData)) {
+                        setOtp(pastedData);
+                        if (otpRef.current[5]) {
+                          otpRef.current[5].focus();
+                        }
+                        handleVerifyOtp(pastedData);
+                      }
+                    }}
                     ref={(el) => { if (el) otpRef.current[i] = el; }}
                     style={{
                       width: '36px',

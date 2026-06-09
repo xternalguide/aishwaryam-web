@@ -238,6 +238,17 @@ export const Login: React.FC = () => {
                     value={otp[index] || ''}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pastedData = e.clipboardData.getData('text').trim();
+                      if (pastedData.length === 6 && /^\d+$/.test(pastedData)) {
+                        setOtp(pastedData);
+                        if (otpInputsRef.current[5]) {
+                          otpInputsRef.current[5].focus();
+                        }
+                        handleVerifyOtp(pastedData);
+                      }
+                    }}
                     ref={(el) => { if (el) otpInputsRef.current[index] = el; }}
                     style={{
                       width: '46px',

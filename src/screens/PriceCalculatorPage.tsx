@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calculator, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Calculator } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from '../utils/translation';
 
@@ -73,7 +73,6 @@ export const PriceCalculatorPage: React.FC = () => {
             </div>
             <div>
               <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Live Rate Estimation</h4>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Rates sync continuously with live market feeds.</span>
             </div>
           </div>
 
@@ -108,7 +107,7 @@ export const PriceCalculatorPage: React.FC = () => {
           {/* Input block */}
           <div>
             <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
-              {calcType === 'RUPEES' ? 'Enter Purchase Amount' : 'Enter Gold Weight (grams)'}
+              {calcType === 'RUPEES' ? 'Amount' : 'Weight'}
             </label>
             <div style={{ position: 'relative' }}>
               <span style={{ position: 'absolute', left: '16px', top: '15px', fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
@@ -116,7 +115,7 @@ export const PriceCalculatorPage: React.FC = () => {
               </span>
               <input
                 type="text"
-                placeholder={calcType === 'RUPEES' ? 'e.g. 5000' : 'e.g. 1.0000'}
+                placeholder="0"
                 value={calcAmount}
                 onChange={(e) => setCalcAmount(e.target.value.replace(/[^0-9.]/g, ''))}
                 style={{
@@ -202,23 +201,7 @@ export const PriceCalculatorPage: React.FC = () => {
               </div>
             )}
           </div>
-        ) : (
-          <div style={{
-            background: 'white',
-            borderRadius: '20px',
-            border: '1.5px dashed rgba(74, 14, 78, 0.1)',
-            padding: '40px 20px',
-            textAlign: 'center',
-            color: 'var(--text-muted)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '10px'
-          }}>
-            <HelpCircle size={32} style={{ opacity: 0.5 }} />
-            <span style={{ fontSize: '13px' }}>Enter an amount or gold weight to calculate the live breakdown.</span>
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

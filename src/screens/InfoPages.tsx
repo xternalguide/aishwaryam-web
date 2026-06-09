@@ -58,16 +58,17 @@ export const HowItWorks: React.FC = () => {
 // ── FAQ ────────────────────────────────────────────────────────────────────
 export const Faq: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const faqs = [
-    { q: 'Is my gold and silver real?', a: 'Yes. Every transaction is backed by physical 24K gold and pure silver stored in highly secure third-party vaults.' },
-    { q: 'What is the 3% GST calculation?', a: 'As per regulations, a 3% Goods and Services Tax (GST) is charged on all digital bullion purchases.' },
-    { q: 'How do I earn the loyalty bonus?', a: 'Pay your installments early! Payments made on days 1 to 75 yield 7.5% extra weight. Rates reduce for late chits.' },
-    { q: 'How do I claim physical gold?', a: 'Upon maturity, choose "Showroom Jewelry Collection" to pick up ornaments at showroom partners, or order home delivery of gold coins.' }
+    { q: t('faq_1_q'), a: t('faq_1_a') },
+    { q: t('faq_2_q'), a: t('faq_2_a') },
+    { q: t('faq_3_q'), a: t('faq_3_a') },
+    { q: t('faq_4_q'), a: t('faq_4_a') }
   ];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F9FAFB' }}>
-      <Header title="FAQs" onBack={() => navigate(-1)} />
+      <Header title={t('faqs')} onBack={() => navigate(-1)} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {faqs.map((faq, idx) => (
           <div key={idx} className="glass-card" style={{ borderRadius: '12px', background: 'white', overflow: 'hidden' }}>
@@ -477,9 +478,16 @@ export const AiAssistant: React.FC = () => {
 // ── REFERRAL SCREEN ────────────────────────────────────────────────────────
 export const Referral: React.FC = () => {
   const navigate = useNavigate();
-  const [refCode, setRefCode] = useState('AISH987');
+  const { profile } = useApp();
+  const [refCode, setRefCode] = useState(profile?.referralCode || 'AISH987');
   const [totalReferrals, setTotalReferrals] = useState(4);
   const [totalBonusMg, setTotalBonusMg] = useState(400);
+
+  useEffect(() => {
+    if (profile?.referralCode) {
+      setRefCode(profile.referralCode);
+    }
+  }, [profile]);
 
   useEffect(() => {
     const loadRef = async () => {
@@ -489,11 +497,6 @@ export const Referral: React.FC = () => {
         if (res.data) {
           setTotalReferrals(res.data.totalReferrals || 0);
           setTotalBonusMg(res.data.totalBonusBonusMg || res.data.totalBonusMg || 0);
-        }
-
-        const profRes = await ApiClient.get(`api/User/profile/${userId}`);
-        if (profRes.data && profRes.data.referralCode) {
-          setRefCode(profRes.data.referralCode);
         }
       } catch (err) {
         console.error(err);
@@ -550,14 +553,15 @@ export const Referral: React.FC = () => {
 // ── LEGAL HUB ─────────────────────────────────────────────────────────────
 export const LegalHub: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F9FAFB' }}>
-      <Header title="Legal & Compliance" onBack={() => navigate(-1)} />
+      <Header title={t('legal_compliance')} onBack={() => navigate(-1)} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {[
-          { title: 'Terms of Service', desc: 'Rules and conditions governing digital bullion purchases, rate lock timings, and monthly chit subscription structures.' },
-          { title: 'Privacy Policy', desc: 'Details on data collection, KYC encryption, bank accounts handling, and secure storage logs.' },
-          { title: 'Refunds & Cancellations', desc: 'Policies details on payment failures, refunds timelines, and active subscriptions cancellations rules.' }
+          { title: t('terms_of_service'), desc: t('legal_terms_desc') },
+          { title: t('privacy_policy_title'), desc: t('legal_privacy_desc') },
+          { title: t('refunds_cancellations'), desc: t('legal_refunds_desc') }
         ].map((item, idx) => (
           <div key={idx} className="glass-card" style={{ padding: '16px', borderRadius: '12px', background: 'white', cursor: 'pointer' }}>
             <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{item.title}</h4>
@@ -702,10 +706,23 @@ export const Notifications: React.FC = () => {
     }
   }, [notifications]);
 
+  const handleMarkAsRead = async (id: string) => {
+    // Optimistic UI update
+    setLocalNotifs(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    try {
+      if (id && id !== 'n1') {
+        await ApiClient.put(`api/Notification/${id}/read`);
+      }
+      refreshData(true);
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+      refreshData();
+    }
+  };
+
   const handleClearNotification = async (id: string) => {
     // Optimistic UI update
     setLocalNotifs(prev => prev.filter(n => n.id !== id));
-    
     try {
       if (id && id !== 'n1') {
         await ApiClient.delete(`api/Notification/${id}`);
@@ -718,7 +735,7 @@ export const Notifications: React.FC = () => {
   };
 
   const displayNotifs = localNotifs.length > 0 ? localNotifs : (notifications && notifications.length > 0 ? notifications : [
-    { id: 'n1', title: 'Payment Confirmed', message: 'Your 5th installment of ₹3,000 has been verified. 3.85g of Gold added to your locker.', createdAt: new Date().toISOString() }
+    { id: 'n1', title: 'Payment Confirmed', message: 'Your 5th installment of ₹3,000 has been verified. 3.85g of Gold added to your locker.', createdAt: new Date().toISOString(), isRead: false }
   ]);
 
   return (
@@ -729,7 +746,7 @@ export const Notifications: React.FC = () => {
           <div 
             key={n.id} 
             className="glass-card" 
-            onClick={() => handleClearNotification(n.id)}
+            onClick={() => handleMarkAsRead(n.id)}
             style={{ padding: '16px', borderRadius: '12px', background: 'white', display: 'flex', gap: '12px', alignItems: 'flex-start', cursor: 'pointer', position: 'relative' }}
           >
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--brand-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -737,7 +754,18 @@ export const Notifications: React.FC = () => {
             </div>
             <div style={{ flex: 1, marginRight: '36px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{n.title}</span>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {n.title}
+                  {!n.isRead && (
+                    <span style={{
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      background: 'var(--error-red)',
+                      display: 'inline-block'
+                    }} />
+                  )}
+                </span>
                 <span style={{ fontSize: '10px', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '3px' }}>
                   <Clock size={10} /> {new Date(n.createdAt).toLocaleDateString()}
                 </span>

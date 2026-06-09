@@ -17,6 +17,7 @@ interface AvailableScheme {
   frequency: string;
   bonusConfigJson: string | null;
   customSectionsJson: string | null;
+  durationUnit?: string;
 }
 
 interface MilestoneItem {
@@ -144,38 +145,51 @@ export const SchemeDetail: React.FC = () => {
     const numericValue = value.replace(/\D/g, '').slice(0, 6);
     setSetupPincode(numericValue);
 
-    if (numericValue.length > 0) {
-      if (!setupCity) {
-        setSetupPinError("Please select a City first.");
-        return;
+    if (numericValue.length >= 3) {
+      const prefix = numericValue.substring(0, 3);
+      let foundCity = '';
+      let foundState = '';
+      for (const [city, prefixes] of Object.entries(PIN_PREFIXES)) {
+        if (prefixes.includes(prefix)) {
+          foundCity = city;
+          break;
+        }
       }
-      const prefixes = PIN_PREFIXES[setupCity] || [];
-      const isValidPrefix = prefixes.some(prefix => numericValue.startsWith(prefix));
-      if (!isValidPrefix) {
-        setSetupPinError(`PIN Code must start with ${prefixes.join(', ')} for ${setupCity}.`);
-      } else if (numericValue.length < 6) {
+      if (foundCity) {
+        for (const [state, cities] of Object.entries(CITIES_BY_STATE)) {
+          if (cities.includes(foundCity)) {
+            foundState = state;
+            break;
+          }
+        }
+      }
+      if (foundCity && foundState) {
+        setSetupCity(foundCity);
+        setSetupState(foundState);
+        setSetupPinError(null);
+      }
+    }
+
+    if (numericValue.length > 0) {
+      if (numericValue.length < 6) {
         setSetupPinError("PIN Code must be exactly 6 digits.");
       } else {
-        setSetupPinError(null);
+        if (setupCity) {
+          const prefixes = PIN_PREFIXES[setupCity] || [];
+          const isValidPrefix = prefixes.some(prefix => numericValue.startsWith(prefix));
+          if (!isValidPrefix) {
+            setSetupPinError(`PIN Code must start with ${prefixes.join(', ')} for ${setupCity}.`);
+          } else {
+            setSetupPinError(null);
+          }
+        } else {
+          setSetupPinError(null);
+        }
       }
     } else {
       setSetupPinError(null);
     }
   };
-
-  useEffect(() => {
-    if (setupPincode && setupCity) {
-      const prefixes = PIN_PREFIXES[setupCity] || [];
-      const isValidPrefix = prefixes.some(prefix => setupPincode.startsWith(prefix));
-      if (!isValidPrefix) {
-        setSetupPinError(`PIN Code must start with ${prefixes.join(', ')} for ${setupCity}.`);
-      } else if (setupPincode.length < 6) {
-        setSetupPinError("PIN Code must be exactly 6 digits.");
-      } else {
-        setSetupPinError(null);
-      }
-    }
-  }, [setupCity]);
 
   const parseMilestones = (
     bonusConfigJson: string | null,
@@ -519,8 +533,16 @@ export const SchemeDetail: React.FC = () => {
   const handleJoinScheme = async () => {
     if (!scheme) return;
     if (kycLevel === 'BASIC') {
-      alert(t('kyc_required_desc'));
+      alert(t('kyc_basic_block'));
       navigate('/onboarding');
+      return;
+    }
+    if (kycLevel === 'PENDING') {
+      alert(t('kyc_pending_block'));
+      return;
+    }
+    if (kycLevel === 'REJECTED') {
+      alert(t('kyc_rejected_block'));
       return;
     }
 
@@ -617,6 +639,19 @@ export const SchemeDetail: React.FC = () => {
 
   const handlePayJoinPlan = async () => {
     if (!scheme) return;
+    if (kycLevel === 'BASIC') {
+      alert(t('kyc_basic_block'));
+      navigate('/onboarding');
+      return;
+    }
+    if (kycLevel === 'PENDING') {
+      alert(t('kyc_pending_block'));
+      return;
+    }
+    if (kycLevel === 'REJECTED') {
+      alert(t('kyc_rejected_block'));
+      return;
+    }
     const parsedVal = parseFloat(joinAmount) || 0;
     if (parsedVal <= 0) return;
 
@@ -999,7 +1034,7 @@ export const SchemeDetail: React.FC = () => {
           <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
             <div>
               <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>{t('tenure').toUpperCase()}</span>
-              <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{scheme.totalInstallments} {scheme.frequency === 'Daily' ? 'Days' : t('months')}</div>
+              <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{scheme.totalInstallments} {scheme.durationUnit ? (scheme.durationUnit.toLowerCase().startsWith('day') ? t('days') : t('months')) : (scheme.frequency === 'Daily' ? t('days') : t('months'))}</div>
             </div>
             <div style={{ width: '1px', height: '20px', background: 'rgba(0,0,0,0.1)' }} />
             <div>
@@ -1473,6 +1508,22 @@ export const SchemeDetail: React.FC = () => {
               <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Primary Address</span>
               
               <div>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>PIN Code</label>
+                <input
+                  type="text"
+                  placeholder="6-digit PIN Code"
+                  value={setupPincode}
+                  onChange={(e) => handleSetupPincodeChange(e.target.value)}
+                  style={{ width: '100%', height: '38px', borderRadius: '8px', border: setupPinError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                />
+                {setupPinError && (
+                  <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
+                    {setupPinError}
+                  </span>
+                )}
+              </div>
+
+              <div>
                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>State</label>
                 <select
                   value={setupState}
@@ -1519,22 +1570,6 @@ export const SchemeDetail: React.FC = () => {
                   onChange={(e) => setSetupStreet(e.target.value)}
                   style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
                 />
-              </div>
-
-              <div>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>PIN Code</label>
-                <input
-                  type="text"
-                  placeholder="6-digit PIN Code"
-                  value={setupPincode}
-                  onChange={(e) => handleSetupPincodeChange(e.target.value)}
-                  style={{ width: '100%', height: '38px', borderRadius: '8px', border: setupPinError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
-                />
-                {setupPinError && (
-                  <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
-                    {setupPinError}
-                  </span>
-                )}
               </div>
             </div>
 

@@ -201,6 +201,7 @@ export const Dashboard: React.FC = () => {
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editDob, setEditDob] = useState('');
+  const [editWeddingDate, setEditWeddingDate] = useState('');
   const [editGender, setEditGender] = useState('');
   const [editNomineeName, setEditNomineeName] = useState('');
   const [editNomineePhone, setEditNomineePhone] = useState('');
@@ -209,11 +210,36 @@ export const Dashboard: React.FC = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
+  // Helper to calculate age from yyyy-mm-dd
+  const calculateAge = (dobString: string) => {
+    if (!dobString) return 0;
+    const today = new Date();
+    const birthDate = new Date(dobString);
+    if (isNaN(birthDate.getTime())) return 0;
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const calculatedAge = editDob ? calculateAge(editDob) : 0;
+  const isMinor = editDob ? calculatedAge < 18 : false;
+
   const openEditProfile = () => {
     setEditName(profile?.fullName || '');
     setEditEmail(profile?.email || '');
     setEditDob(profile?.dateOfBirth || '');
-    setEditGender(profile?.gender || '');
+    // normalize gender casing to Title Case
+    const toTitleCase = (str: string) => {
+      if (!str) return '';
+      const trimmed = str.trim();
+      if (trimmed.length === 0) return '';
+      return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+    };
+    setEditGender(profile?.gender ? toTitleCase(profile.gender) : '');
+    setEditWeddingDate(profile?.weddingAnniversaryDate || '');
     setEditNomineeName(profile?.nomineeName || '');
     setEditNomineePhone(profile?.nomineePhoneNumber || '');
     setEditNomineeRelation(profile?.nomineeRelationship || '');
@@ -277,6 +303,7 @@ export const Dashboard: React.FC = () => {
         fullName: editName.trim(),
         email: editEmail.trim() || null,
         dateOfBirth: editDob ? editDob : null,
+        weddingAnniversaryDate: editWeddingDate ? editWeddingDate : null,
         gender: editGender || null,
         nomineeName: editNomineeName.trim() || null,
         nomineePhoneNumber: editNomineePhone.trim() || null,
@@ -443,11 +470,34 @@ export const Dashboard: React.FC = () => {
 
   const mgToGrams = (mg: number) => `${(mg / 1000).toFixed(4)} g`;
 
+  const getStatusDetails = (status: string) => {
+    const norm = (status || '').toUpperCase();
+    if (norm === 'SUCCESS' || norm === 'COMPLETED' || norm === 'PAID' || norm === 'APPROVED') {
+      return {
+        text: t('tx_success'),
+        color: 'var(--success-green)',
+        bgColor: 'var(--success-light)'
+      };
+    } else if (norm === 'PENDING') {
+      return {
+        text: t('tx_pending'),
+        color: '#B58100',
+        bgColor: '#FFF8E1'
+      };
+    } else {
+      return {
+        text: t('tx_failed'),
+        color: 'var(--error-red)',
+        bgColor: '#FFEBEE'
+      };
+    }
+  };
+
   const getTxTypeDetails = (type: string) => {
     switch (type) {
       case 'INSTALLMENT':
         return {
-          label: 'Installment Paid',
+          label: t('tx_installment_paid'),
           icon: <Landmark size={16} color="var(--brand-dark)" />,
           bgColor: 'rgba(74, 14, 78, 0.08)',
           isCredit: true
@@ -455,43 +505,49 @@ export const Dashboard: React.FC = () => {
       case 'BONUS':
       case 'EVENT_BONUS':
         return {
-          label: type === 'BONUS' ? 'Scheme Bonus Gold' : 'Loyalty Bonus Gold',
+          label: type === 'BONUS' ? t('tx_scheme_bonus_gold') : t('tx_loyalty_bonus_gold'),
           icon: <Award size={16} color="var(--brand-accent)" />,
           bgColor: 'rgba(194, 24, 91, 0.08)',
           isCredit: true
         };
       case 'REDEMPTION':
+        return {
+          label: t('tx_gold_redeemed'),
+          icon: <ShieldCheck size={16} color="var(--success-green)" />,
+          bgColor: 'rgba(16, 185, 129, 0.08)',
+          isCredit: false
+        };
       case 'SELL':
         return {
-          label: 'Maturity Redemption',
+          label: t('tx_gold_sold'),
           icon: <ShieldCheck size={16} color="var(--success-green)" />,
           bgColor: 'rgba(16, 185, 129, 0.08)',
           isCredit: false
         };
       case 'SCHEME_JOIN':
         return {
-          label: 'Joined Scheme',
+          label: t('tx_joined_scheme'),
           icon: <PlusCircle size={16} color="var(--brand-accent)" />,
           bgColor: 'rgba(255, 215, 0, 0.08)',
           isCredit: true
         };
       case 'REDEMPTION_REQUEST':
         return {
-          label: 'Redemption Requested',
+          label: t('tx_redemption_requested'),
           icon: <Clock size={16} color="var(--warning-amber)" />,
           bgColor: 'rgba(245, 127, 23, 0.08)',
           isCredit: false
         };
       case 'BUY':
         return {
-          label: 'Gold Saved',
+          label: t('tx_gold_saved'),
           icon: <TrendingUp size={16} color="var(--brand-accent)" />,
           bgColor: 'rgba(255, 215, 0, 0.08)',
           isCredit: true
         };
       default:
         return {
-          label: 'Transaction',
+          label: t('tx_transaction'),
           icon: <FileText size={16} color="var(--text-secondary)" />,
           bgColor: 'rgba(0, 0, 0, 0.04)',
           isCredit: true
@@ -882,7 +938,7 @@ export const Dashboard: React.FC = () => {
                         Duration
                       </span>
                       <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>
-                        {scheme.totalInstallments} {scheme.frequency === 'Daily' ? 'Days' : 'Months'}
+                        {scheme.totalInstallments} {scheme.durationUnit ? (scheme.durationUnit.toLowerCase().startsWith('day') ? t('days') : t('months')) : (scheme.frequency === 'Daily' ? t('days') : t('months'))}
                       </span>
                     </div>
                     <div>
@@ -920,7 +976,7 @@ export const Dashboard: React.FC = () => {
                   <div>
                     <span style={{ fontSize: '8.5px', color: 'var(--text-light)', display: 'block' }}>Maturity</span>
                     <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--brand-dark)' }}>
-                      {scheme.totalInstallments + (scheme.frequency === 'Daily' ? 30 : 1)} {scheme.frequency === 'Daily' ? 'Days lock-in' : 'Months lock-in'}
+                      {scheme.totalInstallments + (scheme.durationUnit ? (scheme.durationUnit.toLowerCase().startsWith('day') ? 30 : 1) : (scheme.frequency === 'Daily' ? 30 : 1))} {scheme.durationUnit ? (scheme.durationUnit.toLowerCase().startsWith('day') ? t('days_lock_in') : t('months_lock_in')) : (scheme.frequency === 'Daily' ? t('days_lock_in') : t('months_lock_in'))}
                     </span>
                   </div>
                   <div style={{
@@ -1318,10 +1374,10 @@ export const Dashboard: React.FC = () => {
                       </td>
                       <td style={{ padding: '18px 24px' }}>
                         <span style={{
-                          fontSize: '11px', fontWeight: 'bold', color: 'var(--success-green)',
-                          background: 'var(--success-light)', padding: '4px 10px', borderRadius: '12px'
+                          fontSize: '11px', fontWeight: 'bold', color: getStatusDetails(tx.status).color,
+                          background: getStatusDetails(tx.status).bgColor, padding: '4px 10px', borderRadius: '12px'
                         }}>
-                          {tx.status}
+                          {getStatusDetails(tx.status).text}
                         </span>
                       </td>
                       <td style={{ padding: '18px 24px', fontSize: '13.5px', fontWeight: 'bold', color: isBuy ? 'var(--success-green)' : 'var(--error-red)', textAlign: 'right' }}>
@@ -1367,8 +1423,14 @@ export const Dashboard: React.FC = () => {
                       {details.icon}
                     </div>
                     <div>
-                      <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {tx.schemeName || details.label}
+                        <span style={{
+                          fontSize: '9px', fontWeight: 'bold', color: getStatusDetails(tx.status).color,
+                          background: getStatusDetails(tx.status).bgColor, padding: '2px 6px', borderRadius: '8px'
+                        }}>
+                          {getStatusDetails(tx.status).text}
+                        </span>
                       </span>
                       <span style={{ fontSize: '10px', color: 'var(--text-light)', display: 'block', marginTop: '2px' }}>
                         {tx.schemeName ? `${details.label} • ` : ''}{new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1570,10 +1632,10 @@ export const Dashboard: React.FC = () => {
           <div className="app-header-bar" style={{
             background: 'white',
             borderBottom: '1px solid #ECECEC',
-            paddingTop: isDesktop ? '16px' : 'calc(16px + env(safe-area-inset-top, 0px))',
+            paddingTop: isDesktop ? '16px' : 'calc(10px + env(safe-area-inset-top, 0px))',
             paddingLeft: '20px',
             paddingRight: '20px',
-            paddingBottom: '16px',
+            paddingBottom: isDesktop ? '16px' : '12px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -2257,7 +2319,7 @@ export const Dashboard: React.FC = () => {
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Status</span>
-                  <span style={{ fontWeight: 'bold', color: 'var(--success-green)' }}>{selectedTxDetail.status}</span>
+                  <span style={{ fontWeight: 'bold', color: getStatusDetails(selectedTxDetail.status).color }}>{getStatusDetails(selectedTxDetail.status).text}</span>
                 </div>
                 <div style={{ height: '1px', background: '#ECECEC', margin: '4px 0' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold' }}>
@@ -2313,11 +2375,13 @@ export const Dashboard: React.FC = () => {
                   )}
                 </div>
                 <label style={{
-                  fontSize: '12px', fontWeight: 'bold', color: 'var(--brand-mid)', cursor: 'pointer',
-                  padding: '6px 16px', borderRadius: '16px', border: '1.5px solid var(--brand-mid)', background: 'transparent'
+                  fontSize: '12px', fontWeight: 'bold', color: 'var(--brand-mid)', cursor: isMinor ? 'not-allowed' : 'pointer',
+                  padding: '6px 16px', borderRadius: '16px', border: '1.5px solid var(--brand-mid)', background: 'transparent',
+                  opacity: isMinor ? 0.5 : 1,
+                  pointerEvents: isMinor ? 'none' : 'auto'
                 }}>
                   Change Photo
-                  <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+                  <input type="file" accept="image/*" disabled={isMinor} onChange={handleImageChange} style={{ display: 'none' }} />
                 </label>
                 {uploadError && (
                   <span style={{ fontSize: '11px', color: 'var(--error-red)', textAlign: 'center' }}>{uploadError}</span>
@@ -2331,8 +2395,9 @@ export const Dashboard: React.FC = () => {
                 <input
                   type="text"
                   value={editName}
+                  disabled={isMinor}
                   onChange={(e) => setEditName(e.target.value)}
-                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: isMinor ? '#F1F3F4' : 'white', color: isMinor ? 'var(--text-secondary)' : 'var(--text-primary)' }}
                 />
               </div>
 
@@ -2353,19 +2418,27 @@ export const Dashboard: React.FC = () => {
                 <input
                   type="email"
                   value={editEmail}
+                  disabled={isMinor}
                   onChange={(e) => setEditEmail(e.target.value)}
-                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: isMinor ? '#F1F3F4' : 'white', color: isMinor ? 'var(--text-secondary)' : 'var(--text-primary)' }}
                 />
               </div>
 
               <div style={{ display: 'flex', gap: '12px' }}>
                 {/* DOB */}
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Date of Birth</label>
+                  <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                    Date of Birth {editDob && calculatedAge > 0 && `(Age: ${calculatedAge}${isMinor ? ' - Minor' : ''})`}
+                  </label>
                   <input
                     type="date"
                     value={editDob}
                     onChange={(e) => setEditDob(e.target.value)}
+                    onClick={(e) => {
+                      try {
+                        (e.target as any).showPicker();
+                      } catch (err) {}
+                    }}
                     style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: 'white' }}
                   />
                 </div>
@@ -2375,8 +2448,9 @@ export const Dashboard: React.FC = () => {
                   <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Gender</label>
                   <select
                     value={editGender}
+                    disabled={isMinor}
                     onChange={(e) => setEditGender(e.target.value)}
-                    style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: 'white' }}
+                    style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: isMinor ? '#F1F3F4' : 'white', color: isMinor ? 'var(--text-secondary)' : 'var(--text-primary)' }}
                   >
                     <option value="">Select Gender</option>
                     <option value="Male">Male</option>
@@ -2384,6 +2458,23 @@ export const Dashboard: React.FC = () => {
                     <option value="Other">Other</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Wedding Anniversary Date */}
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Wedding Anniversary Date</label>
+                <input
+                  type="date"
+                  value={editWeddingDate}
+                  disabled={isMinor}
+                  onChange={(e) => setEditWeddingDate(e.target.value)}
+                  onClick={(e) => {
+                    try {
+                      (e.target as any).showPicker();
+                    } catch (err) {}
+                  }}
+                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: isMinor ? '#F1F3F4' : 'white', color: isMinor ? 'var(--text-secondary)' : 'var(--text-primary)' }}
+                />
               </div>
 
               <div style={{ height: '1px', background: '#ECECEC', margin: '4px 0' }} />
@@ -2395,8 +2486,9 @@ export const Dashboard: React.FC = () => {
                 <input
                   type="text"
                   value={editNomineeName}
+                  disabled={isMinor}
                   onChange={(e) => setEditNomineeName(e.target.value)}
-                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                  style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: isMinor ? '#F1F3F4' : 'white', color: isMinor ? 'var(--text-secondary)' : 'var(--text-primary)' }}
                 />
               </div>
 
@@ -2407,8 +2499,9 @@ export const Dashboard: React.FC = () => {
                   <input
                     type="text"
                     value={editNomineePhone}
+                    disabled={isMinor}
                     onChange={(e) => setEditNomineePhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
+                    style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: isMinor ? '#F1F3F4' : 'white', color: isMinor ? 'var(--text-secondary)' : 'var(--text-primary)' }}
                   />
                 </div>
 
@@ -2417,8 +2510,9 @@ export const Dashboard: React.FC = () => {
                   <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Relationship</label>
                   <select
                     value={editNomineeRelation}
+                    disabled={isMinor}
                     onChange={(e) => setEditNomineeRelation(e.target.value)}
-                    style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: 'white' }}
+                    style={{ width: '100%', height: '40px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: isMinor ? '#F1F3F4' : 'white', color: isMinor ? 'var(--text-secondary)' : 'var(--text-primary)' }}
                   >
                     <option value="">Select</option>
                     {["Father", "Mother", "Wife", "Husband", "Son", "Daughter", "Brother", "Guardian"].map((rel) => (

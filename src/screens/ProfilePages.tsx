@@ -112,19 +112,46 @@ export const ProfileAddress: React.FC = () => {
     const numericValue = value.replace(/\D/g, '').slice(0, 6);
     setFormPincode(numericValue);
 
-    if (numericValue.length > 0) {
-      if (!formCity) {
-        setPinError("Please select a City first.");
-        return;
+    if (numericValue.length >= 3) {
+      const prefix = numericValue.substring(0, 3);
+      let foundCity = "";
+      let foundState = "";
+      for (const [city, prefixes] of Object.entries(PIN_PREFIXES)) {
+        if (prefixes.includes(prefix)) {
+          foundCity = city;
+          break;
+        }
       }
-      const prefixes = PIN_PREFIXES[formCity] || [];
-      const isValidPrefix = prefixes.some(prefix => numericValue.startsWith(prefix));
-      if (!isValidPrefix) {
-        setPinError(`PIN Code must start with ${prefixes.join(', ')} for ${formCity}.`);
-      } else if (numericValue.length < 6) {
+      if (foundCity) {
+        for (const [state, cities] of Object.entries(CITIES_BY_STATE)) {
+          if (cities.includes(foundCity)) {
+            foundState = state;
+            break;
+          }
+        }
+      }
+      if (foundCity && foundState) {
+        setFormCity(foundCity);
+        setFormState(foundState);
+        setPinError(null);
+      }
+    }
+
+    if (numericValue.length > 0) {
+      if (numericValue.length < 6) {
         setPinError("PIN Code must be exactly 6 digits.");
       } else {
-        setPinError(null);
+        if (formCity) {
+          const prefixes = PIN_PREFIXES[formCity] || [];
+          const isValidPrefix = prefixes.some(prefix => numericValue.startsWith(prefix));
+          if (!isValidPrefix) {
+            setPinError(`PIN Code must start with ${prefixes.join(', ')} for ${formCity}.`);
+          } else {
+            setPinError(null);
+          }
+        } else {
+          setPinError(null);
+        }
       }
     } else {
       setPinError(null);
@@ -226,6 +253,25 @@ export const ProfileAddress: React.FC = () => {
             </div>
 
             <div>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>PIN Code</label>
+              <input
+                type="text"
+                placeholder="6-digit PIN Code"
+                value={formPincode}
+                onChange={(e) => handlePincodeChange(e.target.value)}
+                style={{
+                  width: '100%', height: '44px', borderRadius: '8px', border: pinError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
+                  padding: '0 12px', fontSize: '14px', outline: 'none', marginTop: '6px'
+                }}
+              />
+              {pinError && (
+                <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
+                  {pinError}
+                </span>
+              )}
+            </div>
+
+            <div>
               <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>State</label>
               <select
                 value={formState}
@@ -272,25 +318,6 @@ export const ProfileAddress: React.FC = () => {
                   padding: '0 12px', fontSize: '14px', outline: 'none', marginTop: '6px'
                 }}
               />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>PIN Code</label>
-              <input
-                type="text"
-                placeholder="6-digit PIN Code"
-                value={formPincode}
-                onChange={(e) => handlePincodeChange(e.target.value)}
-                style={{
-                  width: '100%', height: '44px', borderRadius: '8px', border: pinError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)',
-                  padding: '0 12px', fontSize: '14px', outline: 'none', marginTop: '6px'
-                }}
-              />
-              {pinError && (
-                <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>
-                  {pinError}
-                </span>
-              )}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>

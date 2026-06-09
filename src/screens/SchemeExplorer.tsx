@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { SessionManager } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
 import { ArrowLeft } from 'lucide-react';
+import { useTranslation } from '../utils/translation';
 
 interface AvailableScheme {
   id: string;
@@ -12,10 +13,12 @@ interface AvailableScheme {
   totalInstallments: number;
   frequency: string;
   keywordsJson: string;
+  durationUnit?: string;
 }
 
 export const SchemeExplorer: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [schemes, setSchemes] = useState<AvailableScheme[]>([]);
   const [activeNames, setActiveNames] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -158,7 +161,7 @@ export const SchemeExplorer: React.FC = () => {
                     <div>
                       <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textAlign: 'right' }}>TENURE</span>
                       <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)', display: 'block', textAlign: 'right' }}>
-                        {scheme.totalInstallments} {scheme.frequency === 'Daily' ? 'Days' : 'Months'}
+                        {scheme.totalInstallments} {scheme.durationUnit ? (scheme.durationUnit.toLowerCase().startsWith('day') ? t('days') : t('months')) : (scheme.frequency === 'Daily' ? t('days') : t('months'))}
                       </span>
                     </div>
                   </div>

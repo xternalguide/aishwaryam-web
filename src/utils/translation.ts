@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SessionManager } from './SessionManager';
+import { ApiClient } from './ApiClient';
 
 export const translations = {
   en: {
@@ -65,10 +66,43 @@ export const translations = {
     installment: "Chit Payment",
     next_due_date: "Next Due Date",
     months: "Months",
+    days: "Days",
+    days_lock_in: "Days lock-in",
+    months_lock_in: "Months lock-in",
     claim: "Claim",
     active_schemes: "Your Active Schemes",
     paid: "Paid",
+    tx_installment_paid: "Installment Paid",
+    tx_gold_sold: "Gold Sold",
+    tx_gold_redeemed: "Gold Redeemed",
+    tx_scheme_bonus_gold: "Scheme Bonus Gold",
+    tx_loyalty_bonus_gold: "Loyalty Bonus Gold",
+    tx_joined_scheme: "Joined Scheme",
+    tx_redemption_requested: "Redemption Requested",
+    tx_gold_saved: "Gold Saved",
+    tx_transaction: "Transaction",
+    tx_completed: "Completed",
+    tx_pending: "Pending",
+    tx_failed: "Failed",
+    tx_success: "Success",
+    kyc_basic_block: "Please complete your KYC verification first to join schemes or make payments.",
+    kyc_pending_block: "Your KYC verification is currently pending. You will be able to join schemes or make payments once it is verified.",
+    kyc_rejected_block: "Your KYC verification was rejected. Please re-submit your documents or contact support.",
     maturity_date: "Maturity Date",
+    terms_welcome_desc: "Welcome to Aishwaryam @ Your Home. These Terms of Service govern your use of the Aishwaryam @ Your Home Digital Metal Platform and services.",
+    terms_savings_scheme_desc: "Aishwaryam @ Your Home provides metal accumulation chits. Installment savings plan starting at ₹100 allows users to save in pure 24K gold and 99.9% silver. Instalments are calculated at live market gold rates at the time of transaction.",
+    terms_physical_backing_desc: "Every purchase is backed by physical gold/silver stored securely in independent insured third-party vault lockers.",
+    terms_maturity_redemptions_desc: "Upon scheme maturity, the accumulated metal weight can be exchanged for physical jewelry at designated partner showrooms, or shipped as physical bullion coins, or sold back for cash payouts directly into the user's linked bank account.",
+    privacy_welcome_desc: "We value your privacy and are committed to protecting your personal information.",
+    privacy_data_collection_desc: "We collect personal information such as Name, Phone Number, Email, Date of Birth, and Nominee details during registration. For KYC verification, documents like Aadhaar Card and PAN Card are collected.",
+    privacy_data_encryption_desc: "All user profiles, bank account details, and KYC scanned images are encrypted and securely stored. We use industry-standard encryption protocols to protect your transactions and identity data.",
+    privacy_data_sharing_desc: "We do not sell or lease your personal information to third parties. Data is shared with bank transfer partners, custodian vaults, and government regulatory agencies strictly for transactions compliance.",
+    btn_close: "Close",
+    legal_compliance: "Legal & Compliance",
+    refunds_cancellations: "Refunds & Cancellations",
+    legal_terms_desc: "Rules and conditions governing digital bullion purchases, rate lock timings, and monthly chit subscription structures.",
+    legal_privacy_desc: "Details on data collection, KYC encryption, bank accounts handling, and secure storage logs.",
+    legal_refunds_desc: "Policies details on payment failures, refunds timelines, and active subscriptions cancellations rules.",
     accumulated_gold: "Accumulated Gold",
     total_saved: "Total Saved",
     bonus_earned: "Bonus Earned",
@@ -187,7 +221,7 @@ export const translations = {
     no_transactions_found: "No transactions found",
     scheme_matured: "Scheme Matured! 🎉",
     matured_redemption_instruction_en: "To redeem your accumulated gold/silver or cash equivalent, please contact your nearest branch or call customer support at +91 94430 00000. Physical verification is required for security.",
-    matured_redemption_instruction_ta: "உங்களது சேமிப்பை தங்கம்/வெள்ளி அல்லது பணமாகப் பெற, தயவுசெய்து தங்களது அருகில் உள்ள ஐஸ்வர்யம் கிளையை அணுகவும் அல்லது +91 94430 00000 என்ற எண்ணில் வாடிக்கையாளர் சேவையை அழைக்கவும். பாதுகாப்பு கருதி நேரில் சரிபார்ப்பது அவசியமாகும்.",
+    matured_redemption_instruction_ta: "உங்களது சேமிப்பை தங்கம்/வெள்ளி அல்லது பணமாகப் பெற, தயவுசெய்து தங்களது அருகில் உள்ள Aishwaryam @ Your Home கிளையை அணுகவும் அல்லது +91 94430 00000 என்ற எண்ணில் வாடிக்கையாளர் சேவையை அழைக்கவும். பாதுகாப்பு கருதி நேரில் சரிபார்ப்பது அவசியமாகும்.",
     scheme_joined_successfully: "Scheme Joined Successfully!",
     scheme_joined_successfully_desc: "Your savings plan is now active. Start investing to earn your 7.5% Tier 1 Loyalty Bonus!",
     start_investing_now: "Start Investing Now",
@@ -295,10 +329,18 @@ export const translations = {
     data_collection_policy: "1. Data Collection",
     data_encryption_policy: "2. Data Encryption and Security",
     data_sharing_policy: "3. Data Sharing",
-    kyc_under_verification: "KYC Under Verification"
+    kyc_under_verification: "KYC Under Verification",
+    faq_1_q: "Is my gold and silver real?",
+    faq_1_a: "Yes. Every transaction is backed by physical 24K gold and pure silver stored in highly secure third-party vaults.",
+    faq_2_q: "What is the 3% GST calculation?",
+    faq_2_a: "As per regulations, a 3% Goods and Services Tax (GST) is charged on all digital bullion purchases.",
+    faq_3_q: "How do I earn the loyalty bonus?",
+    faq_3_a: "Pay your installments early! Payments made on days 1 to 75 yield 7.5% extra weight. Rates reduce for late chits.",
+    faq_4_q: "How do I claim physical gold?",
+    faq_4_a: "Upon maturity, choose \"Showroom Jewelry Collection\" to pick up ornaments at showroom partners, or order home delivery of gold coins."
   },
   ta: {
-    app_name: "ஐஸ்வர்யம் @ உங்கள் இல்லத்தில்",
+    app_name: "Aishwaryam @ Your Home",
     dashboard_title: "முகப்பு",
     gold_balance: "தங்க இருப்பு",
     invested_value: "முதலீடு செய்த தொகை",
@@ -324,8 +366,8 @@ export const translations = {
     logout: "வெளியேறு",
     escalate_support: "வாடிக்கையாளர் சேவையைத் தொடர்பு கொள்க",
     type_message: "உங்கள் செய்தியை உள்ளிடவும்...",
-    ai_greeting: "வணக்கம்! 🙏 நான் உங்கள் ஐஸ்வர்யம் தங்க சேமிப்பு உதவியாளர். இன்று நான் உங்களுக்கு எப்படி உதவ முடியும்?",
-    ai_assistant_title: "ஐஸ்வர்யம் உதவியாளர்",
+    ai_greeting: "வணக்கம்! 🙏 நான் உங்கள் Aishwaryam @ Your Home தங்க சேமிப்பு உதவியாளர். இன்று நான் உங்களுக்கு எப்படி உதவ முடியும்?",
+    ai_assistant_title: "Aishwaryam @ Your Home உதவியாளர்",
     ai_assistant_subtitle: "உங்களுக்கு உதவ நாங்கள் தயாராக இருக்கிறோம்",
     qr_scheme_title: "திட்டங்கள் பற்றி",
     qr_scheme_response: "₹100 முதல் நெகிழ்வான தங்க சேமிப்பு திட்டங்களை நாங்கள் வழங்குகிறோம். நீங்கள் சேமிக்கும் காலத்திற்கு ஏற்ப 7% வரை போனஸ் தங்கம் பெறலாம். முதிர்வு காலத்தில் நகையாகவோ அல்லது நாணயமாகவோ பெற்றுக்கொள்ளலாம்.",
@@ -360,10 +402,43 @@ export const translations = {
     installment: "சந்தாத் தொகை",
     next_due_date: "அடுத்த செலுத்த வேண்டிய தேதி",
     months: "மாதங்கள்",
+    days: "நாட்கள்",
+    days_lock_in: "நாட்கள் லாக்-இன்",
+    months_lock_in: "மாதங்கள் லாக்-இன்",
     claim: "பெற்றுக்கொள்ளுங்கள்",
     active_schemes: "உங்களது செயல்பாட்டில் உள்ள திட்டங்கள்",
     paid: "செலுத்தப்பட்டது",
+    tx_installment_paid: "சந்தா செலுத்தப்பட்டது",
+    tx_gold_sold: "தங்கம் விற்கப்பட்டது",
+    tx_gold_redeemed: "தங்கம் மீட்டெடுக்கப்பட்டது",
+    tx_scheme_bonus_gold: "திட்ட போனஸ் தங்கம்",
+    tx_loyalty_bonus_gold: "அன்பளிப்பு போனஸ் தங்கம்",
+    tx_joined_scheme: "திட்டத்தில் சேர்ந்தார்",
+    tx_redemption_requested: "மீட்பு கோரப்பட்டது",
+    tx_gold_saved: "தங்கம் சேமிக்கப்பட்டது",
+    tx_transaction: "பரிவர்த்தனை",
+    tx_completed: "வெற்றிகரமாக முடிந்தது",
+    tx_pending: "நிலுவையில் உள்ளது",
+    kyc_basic_block: "திட்டங்களில் சேர அல்லது பணம் செலுத்த முதலில் உங்கள் KYC சரிபார்ப்பை முடிக்கவும்.",
+    kyc_pending_block: "உங்கள் KYC சரிபார்ப்பு தற்போது நிலுவையில் உள்ளது. அது சரிபார்க்கப்பட்டதும் நீங்கள் திட்டங்களில் சேரலாம் அல்லது பணம் செலுத்தலாம்.",
+    kyc_rejected_block: "உங்கள் KYC சரிபார்ப்பு நிராகரிக்கப்பட்டது. தயவுசெய்து உங்கள் ஆவணங்களை மீண்டும் சமர்ப்பிக்கவும் அல்லது ஆதரவைத் தொடர்பு கொள்ளவும்.",
+    tx_failed: "தோல்வியடைந்தது",
+    tx_success: "வெற்றி",
     maturity_date: "முதிர்வு தேதி",
+    terms_welcome_desc: "Aishwaryam @ Your Home-க்கு உங்களை வரவேற்கிறோம். இந்த சேவை விதிமுறைகள் உங்களது Aishwaryam @ Your Home டிஜிட்டல் மெட்டல் தளம் மற்றும் சேவைகளின் பயன்பாட்டை நிர்வகிக்கின்றன.",
+    terms_savings_scheme_desc: "Aishwaryam @ Your Home தங்கம் மற்றும் வெள்ளி சேமிப்பு திட்டங்களை வழங்குகிறது. ₹100 முதல் தொடங்கும் தவணை சேமிப்புத் திட்டம் பயனர்கள் தூய 24K தங்கம் மற்றும் 99.9% வெள்ளியில் சேமிக்க அனுமதிக்கிறது. தவணைத் தொகைகள் பரிவர்த்தனை நேரத்தின் நேரடி சந்தை தங்க விலையின் அடிப்படையில் கணக்கிடப்படுகின்றன.",
+    terms_physical_backing_desc: "ஒவ்வொரு வாங்குதலும் காப்பீடு செய்யப்பட்ட சுயாதீன மூன்றாம் தரப்பு பெட்டகங்களில் பாதுகாப்பாக சேமிக்கப்படும் உடல் தங்கம்/வெள்ளியால் ஆதரிக்கப்படுகிறது.",
+    terms_maturity_redemptions_desc: "திட்டம் முதிர்வடைந்ததும், சேமிக்கப்பட்ட உலோக எடையை நியமிக்கப்பட்ட கூட்டாளர் ஷோரூம்களில் நகைகளாக மாற்றிக்கொள்ளலாம், அல்லது நாணயங்களாக வீட்டு முகவரிக்கு வரவழைக்கலாம், அல்லது நேரடியாக பயனரின் வங்கி கணக்கில் பணமாக பெற்றுக்கொள்ளலாம்.",
+    privacy_welcome_desc: "உங்களது தனியுரிமையை நாங்கள் மதிக்கிறோம் மற்றும் உங்களது தனிப்பட்ட தகவல்களைப் பாதுகாக்க கடமைப்பட்டுள்ளோம்.",
+    privacy_data_collection_desc: "பதிவின் போது பெயர், தொலைபேசி எண், மின்னஞ்சல், பிறந்த தேதி மற்றும் நியமனதாரர் விவரங்கள் போன்ற தனிப்பட்ட தகவல்களை நாங்கள் சேகரிக்கிறோம். KYC சரிபார்ப்பிற்காக ஆதார் அட்டை மற்றும் PAN அட்டை போன்ற ஆவணங்கள் சேகரிக்கப்படுகின்றன.",
+    privacy_data_encryption_desc: "பயனர் விவரங்கள், வங்கி கணக்கு விவரங்கள் மற்றும் KYC ஆவணங்கள் அனைத்தும் குறியாக்கம் செய்யப்பட்டு பாதுகாப்பாக சேமிக்கப்படுகின்றன. உங்கள் பரிவர்த்தனைகள் மற்றும் அடையாளத் தரவைப் பாதுகாக்க தொழில்துறை தரமான குறியாக்க நெறிமுறைகளைப் பயன்படுத்துகிறோம்.",
+    privacy_data_sharing_desc: "உங்கள் தனிப்பட்ட தகவல்களை நாங்கள் மூன்றாம் தரப்பினருக்கு விற்கவோ வாடகைக்கு விடவோ மாட்டோம். பரிவர்த்தனை இணக்கத்திற்காக மட்டுமே வங்கி பரிமாற்ற கூட்டாளர்கள், பெட்டகங்கள் மற்றும் அரசு ஒழுங்குமுறை நிறுவனங்களுடன் தரவு பகிரப்படுகிறது.",
+    btn_close: "மூடுக",
+    legal_compliance: "சட்டம் & இணக்கம்",
+    refunds_cancellations: "பணம் திரும்பப் பெறுதல் & ரத்து செய்தல்",
+    legal_terms_desc: "டிஜிட்டல் தங்கம்/வெள்ளி வாங்குதல், விலை பூட்டு நேரம் மற்றும் மாதாந்திர தவணை சேமிப்பு அமைப்பு ஆகியவற்றை நிர்வகிக்கும் விதிகள் மற்றும் நிபந்தனைகள்.",
+    legal_privacy_desc: "தரவு சேகரிப்பு, KYC குறியாக்கம், வங்கி கணக்குகளைக் கையாளுதல் மற்றும் பாதுகாப்பு சேமிப்புப் பதிவுகள் பற்றிய விவரங்கள்.",
+    legal_refunds_desc: "கட்டணத் தோல்விகள், பணத்தைத் திரும்பப் பெறுவதற்கான காலக்கெடு மற்றும் செயலில் உள்ள திட்டங்களின் ரத்து விதிகள் பற்றிய கொள்கை விவரங்கள்.",
     accumulated_gold: "சேமிக்கப்பட்ட தங்கம்",
     total_saved: "மொத்த சேமிப்பு",
     bonus_earned: "போனஸ் தொகை",
@@ -482,7 +557,7 @@ export const translations = {
     no_transactions_found: "பரிவர்த்தனைகள் எதுவும் இல்லை",
     scheme_matured: "திட்டம் முதிர்வடைந்தது! 🎉",
     matured_redemption_instruction_en: "To redeem your accumulated gold/silver or cash equivalent, please contact your nearest branch or call customer support at +91 94430 00000. Physical verification is required for security.",
-    matured_redemption_instruction_ta: "உங்களது சேமிப்பை தங்கம்/வெள்ளி அல்லது பணமாகப் பெற, தயவுசெய்து தங்களது அருகில் உள்ள ஐஸ்வர்யம் கிளையை அணுகவும் அல்லது +91 94430 00000 என்ற எண்ணில் வாடிக்கையாளர் சேவையை அழைக்கவும். பாதுகாப்பு கருதி நேரில் சரிபார்ப்பது அவசியமாகும்.",
+    matured_redemption_instruction_ta: "உங்களது சேமிப்பை தங்கம்/வெள்ளி அல்லது பணமாகப் பெற, தயவுசெய்து தங்களது அருகில் உள்ள Aishwaryam @ Your Home கிளையை அணுகவும் அல்லது +91 94430 00000 என்ற எண்ணில் வாடிக்கையாளர் சேவையை அழைக்கவும். பாதுகாப்பு கருதி நேரில் சரிபார்ப்பது அவசியமாகும்.",
     scheme_joined_successfully: "திட்டம் வெற்றிகரமாக இணைக்கப்பட்டது!",
     scheme_joined_successfully_desc: "உங்களது சேமிப்புத் திட்டம் இப்போது செயல்படுத்தப்பட்டுள்ளது. உங்களது 7.5% போனஸை பெற சேமிக்கத் தொடங்குங்கள்!",
     start_investing_now: "இப்பொழுதே முதலீடு செய்க",
@@ -590,7 +665,15 @@ export const translations = {
     data_collection_policy: "1. தரவு சேகரிப்பு",
     data_encryption_policy: "2. தரவு குறியாக்கம் மற்றும் பாதுகாப்பு",
     data_sharing_policy: "3. தரவு பகிர்வு",
-    kyc_under_verification: "KYC சரிபார்ப்பில் உள்ளது"
+    kyc_under_verification: "KYC சரிபார்ப்பில் உள்ளது",
+    faq_1_q: "எனது தங்கம் மற்றும் வெள்ளி உண்மையானதா?",
+    faq_1_a: "ஆம். ஒவ்வொரு பரிவர்த்தனையும் மிகவும் பாதுகாப்பான மூன்றாம் தரப்பு பெட்டகங்களில் சேமிக்கப்படும் 24K தங்கம் மற்றும் தூய வெள்ளியால் ஆதரிக்கப்படுகிறது.",
+    faq_2_q: "3% ஜிஎஸ்டி (GST) கணக்கீடு என்றால் என்ன?",
+    faq_2_a: "விதிமுறைகளின்படி, அனைத்து டிஜிட்டல் தங்கம்/வெள்ளி வாங்குதல்களுக்கும் 3% சரக்கு மற்றும் சேவை வரி (GST) விதிக்கப்படுகிறது.",
+    faq_3_q: "விசுவாச போனஸை (Loyalty Bonus) நான் எவ்வாறு பெறுவது?",
+    faq_3_a: "உங்கள் தவணைகளை சீக்கிரம் செலுத்துங்கள்! 1 முதல் 75 நாட்களில் செலுத்தப்படும் தவணைகளுக்கு 7.5% கூடுதல் எடை கிடைக்கும். தாமதமாக செலுத்தப்படும் தவணைகளுக்கு போனஸ் விகிதம் குறையும்.",
+    faq_4_q: "உடல் தங்கத்தை (Physical Gold) நான் எவ்வாறு பெறுவது?",
+    faq_4_a: "திட்டம் முதிர்வடைந்ததும், கூட்டாளர் ஷோரூம்களில் நகைகளாகப் பெற \"ஷோரூம் நகை சேகரிப்பு\" என்பதைத் தேர்ந்தெடுக்கவும், அல்லது தங்க நாணயங்களை வீட்டு முகவரிக்கு வரவழைக்கவும்."
   }
 };
 
@@ -609,6 +692,12 @@ export function useTranslation() {
     setLangState(newLang);
     // Custom event to notify other components
     window.dispatchEvent(new Event('languageChange'));
+
+    const userId = SessionManager.getUserId();
+    if (userId) {
+      ApiClient.put(`api/User/profile/${userId}`, { preferredLanguage: newLang })
+        .catch(err => console.error("Failed to save language preference on backend:", err));
+    }
   };
 
   useEffect(() => {
