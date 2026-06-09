@@ -31,7 +31,7 @@ import {
   PlusCircle,
   Clock
 } from 'lucide-react';
-import goldSavingsBanner from '../assets/gold_savings_banner.png';
+
 
 interface ActiveScheme {
   schemeId: string;
@@ -123,6 +123,7 @@ export const Dashboard: React.FC = () => {
 
   // UI Interactive States
   const [activeBannerIdx, setActiveBannerIdx] = useState(0);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   // Profile Interactive Modals & Sub-states (moved to separate pages)
 
@@ -408,15 +409,31 @@ export const Dashboard: React.FC = () => {
 
   const getImageUrl = (url: string) => {
     if (!url) return '';
-    if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) {
+    if (url.startsWith('data:')) {
       return url;
     }
-    const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+    const isLocalHost = 
+      window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1' || 
+      window.location.hostname.startsWith('192.168.') || 
+      window.location.hostname.startsWith('10.') || 
+      window.location.protocol === 'file:';
+    const activeBaseUrl = isLocalHost
       ? 'http://192.168.1.36:5044/'
       : 'https://aishwaryam.blazewing.in/';
-    const base = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+    const activeBase = activeBaseUrl.endsWith('/') ? activeBaseUrl : activeBaseUrl + '/';
+
+    if (url.includes('/uploads/')) {
+      const parts = url.split('/uploads/');
+      return activeBase + 'uploads/' + parts[1];
+    }
+
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+
     const relative = url.startsWith('/') ? url.substring(1) : url;
-    return base + relative;
+    return activeBase + relative;
   };
 
   const formatRupees = (paise: number) => {
@@ -754,184 +771,179 @@ export const Dashboard: React.FC = () => {
     );
   };
 
-  const renderAvailableSchemesSection = () => (
-    <div className="available-schemes-banner-section" style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-      <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('start_saving')}</h3>
-      <div
-        className="glass-card"
-        onClick={() => navigate('/scheme-explorer')}
-        style={{
-          width: '100%',
-          borderRadius: '24px',
-          overflow: 'hidden',
-          cursor: 'pointer',
-          position: 'relative',
-          height: isDesktop ? '240px' : '180px',
-          boxShadow: '0 10px 30px rgba(74, 14, 78, 0.12)',
-          border: '1.5px solid rgba(255, 215, 0, 0.35)',
-          transition: 'all 0.3s ease',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-end',
-        }}
-      >
-        <img
-          src={goldSavingsBanner}
-          alt="Gold Savings Scheme"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 1
-          }}
-        />
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: 'linear-gradient(to right, rgba(26, 0, 20, 0.9) 0%, rgba(26, 0, 20, 0.6) 50%, rgba(0, 0, 0, 0.1) 100%)',
-          zIndex: 2
-        }} />
-        
-        {/* Banner Content */}
-        <div style={{
-          position: 'relative',
-          zIndex: 3,
-          padding: isDesktop ? '28px' : '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-start',
-          gap: '6px',
-          maxWidth: isDesktop ? '60%' : '85%',
-          color: 'white',
-          height: '100%',
-          justifyContent: 'center'
-        }}>
-          <span style={{
-            fontSize: '9px',
-            fontWeight: 'bold',
-            textTransform: 'uppercase',
-            letterSpacing: '2px',
-            color: 'var(--gold-primary)'
-          }}>
-            Aishwaryam Savings Scheme
-          </span>
-          <h2 style={{
-            fontSize: isDesktop ? '22px' : '18px',
-            fontWeight: '900',
-            margin: 0,
-            fontFamily: 'var(--font-poppins)',
-            lineHeight: '1.2',
-            textShadow: '0 2px 4px rgba(0,0,0,0.4)'
-          }}>
-            Systematic Gold & Silver Savings
-          </h2>
-          <p style={{
-            fontSize: isDesktop ? '12.5px' : '10.5px',
-            color: 'rgba(255, 255, 255, 0.85)',
-            margin: '2px 0 10px 0',
-            lineHeight: '1.4'
-          }}>
-            Accumulate wealth systematically with fixed daily or monthly plans. Earn up to 7.5% pure bonus gold weight.
-          </p>
-          <div style={{
-            padding: '8px 20px',
-            background: 'linear-gradient(135deg, #FFE082 0%, #FFB300 100%)',
-            color: 'var(--brand-deep)',
-            fontWeight: 'bold',
-            fontSize: '11.5px',
-            borderRadius: '10px',
-            boxShadow: '0 4px 10px rgba(255, 215, 0, 0.25)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}>
-            <span>Explore Saving Plans</span>
-            <ChevronRight size={13} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderRecentTransactionsPreview = () => {
-    const filteredRecent = transactions.filter((tx) =>
-      tx.transactionType === 'INSTALLMENT' ||
-      tx.transactionType === 'BONUS' ||
-      tx.transactionType === 'EVENT_BONUS' ||
-      tx.transactionType === 'REDEMPTION'
-    );
+  const renderAvailableSchemesSection = () => {
+    if (!contextAvailableSchemes || contextAvailableSchemes.length === 0) return null;
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Recent Activity</h3>
-          <button
-            onClick={() => setSelectedTab(1)}
-            style={{ background: 'transparent', border: 'none', color: 'var(--brand-accent)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
-          >
-            View All
-          </button>
-        </div>
+      <div className="available-schemes-section" style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+        <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
+          {t('start_saving')}
+        </h3>
+        
+        {/* Horizontal scroll container with scroll snap */}
+        <div 
+          style={{
+            display: 'flex',
+            gap: '16px',
+            overflowX: 'auto',
+            scrollSnapType: 'x mandatory',
+            paddingBottom: '12px',
+            paddingTop: '4px',
+            scrollbarWidth: 'none', // hide scrollbar for Firefox
+            WebkitOverflowScrolling: 'touch', // smooth momentum scrolling on iOS
+          }}
+          className="no-scrollbar"
+        >
+          <style>{`
+            .no-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
+          
+          {contextAvailableSchemes.map((scheme) => {
+            // Parse keywords
+            let keywords: string[] = [];
+            try {
+              keywords = JSON.parse(scheme.keywordsJson || '[]');
+            } catch (e) {
+              keywords = [];
+            }
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {filteredRecent.slice(0, 3).map((tx) => {
-            const details = getTxTypeDetails(tx.transactionType);
-            const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS' || tx.transactionType === 'BUY' || tx.transactionType === 'SCHEME_JOIN';
+            // Parse bonus tiers to find max bonus percentage
+            let maxBonus = '7.5%';
+            try {
+              if (scheme.bonusConfigJson) {
+                const tiers = JSON.parse(scheme.bonusConfigJson);
+                if (Array.isArray(tiers) && tiers.length > 0) {
+                  const maxVal = Math.max(...tiers.map((t: any) => t.bonusPercentage || 0));
+                  if (maxVal > 0) {
+                    maxBonus = `${maxVal}%`;
+                  }
+                }
+              }
+            } catch (e) {}
+
             return (
               <div
-                key={tx.id}
-                onClick={() => setSelectedTxDetail(tx)}
+                key={scheme.id}
+                onClick={() => navigate(`/scheme-detail/${scheme.id}`)}
                 style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px',
-                  borderRadius: '16px', background: 'white', border: '1px solid rgba(0,0,0,0.04)',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.005)', cursor: 'pointer'
+                  flex: '0 0 280px', // Fixed card width for horizontal swiper
+                  scrollSnapAlign: 'start',
+                  borderRadius: '20px',
+                  background: 'linear-gradient(135deg, #FFFDF9 0%, #FFF9EC 100%)',
+                  border: '1px solid rgba(255, 215, 0, 0.35)',
+                  boxShadow: '0 6px 16px rgba(74, 14, 78, 0.06)',
+                  padding: '20px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{
-                    width: '32px', height: '32px', borderRadius: '50%',
-                    background: details.bgColor,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    {details.icon}
+                {/* Gold glow decoration */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-30px',
+                  right: '-30px',
+                  width: '90px',
+                  height: '90px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(255,215,0,0.18) 0%, rgba(255,215,0,0) 70%)',
+                  pointerEvents: 'none'
+                }} />
+
+                <div>
+                  {/* Scheme Name */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <h4 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0, fontFamily: 'var(--font-poppins)' }}>
+                      {scheme.planName}
+                    </h4>
+                    <span style={{
+                      fontSize: '9px',
+                      fontWeight: 'bold',
+                      color: 'var(--brand-accent)',
+                      background: 'rgba(255, 240, 245, 0.8)',
+                      padding: '2px 8px',
+                      borderRadius: '10px',
+                      border: '1px solid rgba(74, 14, 78, 0.1)'
+                    }}>
+                      {scheme.frequency === 'Daily' ? 'DAILY' : 'MONTHLY'}
+                    </span>
                   </div>
-                  <div>
-                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-primary)', display: 'block' }}>
-                      {tx.schemeName || details.label}
+
+                  {/* Duration & Minimum Investment */}
+                  <div style={{ display: 'flex', gap: '16px', margin: '12px 0 8px 0' }}>
+                    <div>
+                      <span style={{ fontSize: '9px', color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
+                        Duration
+                      </span>
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                        {scheme.totalInstallments} {scheme.frequency === 'Daily' ? 'Days' : 'Months'}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '9px', color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
+                        Min investment
+                      </span>
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                        {formatRupees(scheme.installmentAmountPaise)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bonus Information */}
+                  <div style={{ background: 'rgba(255, 215, 0, 0.08)', borderRadius: '10px', padding: '8px 12px', margin: '8px 0', border: '1px solid rgba(255, 215, 0, 0.2)' }}>
+                    <span style={{ fontSize: '9px', color: 'var(--brand-dark)', fontWeight: 'bold', textTransform: 'uppercase', display: 'block' }}>
+                      Bonus Offer
                     </span>
-                    <span style={{ fontSize: '9.5px', color: 'var(--text-light)', display: 'block', marginTop: '1px' }}>
-                      {tx.schemeName ? `${details.label} • ` : ''}{new Date(tx.createdAt).toLocaleDateString()}
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--brand-accent)' }}>
+                      Get up to {maxBonus} Extra Gold weight!
                     </span>
+                  </div>
+
+                  {/* Key Benefits */}
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
+                    {keywords.slice(0, 2).map((kw, i) => (
+                      <span key={i} style={{ fontSize: '9.5px', color: 'var(--brand-accent)', background: 'white', padding: '2px 8px', borderRadius: '6px', border: '1px solid rgba(74, 14, 78, 0.05)' }}>
+                        ✓ {kw}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: isBuy ? 'var(--success-green)' : 'var(--error-red)', display: 'block' }}>
-                    {isBuy ? '+' : '-'}{formatRupees(tx.amountPaise)}
-                  </span>
-                  <span style={{ fontSize: '9.5px', color: 'var(--brand-accent)', fontWeight: 'bold', display: 'block', marginTop: '1px' }}>
-                    {mgToGrams(tx.goldWeightMg)}
-                  </span>
+                {/* Maturity Details */}
+                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(74,14,78,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <span style={{ fontSize: '8.5px', color: 'var(--text-light)', display: 'block' }}>Maturity</span>
+                    <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--brand-dark)' }}>
+                      {scheme.totalInstallments + (scheme.frequency === 'Daily' ? 30 : 1)} {scheme.frequency === 'Daily' ? 'Days lock-in' : 'Months lock-in'}
+                    </span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    color: 'var(--brand-accent)'
+                  }}>
+                    <span>View Plan</span>
+                    <ChevronRight size={12} />
+                  </div>
                 </div>
               </div>
             );
           })}
-          {filteredRecent.length === 0 && (
-            <div className="glass-card" style={{ padding: '24px', textAlign: 'center', borderRadius: '16px', background: 'white', color: 'var(--text-muted)', fontSize: '12px' }}>
-              No transactions yet. Start saving in a scheme to view your activity!
-            </div>
-          )}
         </div>
       </div>
     );
   };
+
+
 
   const renderPromosAndBanners = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
@@ -1007,18 +1019,44 @@ export const Dashboard: React.FC = () => {
                   cursor: 'pointer'
                 }}
               >
-                <img 
-                  src={getImageUrl(banner.imageBase64)} 
-                  alt={banner.title} 
-                  draggable="false"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover', 
-                    display: 'block',
-                    pointerEvents: 'none'
-                  }} 
-                />
+                {(() => {
+                  const bannerKey = banner.id || banner.title || index.toString();
+                  if (!imageErrors[bannerKey]) {
+                    return (
+                      <img 
+                        src={getImageUrl(banner.imageBase64)} 
+                        alt={banner.title} 
+                        draggable="false"
+                        onError={() => {
+                          setImageErrors(prev => ({ ...prev, [bannerKey]: true }));
+                        }}
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover', 
+                          display: 'block',
+                          pointerEvents: 'none'
+                        }} 
+                      />
+                    );
+                  } else {
+                    return (
+                      <div style={{
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-deep) 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{ position: 'absolute', top: '-20%', left: '-20%', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,215,0,0.1)', pointerEvents: 'none' }} />
+                        <div style={{ position: 'absolute', bottom: '-20%', right: '-20%', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,215,0,0.05)', pointerEvents: 'none' }} />
+                      </div>
+                    );
+                  }
+                })()}
                 <div style={{
                   position: 'absolute',
                   bottom: 0,
@@ -1624,7 +1662,6 @@ export const Dashboard: React.FC = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {renderVaultCard()}
                     {renderQuickActionsGrid()}
-                    {renderRecentTransactionsPreview()}
                     {renderAvailableSchemesSection()}
                   </div>
 
@@ -1644,7 +1681,6 @@ export const Dashboard: React.FC = () => {
                   {renderQuickActionsGrid()}
                   {renderActiveSchemesSection()}
                   {renderAvailableSchemesSection()}
-                  {renderRecentTransactionsPreview()}
                   {renderPromosAndBanners()}
                   {renderNeedHelpCard()}
                 </div>
