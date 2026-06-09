@@ -1630,7 +1630,7 @@ export const Dashboard: React.FC = () => {
       }}>
         
         {/* Top Navbar */}
-        {(!isDesktop || selectedTab !== 2) && (
+        {selectedTab !== 2 && (
           <div className="app-header-bar" style={{
             background: 'white',
             borderBottom: '1px solid #ECECEC',
