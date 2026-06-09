@@ -400,9 +400,9 @@ export const Onboarding: React.FC = () => {
         </div>
       </div>
 
-      <div className="responsive-form-container" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+      <div className="responsive-form-container" style={{ flex: 1, overflowY: 'auto', padding: '12px 20px 20px 20px', display: 'flex', flexDirection: 'column' }}>
         {/* Progress Stepper */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '12px 0 24px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '8px 0 16px 0' }}>
           {[1, 2].map((num) => (
             <React.Fragment key={num}>
               <div style={{
@@ -438,7 +438,7 @@ export const Onboarding: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <CheckCircle color="var(--brand-accent)" size={24} />
-                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Step 1: Basic Profile</h2>
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Step 1: Basic Profile</h2>
               </div>
 
               {/* Box 1: Core Details */}
@@ -788,7 +788,7 @@ export const Onboarding: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <ShieldCheck color="var(--brand-accent)" size={24} />
-                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Step 2: KYC Verification</h2>
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Step 2: KYC Verification</h2>
               </div>
 
               {/* PAN Card Box */}
