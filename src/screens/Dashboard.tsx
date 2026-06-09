@@ -29,6 +29,7 @@ import {
   Pencil,
   ShieldCheck
 } from 'lucide-react';
+import goldSavingsBanner from '../assets/gold_savings_banner.png';
 
 interface ActiveScheme {
   schemeId: string;
@@ -63,14 +64,6 @@ interface BannerItem {
   tapActionUrl: string;
 }
 
-interface AvailableScheme {
-  id: string;
-  planName: string;
-  description: string;
-  installmentAmountPaise: number;
-  totalInstallments: number;
-  frequency: string;
-}
 
 interface TransactionItem {
   id: string;
@@ -115,7 +108,6 @@ export const Dashboard: React.FC = () => {
   // Collections
   const [activeSchemes, setActiveSchemes] = useState<ActiveScheme[]>([]);
   const [banners, setBanners] = useState<BannerItem[]>([]);
-  const [availableSchemes, setAvailableSchemes] = useState<AvailableScheme[]>([]);
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
@@ -226,9 +218,6 @@ export const Dashboard: React.FC = () => {
     if (contextActiveSchemes) {
       setActiveSchemes(contextActiveSchemes);
     }
-    if (contextAvailableSchemes) {
-      setAvailableSchemes(contextAvailableSchemes);
-    }
     if (contextTransactions) {
       setTransactions(contextTransactions);
     }
@@ -332,18 +321,54 @@ export const Dashboard: React.FC = () => {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(rupees);
   };
 
-
   const mgToGrams = (mg: number) => `${(mg / 1000).toFixed(4)} g`;
 
-
+  const getTxTypeDetails = (type: string) => {
+    switch (type) {
+      case 'INSTALLMENT':
+        return {
+          label: 'Installment Paid',
+          icon: <Landmark size={16} color="var(--brand-dark)" />,
+          bgColor: 'rgba(74, 14, 78, 0.08)',
+          isCredit: true
+        };
+      case 'BONUS':
+      case 'EVENT_BONUS':
+        return {
+          label: type === 'BONUS' ? 'Scheme Bonus Gold' : 'Loyalty Bonus Gold',
+          icon: <Award size={16} color="var(--brand-accent)" />,
+          bgColor: 'rgba(194, 24, 91, 0.08)',
+          isCredit: true
+        };
+      case 'REDEMPTION':
+        return {
+          label: 'Maturity Redemption',
+          icon: <ShieldCheck size={16} color="var(--success-green)" />,
+          bgColor: 'rgba(16, 185, 129, 0.08)',
+          isCredit: false
+        };
+      default:
+        return {
+          label: 'Transaction',
+          icon: <FileText size={16} color="var(--text-secondary)" />,
+          bgColor: 'rgba(0, 0, 0, 0.04)',
+          isCredit: true
+        };
+    }
+  };
 
   // History Tab Filtering Logic
   const getFilteredTransactions = () => {
-    let list = [...transactions];
+    let list = transactions.filter(t => 
+      t.transactionType === 'INSTALLMENT' || 
+      t.transactionType === 'BONUS' || 
+      t.transactionType === 'EVENT_BONUS' || 
+      t.transactionType === 'REDEMPTION'
+    );
     if (txFilter === 'BUY') {
-      list = list.filter((t) => t.transactionType === 'INSTALLMENT' || t.transactionType === 'BUY');
+      list = list.filter((t) => t.transactionType === 'INSTALLMENT' || t.transactionType === 'BONUS' || t.transactionType === 'EVENT_BONUS');
     } else if (txFilter === 'SELL') {
-      list = list.filter((t) => t.transactionType === 'SELL' || t.transactionType === 'REDEMPTION');
+      list = list.filter((t) => t.transactionType === 'REDEMPTION');
     }
 
     if (txSort === 'NEWEST') {
@@ -354,7 +379,7 @@ export const Dashboard: React.FC = () => {
     return list;
   };
 
-  const totalBonusGoldMg = activeSchemes.reduce((sum, s) => sum + (s.totalBonusGoldMg || 0), 0);
+  const totalBonusGoldMg = portfolio?.totalBonusGoldMg || 0;
 
   const renderVaultCard = () => (
     <div
@@ -495,9 +520,9 @@ export const Dashboard: React.FC = () => {
   );
 
   const renderQuickActionsGrid = () => (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
       <div 
-        onClick={() => navigate('/buy-gold')}
+        onClick={() => navigate('/scheme-explorer')}
         style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer',
           background: 'white', padding: '12px 6px', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.05)',
@@ -507,21 +532,7 @@ export const Dashboard: React.FC = () => {
         <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,215,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold-deep)' }}>
           <TrendingUp size={20} />
         </div>
-        <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-primary)', textAlign: 'center' }}>Buy Gold</span>
-      </div>
-
-      <div 
-        onClick={() => navigate('/sell-gold')}
-        style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer',
-          background: 'white', padding: '12px 6px', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.05)',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.01)', transition: 'all 0.2s ease'
-        }}
-      >
-        <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(74,14,78,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-dark)' }}>
-          <Landmark size={20} />
-        </div>
-        <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-primary)', textAlign: 'center' }}>Sell Gold</span>
+        <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-primary)', textAlign: 'center' }}>Explore Schemes</span>
       </div>
 
       <div 
@@ -622,164 +633,183 @@ export const Dashboard: React.FC = () => {
   };
 
   const renderAvailableSchemesSection = () => (
-    <div className="available-schemes-section" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('start_saving')}</h3>
-        <button onClick={() => navigate('/scheme-explorer')} style={{ background: 'transparent', border: 'none', color: 'var(--brand-accent)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
-          {t('view_all')}
-        </button>
+    <div className="available-schemes-banner-section" style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+      <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('start_saving')}</h3>
+      <div
+        className="glass-card"
+        onClick={() => navigate('/scheme-explorer')}
+        style={{
+          width: '100%',
+          borderRadius: '24px',
+          overflow: 'hidden',
+          cursor: 'pointer',
+          position: 'relative',
+          height: isDesktop ? '240px' : '180px',
+          boxShadow: '0 10px 30px rgba(74, 14, 78, 0.12)',
+          border: '1.5px solid rgba(255, 215, 0, 0.35)',
+          transition: 'all 0.3s ease',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+        }}
+      >
+        <img
+          src={goldSavingsBanner}
+          alt="Gold Savings Scheme"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1
+          }}
+        />
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'linear-gradient(to right, rgba(26, 0, 20, 0.9) 0%, rgba(26, 0, 20, 0.6) 50%, rgba(0, 0, 0, 0.1) 100%)',
+          zIndex: 2
+        }} />
+        
+        {/* Banner Content */}
+        <div style={{
+          position: 'relative',
+          zIndex: 3,
+          padding: isDesktop ? '28px' : '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: '6px',
+          maxWidth: isDesktop ? '60%' : '85%',
+          color: 'white',
+          height: '100%',
+          justifyContent: 'center'
+        }}>
+          <span style={{
+            fontSize: '9px',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+            color: 'var(--gold-primary)'
+          }}>
+            Aishwaryam Savings Scheme
+          </span>
+          <h2 style={{
+            fontSize: isDesktop ? '22px' : '18px',
+            fontWeight: '900',
+            margin: 0,
+            fontFamily: 'var(--font-poppins)',
+            lineHeight: '1.2',
+            textShadow: '0 2px 4px rgba(0,0,0,0.4)'
+          }}>
+            Systematic Gold & Silver Savings
+          </h2>
+          <p style={{
+            fontSize: isDesktop ? '12.5px' : '10.5px',
+            color: 'rgba(255, 255, 255, 0.85)',
+            margin: '2px 0 10px 0',
+            lineHeight: '1.4'
+          }}>
+            Accumulate wealth systematically with fixed daily or monthly plans. Earn up to 7.5% pure bonus gold weight.
+          </p>
+          <div style={{
+            padding: '8px 20px',
+            background: 'linear-gradient(135deg, #FFE082 0%, #FFB300 100%)',
+            color: 'var(--brand-deep)',
+            fontWeight: 'bold',
+            fontSize: '11.5px',
+            borderRadius: '10px',
+            boxShadow: '0 4px 10px rgba(255, 215, 0, 0.25)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}>
+            <span>Explore Saving Plans</span>
+            <ChevronRight size={13} />
+          </div>
+        </div>
       </div>
+    </div>
+  );
 
-      <div style={{ display: 'flex', gap: '14px', overflowX: 'auto', paddingBottom: '12px', scrollbarWidth: 'none' }}>
-        {availableSchemes.map((sch) => (
-          <div
-            key={sch.id}
-            className="glass-card"
-            onClick={() => navigate(`/scheme-detail/${sch.id}`)}
-            style={{
-              flex: '0 0 310px',
-              height: '190px',
-              borderRadius: '20px',
-              padding: '22px',
-              background: 'linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-deep) 100%)',
-              border: '1.5px solid rgba(255, 215, 0, 0.3)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              boxShadow: '0 10px 20px rgba(41, 0, 29, 0.35)',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
+  const renderRecentTransactionsPreview = () => {
+    const filteredRecent = transactions.filter((tx) =>
+      tx.transactionType === 'INSTALLMENT' ||
+      tx.transactionType === 'BONUS' ||
+      tx.transactionType === 'EVENT_BONUS' ||
+      tx.transactionType === 'REDEMPTION'
+    );
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Recent Activity</h3>
+          <button
+            onClick={() => setSelectedTab(1)}
+            style={{ background: 'transparent', border: 'none', color: 'var(--brand-accent)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
           >
-            <div style={{
-              position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%',
-              background: 'radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 60%)',
-              pointerEvents: 'none',
-              transform: 'rotate(-15deg)'
-            }} />
+            View All
+          </button>
+        </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <div style={{
-                width: '38px',
-                height: '28px',
-                borderRadius: '6px',
-                background: 'linear-gradient(135deg, #FFE082 0%, #FFB300 100%)',
-                position: 'relative',
-                border: '1px solid #FFD54F',
-                boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)'
-              }}>
-                <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: 'rgba(0,0,0,0.15)' }} />
-                <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '1px', background: 'rgba(0,0,0,0.15)' }} />
-              </div>
-              
-              <span style={{
-                fontFamily: 'var(--font-playfair)',
-                fontWeight: 'bold',
-                fontSize: '15px',
-                color: 'var(--gold-primary)',
-                letterSpacing: '1px'
-              }}>
-                Aishwaryam
-              </span>
-            </div>
-
-            <div style={{ marginTop: '12px' }}>
-              <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: 'white', margin: 0, fontFamily: 'var(--font-poppins)', letterSpacing: '0.5px' }}>
-                {sch.planName}
-              </h4>
-              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginTop: '2px' }}>
-                Gold Savings Chit
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', zIndex: 2 }}>
-              <div>
-                <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '2px' }}>
-                  {sch.frequency === 'Daily' ? 'Daily Savings' : 'Monthly Savings'}
-                </span>
-                <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--gold-primary)', fontFamily: 'var(--font-poppins)' }}>
-                  {formatRupees(sch.installmentAmountPaise)}
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '2px' }}>
-                  Tenure
-                </span>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'white' }}>
-                  {sch.totalInstallments} {sch.frequency === 'Daily' ? 'Days' : t('months')}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderRecentTransactionsPreview = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Recent Activity</h3>
-        <button
-          onClick={() => setSelectedTab(1)}
-          style={{ background: 'transparent', border: 'none', color: 'var(--brand-accent)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
-        >
-          View All
-        </button>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {transactions.slice(0, 3).map((tx) => {
-          const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BUY';
-          return (
-            <div
-              key={tx.id}
-              onClick={() => setSelectedTxDetail(tx)}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px',
-                borderRadius: '16px', background: 'white', border: '1px solid rgba(0,0,0,0.04)',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.005)', cursor: 'pointer'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{
-                  width: '32px', height: '32px', borderRadius: '50%',
-                  background: isBuy ? 'var(--success-light)' : 'var(--error-light)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px'
-                }}>
-                  {isBuy ? '⬇' : '⬆'}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {filteredRecent.slice(0, 3).map((tx) => {
+            const details = getTxTypeDetails(tx.transactionType);
+            const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS';
+            return (
+              <div
+                key={tx.id}
+                onClick={() => setSelectedTxDetail(tx)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px',
+                  borderRadius: '16px', background: 'white', border: '1px solid rgba(0,0,0,0.04)',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.005)', cursor: 'pointer'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '32px', height: '32px', borderRadius: '50%',
+                    background: details.bgColor,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    {details.icon}
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-primary)', display: 'block' }}>
+                      {details.label}
+                    </span>
+                    <span style={{ fontSize: '9.5px', color: 'var(--text-light)', display: 'block', marginTop: '1px' }}>
+                      {new Date(tx.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-primary)', display: 'block' }}>
-                    {isBuy ? 'Added to Savings' : 'Redeemed Metal'}
+
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: isBuy ? 'var(--success-green)' : 'var(--error-red)', display: 'block' }}>
+                    {isBuy ? '+' : '-'}{formatRupees(tx.amountPaise)}
                   </span>
-                  <span style={{ fontSize: '9.5px', color: 'var(--text-light)', display: 'block', marginTop: '1px' }}>
-                    {new Date(tx.createdAt).toLocaleDateString()}
+                  <span style={{ fontSize: '9.5px', color: 'var(--brand-accent)', fontWeight: 'bold', display: 'block', marginTop: '1px' }}>
+                    {mgToGrams(tx.goldWeightMg)}
                   </span>
                 </div>
               </div>
-
-              <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '12px', fontWeight: 'bold', color: isBuy ? 'var(--success-green)' : 'var(--error-red)', display: 'block' }}>
-                  {isBuy ? '+' : '-'}{formatRupees(tx.amountPaise)}
-                </span>
-                <span style={{ fontSize: '9.5px', color: 'var(--brand-accent)', fontWeight: 'bold', display: 'block', marginTop: '1px' }}>
-                  {mgToGrams(tx.goldWeightMg)}
-                </span>
-              </div>
+            );
+          })}
+          {filteredRecent.length === 0 && (
+            <div className="glass-card" style={{ padding: '24px', textAlign: 'center', borderRadius: '16px', background: 'white', color: 'var(--text-muted)', fontSize: '12px' }}>
+              No transactions yet. Start saving in a scheme to view your activity!
             </div>
-          );
-        })}
-        {transactions.length === 0 && (
-          <div className="glass-card" style={{ padding: '24px', textAlign: 'center', borderRadius: '16px', background: 'white', color: 'var(--text-muted)', fontSize: '12px' }}>
-            No transactions yet. Start saving in a scheme to view your activity!
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderPromosAndBanners = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
@@ -1093,7 +1123,8 @@ export const Dashboard: React.FC = () => {
               </thead>
               <tbody>
                 {list.map((tx) => {
-                  const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BUY';
+                  const details = getTxTypeDetails(tx.transactionType);
+                  const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS';
                   return (
                     <tr
                       key={tx.id}
@@ -1101,8 +1132,8 @@ export const Dashboard: React.FC = () => {
                       style={{ borderBottom: '1px solid #F1F3F4', cursor: 'pointer', transition: 'background 0.2s' }}
                     >
                       <td style={{ padding: '18px 24px', fontSize: '13.5px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '16px' }}>{isBuy ? '⬇️' : '⬆️'}</span>
-                        {isBuy ? 'Added to Savings' : 'Redeemed Metal'}
+                        <span style={{ fontSize: '16px', display: 'inline-flex', alignItems: 'center' }}>{details.icon}</span>
+                        {details.label}
                       </td>
                       <td style={{ padding: '18px 24px', fontSize: '13.5px', color: 'var(--text-secondary)' }}>
                         {new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1135,7 +1166,8 @@ export const Dashboard: React.FC = () => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {list.map((tx) => {
-              const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BUY';
+              const details = getTxTypeDetails(tx.transactionType);
+              const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS';
               return (
                 <div
                   key={tx.id}
@@ -1149,14 +1181,15 @@ export const Dashboard: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
                       width: '38px', height: '38px', borderRadius: '50%',
-                      background: isBuy ? 'var(--success-light)' : 'var(--error-light)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      background: details.bgColor,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0
                     }}>
-                      <span style={{ fontSize: '14px' }}>{isBuy ? '⬇️' : '⬆️'}</span>
+                      {details.icon}
                     </div>
                     <div>
                       <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block' }}>
-                        {isBuy ? t('added_to_savings') : t('redeemed_metal')}
+                        {details.label}
                       </span>
                       <span style={{ fontSize: '10px', color: 'var(--text-light)', display: 'block', marginTop: '2px' }}>
                         {new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1339,7 +1372,7 @@ export const Dashboard: React.FC = () => {
         
         {/* Top Navbar */}
         {(!isDesktop || selectedTab !== 2) && (
-          <div style={{
+          <div className="app-header-bar" style={{
             background: 'white',
             borderBottom: '1px solid #ECECEC',
             paddingTop: isDesktop ? '16px' : 'calc(16px + env(safe-area-inset-top, 0px))',

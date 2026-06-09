@@ -445,7 +445,7 @@ export const Onboarding: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--surface-light)' }}>
       {/* Header */}
-      <div style={{
+      <div className="app-header-bar" style={{
         background: 'var(--brand-dark)',
         color: 'white',
         padding: '16px 20px',

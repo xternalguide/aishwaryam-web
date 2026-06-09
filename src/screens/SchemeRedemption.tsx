@@ -78,7 +78,7 @@ export const SchemeRedemption: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F8F9FA' }}>
       {/* Top Bar */}
-      <div style={{
+      <div className="app-header-bar" style={{
         background: 'white',
         borderBottom: '1px solid #ECECEC',
         padding: '16px 20px',

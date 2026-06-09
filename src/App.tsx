@@ -7,11 +7,8 @@ import { Mpin } from './screens/Mpin';
 import { ProfileSetup } from './screens/ProfileSetup';
 import { Onboarding } from './screens/Onboarding';
 import { Dashboard } from './screens/Dashboard';
-import { BuyGold } from './screens/BuyGold';
-import { SellGold } from './screens/SellGold';
 import { SchemeExplorer } from './screens/SchemeExplorer';
 import { SchemeDetail } from './screens/SchemeDetail';
-import { SchemeRedemption } from './screens/SchemeRedemption';
 import { AddBankAccount } from './screens/AddBankAccount';
 import { PortfolioAnalytics } from './screens/PortfolioAnalytics';
 import { PaymentSuccess } from './screens/PaymentSuccess';
@@ -209,11 +206,8 @@ const App: React.FC = () => {
             
             {/* Main Dashboard & Actions */}
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/buy-gold" element={<BuyGold />} />
-            <Route path="/sell-gold" element={<SellGold />} />
             <Route path="/scheme-explorer" element={<SchemeExplorer />} />
             <Route path="/scheme-detail/:schemeId" element={<SchemeDetail />} />
-            <Route path="/scheme-redemption/:schemeId" element={<SchemeRedemption />} />
             <Route path="/add-bank-account" element={<AddBankAccount />} />
             <Route path="/portfolio-analytics" element={<PortfolioAnalytics />} />
             <Route path="/payment-success/:receiptJson" element={<PaymentSuccess />} />

@@ -55,7 +55,7 @@ export const SchemeExplorer: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F5F5F5' }}>
       {/* Top Bar */}
-      <div style={{
+      <div className="app-header-bar" style={{
         background: 'var(--gradient-brand)',
         paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
         paddingLeft: '20px',

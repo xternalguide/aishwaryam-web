@@ -87,124 +87,8 @@ html, body {
   display: none; /* Safari and Chrome */
 }
 
-/* Limit Dashboard width on large screens to center the layout elegantly */
-.dashboard-home-container,
-.dashboard-profile-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
+/* Viewport-specific layout styles have been moved to android.css and web.css */
 
-/* Centered Form Wrapper for Login, MPIN, and Registration on wide viewports */
-.responsive-form-container {
-  width: 100%;
-  max-width: 440px !important;
-  margin: 0 auto !important;
-  box-sizing: border-box;
-}
-
-/* ─── Responsive Dashboard Grid Enhancements ─── */
-@media (min-width: 768px) {
-  .dashboard-home-container {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px !important;
-    align-items: start;
-  }
-
-  .kyc-alert-banner {
-    grid-column: span 2;
-  }
-
-  .portfolio-card {
-    grid-column: 1;
-    height: 100%;
-  }
-
-  .live-rates-card {
-    grid-column: 2;
-    height: 100%;
-  }
-
-  .quick-actions-row {
-    grid-column: 1;
-  }
-
-  .promo-banner-container {
-    grid-column: 2;
-  }
-
-  .available-schemes-section {
-    grid-column: span 2;
-  }
-
-  .flash-sale-promo {
-    grid-column: span 2;
-  }
-
-  .active-schemes-section {
-    grid-column: span 2;
-  }
-
-  /* Available schemes grid display instead of horizontal scroll on desktop */
-  .available-schemes-section div[style*="overflow-x: auto"] {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
-    overflow-x: visible !important;
-    gap: 16px !important;
-  }
-
-  .available-schemes-section div[style*="overflow-x: auto"] > div {
-    flex: none !important;
-  }
-
-  /* Active schemes list layout on wide screens */
-  .active-schemes-section > div {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 16px !important;
-  }
-
-  /* Profile Tab Grid Layout */
-  .dashboard-profile-container {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px !important;
-    align-items: start;
-  }
-
-  .profile-info-card {
-    grid-column: span 2;
-  }
-
-  .profile-details-card {
-    grid-column: 1;
-  }
-
-  .profile-bank-card {
-    grid-column: 1;
-  }
-
-  .profile-nominee-card {
-    grid-column: 2;
-  }
-
-  .profile-lang-card {
-    grid-column: 2;
-  }
-
-  .profile-links-card {
-    grid-column: 2;
-  }
-
-  .profile-support-wrap {
-    grid-column: span 2;
-  }
-
-  .profile-logout-wrap {
-    grid-column: span 2;
-  }
-}
 
 /* Heading Typography */
 h1, h2, h3, h4, h5, h6 {
@@ -263,11 +147,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   animation: floatLogo 3s ease-in-out infinite;
 }
 
-/* Universal safe area top padding for all top headers/navigation bars on notch devices */
-div[style*="height: 100vh"] > div[style*="border-bottom"],
-div[style*="height: 100vh"] > div[style*="borderBottom"] {
-  padding-top: calc(16px + env(safe-area-inset-top, 0px)) !important;
-}
+/* Safe area offsets and top headers padding are now split in android.css and web.css */
+
 
 /* Disable default mobile browser blue highlight overlay on click/tap */
 * {

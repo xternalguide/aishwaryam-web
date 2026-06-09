@@ -111,7 +111,7 @@ export const ChangeMpin: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F8F9FA' }}>
       {/* Header */}
-      <div style={{
+      <div className="app-header-bar" style={{
         background: 'var(--gradient-brand)',
         paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
         paddingLeft: '20px',

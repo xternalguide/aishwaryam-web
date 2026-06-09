@@ -74,7 +74,7 @@ export const PrivacyPolicy: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'white' }}>
       
       {/* Header */}
-      <div style={{
+      <div className="app-header-bar" style={{
         background: 'var(--gradient-brand)',
         paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
         paddingLeft: '20px',

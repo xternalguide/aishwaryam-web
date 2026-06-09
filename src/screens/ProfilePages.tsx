@@ -7,7 +7,7 @@ import { useTranslation } from '../utils/translation';
 import { ArrowLeft, Landmark, ShieldCheck, MapPin, PlusCircle } from 'lucide-react';
 
 const ProfileHeader: React.FC<{ title: string; onBack: () => void }> = ({ title, onBack }) => (
-  <div style={{
+  <div className="app-header-bar" style={{
     background: 'var(--gradient-brand)',
     paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
     paddingLeft: '20px',

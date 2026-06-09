@@ -7,7 +7,7 @@ import { useTranslation } from '../utils/translation';
 import { useApp } from '../context/AppContext';
 
 const Header: React.FC<{ title: string; onBack: () => void }> = ({ title, onBack }) => (
-  <div style={{
+  <div className="app-header-bar" style={{
     background: 'white',
     borderBottom: '1px solid #ECECEC',
     padding: '16px 20px',
@@ -313,7 +313,7 @@ export const AiAssistant: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F5F5F5', position: 'relative' }}>
       
       {/* Custom localized header with Talk to a Human button */}
-      <div style={{
+      <div className="app-header-bar" style={{
         background: 'white',
         borderBottom: '1px solid #ECECEC',
         padding: '12px 20px',
@@ -620,29 +620,67 @@ export const GoldRateAlerts: React.FC = () => {
 // ── MY BONUSES ─────────────────────────────────────────────────────────────
 export const MyBonuses: React.FC = () => {
   const navigate = useNavigate();
-  const [bonusList, setBonusList] = useState<any[]>([]);
+  const { transactions } = useApp();
 
-  useEffect(() => {
-    // Fill mock bonuses matching ledger items
-    setBonusList([
-      { id: 'b1', name: 'Join loyalty chit bonus weight credited', weight: '291 mg', date: '2026-02-05' },
-      { id: 'b2', name: 'Month 3 milestone gold weight credited', weight: '289 mg', date: '2026-03-05' }
-    ]);
-  }, []);
+  const getBonusDisplayDetails = (tx: any) => {
+    if (tx.transactionType === 'EVENT_BONUS') {
+      return {
+        name: tx.rateSource ? `Promotional Reward (${tx.rateSource})` : 'Promotional Bonus Reward',
+        weight: `${tx.goldWeightMg} mg`,
+        amount: 'Promo Reward',
+        percentage: tx.bonusPercentage ? `${tx.bonusPercentage}%` : 'N/A'
+      };
+    }
+    if (tx.transactionType === 'BONUS') {
+      return {
+        name: tx.schemeName ? `Scheme Loyalty Reward (${tx.schemeName})` : 'Scheme Loyalty Bonus',
+        weight: `${tx.goldWeightMg} mg`,
+        amount: 'Loyalty Reward',
+        percentage: tx.bonusPercentage ? `${tx.bonusPercentage}%` : 'N/A'
+      };
+    }
+    return {
+      name: tx.schemeName ? `Loyalty Bonus on ${tx.schemeName}` : 'Installment Loyalty Bonus',
+      weight: `${tx.bonusGoldMg} mg`,
+      amount: `Paid ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(tx.amountPaise / 100)}`,
+      percentage: tx.bonusPercentage ? `${tx.bonusPercentage}%` : '7.5%'
+    };
+  };
+
+  const bonusTransactions = transactions.filter(t => 
+    ((t.transactionType === 'BUY' || t.transactionType === 'INSTALLMENT') && t.bonusGoldMg > 0) ||
+    t.transactionType === 'EVENT_BONUS'
+  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F8F9FA' }}>
       <Header title="My Bonuses" onBack={() => navigate(-1)} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {bonusList.map((item) => (
-          <div key={item.id} className="glass-card" style={{ padding: '16px', borderRadius: '12px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block' }}>{item.name}</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-light)', display: 'block', marginTop: '2px' }}>{item.date}</span>
+        {bonusTransactions.map((tx, idx) => {
+          const details = getBonusDisplayDetails(tx);
+          return (
+            <div key={tx.id || idx} className="glass-card" style={{ padding: '16px', borderRadius: '12px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', color: 'var(--brand-dark)' }}>{details.name}</span>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-light)' }}>
+                    {new Date(tx.createdAt).toLocaleDateString()}
+                  </span>
+                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#ccc' }} />
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                    {details.amount} ({details.percentage})
+                  </span>
+                </div>
+              </div>
+              <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--success-green)' }}>+ {details.weight}</span>
             </div>
-            <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-accent)' }}>+ {item.weight}</span>
+          );
+        })}
+        {bonusTransactions.length === 0 && (
+          <div className="glass-card" style={{ padding: '32px 20px', textAlign: 'center', borderRadius: '16px', background: 'white', color: 'var(--text-muted)', fontSize: '12.5px' }}>
+            No bonuses earned yet. Start saving in a scheme or refer friends to earn bonus gold!
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

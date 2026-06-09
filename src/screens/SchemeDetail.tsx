@@ -801,7 +801,7 @@ export const SchemeDetail: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F8F9FA' }}>
       {/* Top Bar */}
-      <div style={{
+      <div className="app-header-bar" style={{
         background: 'white',
         borderBottom: '1px solid #ECECEC',
         padding: '16px 20px',
@@ -1163,16 +1163,29 @@ export const SchemeDetail: React.FC = () => {
                 Redeemed / பெறப்பட்டது
               </button>
             ) : schemeStatus.toLowerCase() === 'matured' ? (
-              <button
-                onClick={() => navigate(`/scheme-redemption/${userSchemeId}`)}
-                style={{
-                  flex: 1, height: '52px', borderRadius: '14px', background: 'var(--gradient-gold)',
-                  color: '#1A1200', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px var(--gold-glow)'
-                }}
-              >
-                Proceed to Redeem / மீட்டெடுக்க தொடரவும் 🎁
-              </button>
+              <div style={{
+                width: '100%',
+                padding: '16px',
+                borderRadius: '14px',
+                background: 'rgba(255, 215, 0, 0.1)',
+                border: '1.5px solid #FFD700',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                alignItems: 'center',
+                textAlign: 'center'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--brand-dark)', fontWeight: 'bold', fontSize: '14.5px' }}>
+                  <Award size={18} color="#FFB300" />
+                  <span>Scheme Matured / திட்டம் முதிர்வடைந்தது! 🎉</span>
+                </div>
+                <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: '17px' }}>
+                  To redeem your accumulated gold/silver or cash equivalent, please contact your nearest branch or call customer support at <strong>+91 94430 00000</strong>. Physical verification is required for security.
+                </p>
+                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '2px 0 0 0', lineHeight: '16px', fontStyle: 'italic' }}>
+                  உங்களது சேமிப்பை தங்கம்/வெள்ளி அல்லது பணமாகப் பெற, தயவுசெய்து தங்களது அருகில் உள்ள ஐஸ்வர்யம் கிளையை அணுகவும் அல்லது <strong>+91 94430 00000</strong> என்ற எண்ணில் வாடிக்கையாளர் சேவையை அழைக்கவும்.
+                </p>
+              </div>
             ) : (
               <>
                 <button
@@ -1190,18 +1203,6 @@ export const SchemeDetail: React.FC = () => {
                     t('pay_installment') || 'Make Payment'
                   )}
                 </button>
-                {remainingDaysForScheme <= 0 && (
-                  <button
-                    onClick={() => navigate(`/scheme-redemption/${userSchemeId}`)}
-                    style={{
-                      flex: 1, height: '52px', borderRadius: '14px', background: 'var(--gradient-gold)',
-                      color: '#1A1200', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px var(--gold-glow)'
-                    }}
-                  >
-                    Proceed to Redeem / மீட்டெடுக்க தொடரவும் 🎁
-                  </button>
-                )}
               </>
             )}
           </div>
