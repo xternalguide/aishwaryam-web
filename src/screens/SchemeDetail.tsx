@@ -342,6 +342,14 @@ export const SchemeDetail: React.FC = () => {
             email: profile?.email || '',
             contact: profile?.phoneNumber || ''
           },
+          notes: {
+            userId: userId,
+            userName: profile?.fullName || '',
+            schemeId: customSchemeId || userSchemeId || '',
+            schemeName: scheme.planName,
+            investmentAmount: (amountPaise / 100).toString(),
+            transactionReference: orderData.orderId
+          },
           theme: {
             color: '#4A0E4E'
           }

@@ -74,6 +74,7 @@ interface TransactionItem {
   type?: string;
   schemeName?: string;
   bonusPercentage?: number;
+  bonusGoldMg?: number;
   installmentNumber: number;
   amountPaise: number;
   baseAmountPaise: number;
@@ -463,6 +464,13 @@ export const Dashboard: React.FC = () => {
           icon: <Clock size={16} color="var(--warning-amber)" />,
           bgColor: 'rgba(245, 127, 23, 0.08)',
           isCredit: false
+        };
+      case 'BUY':
+        return {
+          label: 'Gold Saved',
+          icon: <TrendingUp size={16} color="var(--brand-accent)" />,
+          bgColor: 'rgba(255, 215, 0, 0.08)',
+          isCredit: true
         };
       default:
         return {
@@ -874,7 +882,7 @@ export const Dashboard: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {filteredRecent.slice(0, 3).map((tx) => {
             const details = getTxTypeDetails(tx.transactionType);
-            const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS';
+            const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS' || tx.transactionType === 'BUY' || tx.transactionType === 'SCHEME_JOIN';
             return (
               <div
                 key={tx.id}
@@ -896,10 +904,10 @@ export const Dashboard: React.FC = () => {
                   </div>
                   <div>
                     <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-primary)', display: 'block' }}>
-                      {details.label}
+                      {tx.schemeName || details.label}
                     </span>
                     <span style={{ fontSize: '9.5px', color: 'var(--text-light)', display: 'block', marginTop: '1px' }}>
-                      {new Date(tx.createdAt).toLocaleDateString()}
+                      {tx.schemeName ? `${details.label} • ` : ''}{new Date(tx.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
@@ -1239,16 +1247,25 @@ export const Dashboard: React.FC = () => {
               <tbody>
                 {list.map((tx) => {
                   const details = getTxTypeDetails(tx.transactionType);
-                  const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS';
+                  const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS' || tx.transactionType === 'BUY' || tx.transactionType === 'SCHEME_JOIN';
                   return (
                     <tr
                       key={tx.id}
                       onClick={() => setSelectedTxDetail(tx)}
                       style={{ borderBottom: '1px solid #F1F3F4', cursor: 'pointer', transition: 'background 0.2s' }}
                     >
-                      <td style={{ padding: '18px 24px', fontSize: '13.5px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '16px', display: 'inline-flex', alignItems: 'center' }}>{details.icon}</span>
-                        {details.label}
+                      <td style={{ padding: '18px 24px', fontSize: '13.5px', fontWeight: 'bold' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '16px', display: 'inline-flex', alignItems: 'center' }}>{details.icon}</span>
+                          <div>
+                            <span style={{ display: 'block' }}>{tx.schemeName || details.label}</span>
+                            {tx.schemeName && (
+                              <span style={{ fontSize: '11px', color: 'var(--text-light)', fontWeight: 'normal', display: 'block', marginTop: '2px' }}>
+                                {details.label}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td style={{ padding: '18px 24px', fontSize: '13.5px', color: 'var(--text-secondary)' }}>
                         {new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1286,7 +1303,7 @@ export const Dashboard: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {list.map((tx) => {
               const details = getTxTypeDetails(tx.transactionType);
-              const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS';
+              const isBuy = tx.transactionType === 'INSTALLMENT' || tx.transactionType === 'BONUS' || tx.transactionType === 'EVENT_BONUS' || tx.transactionType === 'BUY' || tx.transactionType === 'SCHEME_JOIN';
               return (
                 <div
                   key={tx.id}
@@ -1308,10 +1325,10 @@ export const Dashboard: React.FC = () => {
                     </div>
                     <div>
                       <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block' }}>
-                        {details.label}
+                        {tx.schemeName || details.label}
                       </span>
                       <span style={{ fontSize: '10px', color: 'var(--text-light)', display: 'block', marginTop: '2px' }}>
-                        {new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {tx.schemeName ? `${details.label} • ` : ''}{new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   </div>
@@ -2181,6 +2198,12 @@ export const Dashboard: React.FC = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: 'var(--text-muted)' }}>Gold Weight</span>
                     <span style={{ fontWeight: 'bold', color: '#FFB300' }}>{mgToGrams(selectedTxDetail.goldWeightMg)}</span>
+                  </div>
+                )}
+                {selectedTxDetail.bonusGoldMg > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Bonus Gold Earned</span>
+                    <span style={{ fontWeight: 'bold', color: 'var(--success-green)' }}>{mgToGrams(selectedTxDetail.bonusGoldMg)}</span>
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
