@@ -4,6 +4,11 @@
     padding-top: calc(54px + env(safe-area-inset-top, 0px)) !important;
   }
 
+  .onboarding-form-container {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   /* Pushes navigation header bars down on mobile devices */
   .app-header-bar,
   div[style*="height: 100vh"] > div[style*="border-bottom"],

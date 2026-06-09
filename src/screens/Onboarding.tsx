@@ -400,9 +400,9 @@ export const Onboarding: React.FC = () => {
         </div>
       </div>
 
-      <div className="responsive-form-container" style={{ flex: 1, overflowY: 'auto', padding: '12px 20px 20px 20px', display: 'flex', flexDirection: 'column' }}>
+      <div className="onboarding-form-container" style={{ flex: 1, overflowY: 'auto', padding: '5px 20px 20px 20px', display: 'flex', flexDirection: 'column' }}>
         {/* Progress Stepper */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '8px 0 16px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0px 0 16px 0' }}>
           {[1, 2].map((num) => (
             <React.Fragment key={num}>
               <div style={{

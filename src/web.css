@@ -16,6 +16,13 @@
     padding-top: 24px !important; /* Standard spacing for desktop viewports */
   }
 
+  .onboarding-form-container {
+    width: 100%;
+    max-width: 440px !important;
+    margin: 0 auto !important;
+    box-sizing: border-box;
+  }
+
   /* Reset header bar padding for desktop viewports */
   .app-header-bar,
   div[style*="height: 100vh"] > div[style*="border-bottom"],

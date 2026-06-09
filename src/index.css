@@ -118,14 +118,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Hide default calendar icon and spin buttons in date inputs */
+input[type="date"] {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
 input[type="date"]::-webkit-inner-spin-button,
 input[type="date"]::-webkit-clear-button {
-  display: none;
-  -webkit-appearance: none;
+  display: none !important;
+  -webkit-appearance: none !important;
 }
 input[type="date"]::-webkit-calendar-picker-indicator {
-  display: none;
-  -webkit-appearance: none;
+  display: none !important;
+  -webkit-appearance: none !important;
 }
 
 /* Premium Splash Logo Animation */
