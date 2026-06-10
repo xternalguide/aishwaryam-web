@@ -35,10 +35,11 @@ export const Mpin: React.FC = () => {
 
   const [secondsRemaining, setSecondsRemaining] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  // Tracks which box has focus for the blinking border animation
+  const [focusedBoxIdx, setFocusedBoxIdx] = useState<number | null>(null);
 
   // Refs for focusing inputs
   const mpinRef = useRef<HTMLInputElement[]>([]);
@@ -76,26 +77,15 @@ export const Mpin: React.FC = () => {
     return () => clearInterval(interval);
   }, [flowState, secondsRemaining]);
 
-  // Loading progress animation effect (0% to 95%)
-  useEffect(() => {
-    let interval: any;
-    if (isLoading) {
-      setLoadingProgress(0);
-      interval = setInterval(() => {
-        setLoadingProgress((prev) => {
-          if (prev >= 95) {
-            clearInterval(interval);
-            return prev;
-          }
-          const next = prev + Math.floor(Math.random() * 8) + 3;
-          return next > 95 ? 95 : next;
-        });
-      }, 50);
-    } else {
-      setLoadingProgress(0);
+  // ── Injected CSS: Kotak-style blinking pin box + spin animation ────────────
+  const mpinStyles = `
+    @keyframes pinBoxBlink {
+      0%, 100% { border-color: #4A0E4E; box-shadow: 0 0 0 2px rgba(74,14,78,0.2); }
+      50%       { border-color: rgba(74,14,78,0.25); box-shadow: none; }
     }
-    return () => clearInterval(interval);
-  }, [isLoading]);
+    .pin-box-active { animation: pinBoxBlink 0.9s ease-in-out infinite !important; border-color: #4A0E4E !important; }
+    @keyframes spin  { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  `;
 
   // ── BULLETPROOF ERROR CLEARING ──────────────────────────────────────────
   // Layer 1: Reactively clear error whenever ANY pin input value changes.
@@ -126,14 +116,7 @@ export const Mpin: React.FC = () => {
       if (response.data && response.data.success) {
         SessionManager.saveSession(response.data.userId, response.data.token, response.data.refreshToken);
         SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
-        
-        // Await all API calls so Dashboard gets live prices and schemes before transition
         await refreshData();
-        
-        // Complete the progress to 100% smoothly
-        setLoadingProgress(100);
-        await new Promise((resolve) => setTimeout(resolve, 250));
-        
         setSuccessMessage('Login Successful!');
         setShowSuccessDialog(true);
       } else {
@@ -162,9 +145,6 @@ export const Mpin: React.FC = () => {
         phoneNumber: SessionManager.getPhoneNumber() || ''
       });
       if (response.data && response.data.success) {
-        // Complete progress to 100% smoothly
-        setLoadingProgress(100);
-        await new Promise((resolve) => setTimeout(resolve, 250));
         setSuccessMessage(mode === 'change' ? 'PIN Changed Successfully!' : flowState === MpinFlowState.SETUP_PIN ? 'PIN Set Successfully!' : 'PIN Reset Successfully!');
         setShowSuccessDialog(true);
       } else {
@@ -187,9 +167,6 @@ export const Mpin: React.FC = () => {
         otp: val
       });
       if (response.data && response.data.success) {
-        // Complete progress to 100% smoothly
-        setLoadingProgress(100);
-        await new Promise((resolve) => setTimeout(resolve, 250));
         const { token, refreshToken, userId } = response.data;
         SessionManager.saveSession(userId, token, refreshToken);
         setFlowState(MpinFlowState.FORGOT_NEW_PIN);
@@ -307,6 +284,7 @@ export const Mpin: React.FC = () => {
       boxSizing: 'border-box',
       position: 'relative'
     }}>
+      <style>{mpinStyles}</style>
       <div className="responsive-form-container" style={{
         flex: 1,
         overflowY: 'auto',
@@ -406,24 +384,32 @@ export const Mpin: React.FC = () => {
                       pattern="[0-9]*"
                       inputMode="numeric"
                       maxLength={1}
-                      value={mpin[i] || ''}
-                      onFocus={handlePinFocus}
-                      onChange={(e) => handlePinBoxChange(i, e.target.value, setMpin, mpin, mpinRef, 4, (completedVal) => {
-                        handleVerifyExistingMpin(completedVal);
-                      })}
+                      value={mpin[i] ? '●' : ''}
+                      readOnly={!!mpin[i]}
+                      onFocus={() => { handlePinFocus(); setFocusedBoxIdx(i); }}
+                      onBlur={() => setFocusedBoxIdx(null)}
+                      onChange={(e) => {
+                        if (mpin[i]) return; // already filled, ignore
+                        handlePinBoxChange(i, e.target.value, setMpin, mpin, mpinRef, 4, (completedVal) => {
+                          handleVerifyExistingMpin(completedVal);
+                        });
+                      }}
                       onKeyDown={(e) => handleKeyDown(i, e, mpin, setMpin, mpinRef)}
                       ref={(el) => { if (el) mpinRef.current[i] = el; }}
+                      className={focusedBoxIdx === i ? 'pin-box-active' : ''}
                       style={{
-                        width: '46px',
-                        height: '46px',
-                        borderRadius: '12px',
-                        border: '1.5px solid rgba(74, 14, 78, 0.15)',
+                        width: '52px',
+                        height: '52px',
+                        borderRadius: '14px',
+                        border: `2px solid ${mpin[i] ? '#4A0E4E' : 'rgba(74,14,78,0.2)'}`,
                         textAlign: 'center',
-                        fontSize: '24px',
+                        fontSize: mpin[i] ? '28px' : '16px',
                         outline: 'none',
-                        background: '#F9F9F9',
-                        WebkitTextSecurity: 'disc',
-                        textSecurity: 'disc'
+                        background: mpin[i] ? 'rgba(74,14,78,0.06)' : '#F9F9F9',
+                        color: '#4A0E4E',
+                        fontWeight: '900',
+                        caretColor: 'transparent',
+                        transition: 'border-color 0.2s ease, background 0.2s ease',
                       } as React.CSSProperties}
                     />
                   </div>
@@ -485,23 +471,27 @@ export const Mpin: React.FC = () => {
                         inputMode="numeric"
                         maxLength={1}
                         value={newMpin[i] || ''}
-                        onFocus={handlePinFocus}
+                        onFocus={() => { handlePinFocus(); setFocusedBoxIdx(100 + i); }}
+                        onBlur={() => setFocusedBoxIdx(null)}
                         onChange={(e) => handlePinBoxChange(i, e.target.value, setNewMpin, newMpin, newMpinRef, 4, () => {
                           if (confirmMpinRef.current[0]) confirmMpinRef.current[0].focus();
                         })}
                         onKeyDown={(e) => handleKeyDown(i, e, newMpin, setNewMpin, newMpinRef)}
                         ref={(el) => { if (el) newMpinRef.current[i] = el; }}
+                        className={focusedBoxIdx === 100 + i ? 'pin-box-active' : ''}
                         style={{
-                          width: '42px',
-                          height: '42px',
-                          borderRadius: '10px',
-                          border: '1.5px solid rgba(74,14,78,0.15)',
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '12px',
+                          border: `2px solid ${newMpin[i] ? '#4A0E4E' : 'rgba(74,14,78,0.2)'}`,
                           textAlign: 'center',
                           fontSize: '20px',
+                          fontWeight: '800',
                           outline: 'none',
-                          background: '#F9F9F9',
-                          WebkitTextSecurity: 'disc',
-                          textSecurity: 'disc'
+                          background: newMpin[i] ? 'rgba(74,14,78,0.06)' : '#F9F9F9',
+                          color: '#4A0E4E',
+                          caretColor: 'transparent',
+                          transition: 'border-color 0.2s ease, background 0.2s ease',
                         } as React.CSSProperties}
                       />
                     </div>
@@ -521,7 +511,8 @@ export const Mpin: React.FC = () => {
                         maxLength={1}
                         value={confirmMpin[i] || ''}
                         disabled={newMpin.length !== 4}
-                        onFocus={handlePinFocus}
+                        onFocus={() => { handlePinFocus(); setFocusedBoxIdx(200 + i); }}
+                        onBlur={() => setFocusedBoxIdx(null)}
                         onChange={(e) => handlePinBoxChange(i, e.target.value, setConfirmMpin, confirmMpin, confirmMpinRef, 4, (completedVal) => {
                           if (newMpin === completedVal) {
                             handleSaveMpin(completedVal);
@@ -529,17 +520,20 @@ export const Mpin: React.FC = () => {
                         })}
                         onKeyDown={(e) => handleKeyDown(i, e, confirmMpin, setConfirmMpin, confirmMpinRef)}
                         ref={(el) => { if (el) confirmMpinRef.current[i] = el; }}
+                        className={focusedBoxIdx === 200 + i ? 'pin-box-active' : ''}
                         style={{
-                          width: '42px',
-                          height: '42px',
-                          borderRadius: '10px',
-                          border: '1.5px solid rgba(74,14,78,0.15)',
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '12px',
+                          border: `2px solid ${confirmMpin[i] ? '#4A0E4E' : newMpin.length === 4 ? 'rgba(74,14,78,0.2)' : 'rgba(74,14,78,0.08)'}`,
                           textAlign: 'center',
                           fontSize: '20px',
+                          fontWeight: '800',
                           outline: 'none',
-                          background: newMpin.length === 4 ? '#F9F9F9' : '#ECECEC',
-                          WebkitTextSecurity: 'disc',
-                          textSecurity: 'disc'
+                          background: confirmMpin[i] ? 'rgba(74,14,78,0.06)' : newMpin.length === 4 ? '#F9F9F9' : '#ECECEC',
+                          color: '#4A0E4E',
+                          caretColor: 'transparent',
+                          transition: 'border-color 0.2s ease, background 0.2s ease',
                         } as React.CSSProperties}
                       />
                     </div>
@@ -740,70 +734,13 @@ export const Mpin: React.FC = () => {
         </div>
       )}
 
-      {/* Loading full screen overlay */}
+      {/* Minimal loading indicator - thin top bar instead of full overlay */}
       {isLoading && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(41, 0, 29, 0.9)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 2000,
-          color: 'white',
-          animation: 'fadeIn 0.2s ease-out'
-        }}>
-          {/* Circular SVG Progress Loader */}
-          <div style={{ position: 'relative', width: '90px', height: '90px', marginBottom: '20px' }}>
-            <svg width="90" height="90" viewBox="0 0 90 90" style={{ transform: 'rotate(-90deg)' }}>
-              <circle
-                cx="45"
-                cy="45"
-                r="38"
-                fill="transparent"
-                stroke="rgba(255, 255, 255, 0.15)"
-                strokeWidth="5"
-              />
-              <circle
-                cx="45"
-                cy="45"
-                r="38"
-                fill="transparent"
-                stroke="var(--gold-primary)"
-                strokeWidth="5"
-                strokeDasharray={2 * Math.PI * 38}
-                strokeDashoffset={2 * Math.PI * 38 * (1 - loadingProgress / 100)}
-                strokeLinecap="round"
-                style={{ transition: 'stroke-dashoffset 0.12s ease-out' }}
-              />
-            </svg>
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '18px',
-              fontWeight: '900',
-              color: 'var(--gold-primary)',
-              fontFamily: 'var(--font-poppins)'
-            }}>
-              {loadingProgress}%
-            </div>
-          </div>
-          <span style={{ fontSize: '15px', fontWeight: 'bold', fontFamily: 'var(--font-poppins)', color: 'rgba(255, 255, 255, 0.9)', letterSpacing: '0.5px' }}>
-            {flowState === MpinFlowState.ENTER_PIN ? 'Verifying PIN...' : 'Saving PIN...'}
-          </span>
-        </div>
+          position: 'fixed', top: 0, left: 0, right: 0, height: '3px', zIndex: 2000,
+          background: 'linear-gradient(90deg, #FFD700, #C2185B, #4A0E4E)',
+          animation: 'loadingBar 1.2s ease-in-out infinite'
+        }} />
       )}
     </div>
   );

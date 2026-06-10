@@ -36,20 +36,15 @@ import {
    INLINE STYLES  – design tokens kept in JS so
    we don't need to touch index.css
 ───────────────────────────────────────────── */
-const DS = {
-  // Background
+const darkTheme = {
   bgPage:   '#0F0F1A',
   bgCard:   'rgba(255,255,255,0.05)',
   bgCardHover: 'rgba(255,255,255,0.08)',
   bgSurface:'rgba(255,255,255,0.03)',
-
-  // Brand
   purple:   '#4A0E4E',
   magenta:  '#C2185B',
   gold:     '#FFD700',
   goldSoft: '#FFB300',
-
-  // Glassmorphism card
   glass: {
     background: 'rgba(255,255,255,0.06)',
     backdropFilter: 'blur(20px)',
@@ -57,38 +52,49 @@ const DS = {
     border: '1px solid rgba(255,255,255,0.1)',
     borderRadius: '20px',
   } as React.CSSProperties,
-
-  // Text
   textWhite:   '#FFFFFF',
   textSub:     'rgba(255,255,255,0.55)',
   textMuted:   'rgba(255,255,255,0.35)',
-
-  // Fonts
   font: "'Montserrat', sans-serif",
+  navBg: 'rgba(15,15,26,0.9)',
+  sidebarBg: 'rgba(255,255,255,0.03)',
+  sidebarBorder: '1px solid rgba(255,255,255,0.07)',
+  bottomBarBg: 'rgba(15,15,26,0.95)',
+  bottomBarBorder: '1px solid rgba(255,255,255,0.07)',
+  cardHoverCss: 'rgba(255,255,255,0.09)',
+  actionHoverCss: 'rgba(255,255,255,0.1)',
 };
 
-/* ── Keyframes injected once ── */
-const globalStyles = `
+const lightTheme = {
+  bgPage:   '#F0EDE8',
+  bgCard:   'rgba(255,255,255,0.75)',
+  bgCardHover: 'rgba(255,255,255,0.95)',
+  bgSurface:'rgba(255,255,255,0.5)',
+  purple:   '#4A0E4E',
+  magenta:  '#C2185B',
+  gold:     '#B8860B',
+  goldSoft: '#996F00',
+  glass: {
+    background: 'rgba(255,255,255,0.85)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(74,14,78,0.1)',
+    borderRadius: '20px',
+  } as React.CSSProperties,
+  textWhite:   '#1A0A1E',
+  textSub:     'rgba(26,10,30,0.6)',
+  textMuted:   'rgba(26,10,30,0.4)',
+  font: "'Montserrat', sans-serif",
+  navBg: 'rgba(240,237,232,0.92)',
+  sidebarBg: 'rgba(255,255,255,0.7)',
+  sidebarBorder: '1px solid rgba(74,14,78,0.1)',
+  bottomBarBg: 'rgba(240,237,232,0.97)',
+  bottomBarBorder: '1px solid rgba(74,14,78,0.1)',
+  cardHoverCss: 'rgba(74,14,78,0.06)',
+  actionHoverCss: 'rgba(74,14,78,0.08)',
+};
 
-  .dash-btn-hover:hover { opacity: 0.85; transform: translateY(-1px); }
-  .dash-card-hover:hover { background: rgba(255,255,255,0.09) !important; transform: translateY(-2px); }
-  .dash-action-hover:hover { background: rgba(255,255,255,0.1) !important; transform: scale(1.03); }
-
-  @keyframes dash-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-  .live-dot { animation: dash-pulse 1.8s ease-in-out infinite; }
-
-  @keyframes dash-fade-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .dash-fade-in { animation: dash-fade-in 0.35s ease forwards; }
-
-  /* light variant for desktop sidebar */
-  .sidebar-nav-btn:hover { background: rgba(74,14,78,0.08) !important; }
-`;
+/* ── globalStyles is now injected dynamically inside the component ── */
 
 // ─────────────────────────────────────────────
 // Interfaces
@@ -165,6 +171,33 @@ export const Dashboard: React.FC = () => {
 
   const [userName, setUserName] = useState('');
   const [kycLevel, setKycLevel] = useState('BASIC');
+
+  // ── THEME TOGGLE ──────────────────────────────────────────────────────────
+  // Default: light (false). Persisted to localStorage.
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    const saved = localStorage.getItem('DASHBOARD_THEME');
+    return saved === 'dark'; // default light
+  });
+  const DS = isDark ? darkTheme : lightTheme;
+  const globalStyles = `
+    .dash-btn-hover:hover { opacity: 0.85; transform: translateY(-1px); }
+    .dash-card-hover:hover { background: ${DS.cardHoverCss} !important; transform: translateY(-2px); }
+    .dash-action-hover:hover { background: ${DS.actionHoverCss} !important; transform: scale(1.03); }
+    @keyframes dash-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .live-dot { animation: dash-pulse 1.8s ease-in-out infinite; }
+    @keyframes dash-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .dash-fade-in { animation: dash-fade-in 0.35s ease forwards; }
+    .sidebar-nav-btn:hover { background: rgba(74,14,78,0.08) !important; }
+    @keyframes theme-toggle-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  `;
+  const toggleTheme = () => {
+    setIsDark(prev => {
+      const next = !prev;
+      localStorage.setItem('DASHBOARD_THEME', next ? 'dark' : 'light');
+      return next;
+    });
+  };
+  // ─────────────────────────────────────────────────────────────────────────
 
   // Ref for the tab scroll container — used to reset scroll on tab switch
   const tabScrollRef = useRef<HTMLDivElement>(null);
@@ -851,14 +884,14 @@ export const Dashboard: React.FC = () => {
 
       {/* ── DESKTOP SIDEBAR ── */}
       {isDesktop && (
-        <div style={{ width:'260px', background:'rgba(255,255,255,0.03)', borderRight:'1px solid rgba(255,255,255,0.07)', padding:'28px 20px', display:'flex', flexDirection:'column', justifyContent:'space-between', flexShrink:0 }}>
+        <div style={{ width:'260px', background:DS.sidebarBg, borderRight:DS.sidebarBorder, padding:'28px 20px', display:'flex', flexDirection:'column', justifyContent:'space-between', flexShrink:0 }}>
           <div style={{ display:'flex', flexDirection:'column', gap:'32px' }}>
             {/* Logo */}
             <div style={{ display:'flex', alignItems:'center', gap:'12px', padding:'0 8px' }}>
               <div style={{ width:'40px', height:'40px', borderRadius:'12px', background:'linear-gradient(135deg,#29001D,#4A0E4E)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 16px rgba(74,14,78,0.5)' }}>
                 <Award size={22} color={DS.gold} />
               </div>
-              <span style={{ fontFamily:DS.font, fontWeight:'900', fontSize:'20px', color:'white', letterSpacing:'0.3px' }}>Aishwaryam</span>
+              <span style={{ fontFamily:DS.font, fontWeight:'900', fontSize:'20px', color:DS.textWhite, letterSpacing:'0.3px' }}>Aishwaryam</span>
             </div>
 
             {/* Nav */}
@@ -919,7 +952,7 @@ export const Dashboard: React.FC = () => {
         {/* TOP NAVBAR */}
         {selectedTab !== 2 && (
           <div style={{
-            background:'rgba(15,15,26,0.9)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
+            background:DS.navBg, backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
             borderBottom:'1px solid rgba(255,255,255,0.07)',
             paddingTop: isDesktop ? '16px' : 'calc(0px + env(safe-area-inset-top, 0px))',
             paddingLeft:'20px', paddingRight:'20px',
@@ -937,13 +970,24 @@ export const Dashboard: React.FC = () => {
                 <span style={{ fontFamily:DS.font, fontSize:'10px', color:DS.textMuted, display:'block' }}>{t('verified_client')}</span>
               </div>
             </div>
-            <button
-              onClick={()=>{ setUnreadNotifCount(0); navigate('/notifications'); }}
-              style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'50%', width:'38px', height:'38px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', position:'relative' }}
-            >
-              <Bell size={18} color={DS.textSub} />
-              {unreadNotifCount > 0 && <span style={{ position:'absolute', top:'7px', right:'7px', width:'8px', height:'8px', background:'#EF4444', borderRadius:'50%' }} />}
-            </button>
+            <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+              {/* Theme toggle */}
+              <button
+                onClick={toggleTheme}
+                title={isDark ? 'Switch to Light' : 'Switch to Dark'}
+                style={{ background: isDark ? 'rgba(255,215,0,0.12)' : 'rgba(74,14,78,0.1)', border: isDark ? '1px solid rgba(255,215,0,0.25)' : '1px solid rgba(74,14,78,0.2)', borderRadius:'50%', width:'38px', height:'38px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:'18px', transition:'all 0.3s ease' }}
+              >
+                {isDark ? '☀️' : '🌙'}
+              </button>
+              {/* Notifications */}
+              <button
+                onClick={()=>{ setUnreadNotifCount(0); navigate('/notifications'); }}
+                style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(74,14,78,0.08)', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(74,14,78,0.15)', borderRadius:'50%', width:'38px', height:'38px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', position:'relative' }}
+              >
+                <Bell size={18} color={DS.textSub} />
+                {unreadNotifCount > 0 && <span style={{ position:'absolute', top:'7px', right:'7px', width:'8px', height:'8px', background:'#EF4444', borderRadius:'50%' }} />}
+              </button>
+            </div>
           </div>
         )}
 
@@ -1124,7 +1168,7 @@ export const Dashboard: React.FC = () => {
 
         {/* ── BOTTOM TAB BAR (mobile only) ── */}
         {!isDesktop && (
-          <div style={{ background:'rgba(15,15,26,0.95)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', borderTop:'1px solid rgba(255,255,255,0.07)', height:`calc(64px + env(safe-area-inset-bottom, 0px))`, paddingBottom:'env(safe-area-inset-bottom, 0px)', display:'flex', justifyContent:'space-around', alignItems:'center', zIndex:10, boxSizing:'border-box' }}>
+          <div style={{ background:DS.bottomBarBg, backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', borderTop:DS.bottomBarBorder, height:`calc(64px + env(safe-area-inset-bottom, 0px))`, paddingBottom:'env(safe-area-inset-bottom, 0px)', display:'flex', justifyContent:'space-around', alignItems:'center', zIndex:10, boxSizing:'border-box' }}>
             {[
               { tab:0, icon:Home, label:t('tab_home') },
               { tab:1, icon:History, label:t('tab_history') },
@@ -1138,8 +1182,8 @@ export const Dashboard: React.FC = () => {
                 {selectedTab === tab && (
                   <div style={{ position:'absolute', top:'-8px', left:'50%', transform:'translateX(-50%)', width:'28px', height:'3px', borderRadius:'2px', background:'linear-gradient(90deg,#C2185B,#FFD700)' }} />
                 )}
-                <Icon size={22} color={selectedTab===tab ? DS.gold : 'rgba(255,255,255,0.3)'} />
-                <span style={{ fontFamily:DS.font, fontSize:'10px', fontWeight:selectedTab===tab?'800':'500', color:selectedTab===tab?DS.gold:'rgba(255,255,255,0.3)' }}>{label}</span>
+                <Icon size={22} color={selectedTab===tab ? DS.gold : DS.textMuted} />
+                <span style={{ fontFamily:DS.font, fontSize:'10px', fontWeight:selectedTab===tab?'800':'500', color:selectedTab===tab?DS.gold:DS.textMuted }}>{label}</span>
               </button>
             ))}
           </div>
