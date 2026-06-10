@@ -38,30 +38,29 @@ import {
 ───────────────────────────────────────────── */
 const DS = {
   // Background
-  bgPage:   '#0F0F1A',
-  bgCard:   'rgba(255,255,255,0.05)',
-  bgCardHover: 'rgba(255,255,255,0.08)',
-  bgSurface:'rgba(255,255,255,0.03)',
+  bgPage:      '#F4F5FB',
+  bgCard:      '#FFFFFF',
+  bgCardHover: '#FAFAFE',
+  bgSurface:   '#F8F9FF',
 
   // Brand
   purple:   '#4A0E4E',
   magenta:  '#C2185B',
-  gold:     '#FFD700',
+  gold:     '#B8860B',
   goldSoft: '#FFB300',
 
-  // Glassmorphism card
+  // Card style (white, shadow-based)
   glass: {
-    background: 'rgba(255,255,255,0.06)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: '#FFFFFF',
+    boxShadow: '0 2px 16px rgba(74,14,78,0.07)',
+    border: '1px solid rgba(74,14,78,0.07)',
     borderRadius: '20px',
   } as React.CSSProperties,
 
   // Text
-  textWhite:   '#FFFFFF',
-  textSub:     'rgba(255,255,255,0.55)',
-  textMuted:   'rgba(255,255,255,0.35)',
+  textWhite:   '#1A1A2E',
+  textSub:     '#5A5A7A',
+  textMuted:   '#9A9AB0',
 
   // Fonts
   font: "'Montserrat', sans-serif",
@@ -71,8 +70,8 @@ const DS = {
 const globalStyles = `
 
   .dash-btn-hover:hover { opacity: 0.85; transform: translateY(-1px); }
-  .dash-card-hover:hover { background: rgba(255,255,255,0.09) !important; transform: translateY(-2px); }
-  .dash-action-hover:hover { background: rgba(255,255,255,0.1) !important; transform: scale(1.03); }
+  .dash-card-hover:hover { box-shadow: 0 8px 28px rgba(74,14,78,0.13) !important; transform: translateY(-2px); }
+  .dash-action-hover:hover { background: #F0ECF8 !important; transform: scale(1.03); }
 
   @keyframes dash-pulse {
     0%, 100% { opacity: 1; }
@@ -86,8 +85,7 @@ const globalStyles = `
   }
   .dash-fade-in { animation: dash-fade-in 0.35s ease forwards; }
 
-  /* light variant for desktop sidebar */
-  .sidebar-nav-btn:hover { background: rgba(74,14,78,0.08) !important; }
+  .sidebar-nav-btn:hover { background: rgba(74,14,78,0.06) !important; }
 `;
 
 // ─────────────────────────────────────────────
@@ -641,8 +639,8 @@ export const Dashboard: React.FC = () => {
                     <span style={{ fontFamily:DS.font, fontSize:'14px', fontWeight:'800', color:DS.textWhite }}>{formatRupees(scheme.installmentAmountPaise)}</span>
                   </div>
                 </div>
-                <div style={{ background:'rgba(255,215,0,0.1)', borderRadius:'10px', padding:'8px 12px', border:'1px solid rgba(255,215,0,0.2)' }}>
-                  <span style={{ fontFamily:DS.font, fontSize:'9px', color:'rgba(255,215,0,0.7)', fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.3px', display:'block', marginBottom:'2px' }}>Bonus Offer</span>
+                <div style={{ background:'rgba(184,134,11,0.08)', borderRadius:'10px', padding:'8px 12px', border:'1px solid rgba(184,134,11,0.2)' }}>
+                  <span style={{ fontFamily:DS.font, fontSize:'9px', color:'#B8860B', fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.3px', display:'block', marginBottom:'2px' }}>Bonus Offer</span>
                   <span style={{ fontFamily:DS.font, fontSize:'12px', fontWeight:'800', color:DS.gold }}>Get up to {maxBonus} Extra Gold!</span>
                 </div>
                 {keywords.length > 0 && (
@@ -689,7 +687,7 @@ export const Dashboard: React.FC = () => {
           <div
             onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
             onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}
-            style={{ width:'100%', height:'160px', borderRadius:'20px', overflow:'hidden', position:'relative', background:'#1A1A2E', userSelect:'none', cursor:'grab' }}
+            style={{ width:'100%', height:'160px', borderRadius:'20px', overflow:'hidden', position:'relative', background:'#E0D8E8', userSelect:'none', cursor:'grab' }}
           >
             <div style={{ display:'flex', width:`${banners.length*100}%`, height:'100%', transition:'transform 0.6s cubic-bezier(0.25,1,0.5,1)', transform:`translateX(-${activeBannerIdx*(100/banners.length)}%)` }}>
               {banners.map((banner, index) => {
@@ -728,7 +726,7 @@ export const Dashboard: React.FC = () => {
   const renderNeedHelpCard = () => (
     <div style={{ ...DS.glass, padding:'20px' }}>
       <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'16px' }}>
-        <div style={{ width:'40px', height:'40px', borderRadius:'12px', background:'rgba(74,14,78,0.3)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <div style={{ width:'40px', height:'40px', borderRadius:'12px', background:'rgba(74,14,78,0.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Headset size={20} color={DS.gold} />
         </div>
         <div>
@@ -737,10 +735,10 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
       <div style={{ display:'flex', gap:'12px' }}>
-        <button onClick={()=>window.open('tel:+919443000000')} style={{ flex:1, height:'42px', borderRadius:'12px', background:'linear-gradient(135deg,#29001D,#4A0E4E)', color:'white', border:'1px solid rgba(255,215,0,0.2)', fontFamily:DS.font, fontWeight:'700', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', cursor:'pointer' }}>
-          <PhoneCall size={14} color={DS.gold} /><span>{t('call_us')}</span>
+        <button onClick={()=>window.open('tel:+919443000000')} style={{ flex:1, height:'42px', borderRadius:'12px', background:'linear-gradient(135deg,#29001D,#4A0E4E)', color:'white', border:'none', fontFamily:DS.font, fontWeight:'700', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', cursor:'pointer' }}>
+          <PhoneCall size={14} color="#FFD700" /><span>{t('call_us')}</span>
         </button>
-        <button onClick={()=>window.open('mailto:support@aishwaryam.com')} style={{ flex:1, height:'42px', borderRadius:'12px', background:'rgba(255,255,255,0.05)', color:DS.textWhite, border:'1px solid rgba(255,255,255,0.1)', fontFamily:DS.font, fontWeight:'700', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', cursor:'pointer' }}>
+        <button onClick={()=>window.open('mailto:support@aishwaryam.com')} style={{ flex:1, height:'42px', borderRadius:'12px', background:'#F4F5FB', color:DS.textWhite, border:'1px solid rgba(74,14,78,0.1)', fontFamily:DS.font, fontWeight:'700', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', cursor:'pointer' }}>
           <Mail size={14} color={DS.textSub} /><span>{t('email_us')}</span>
         </button>
       </div>
@@ -756,7 +754,7 @@ export const Dashboard: React.FC = () => {
           <span style={{ fontFamily:DS.font, fontSize:'22px', fontWeight:'900', color:DS.textWhite }}>{t('transactions_title')}</span>
           <button
             onClick={()=>setTxSort(txSort==='NEWEST'?'OLDEST':'NEWEST')}
-            style={{ background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', color:DS.textSub, padding:'8px 16px', borderRadius:'20px', fontFamily:DS.font, fontSize:'11px', fontWeight:'700', cursor:'pointer' }}
+            style={{ background:'#EFEFFA', border:'1px solid rgba(74,14,78,0.1)', color:DS.textSub, padding:'8px 16px', borderRadius:'20px', fontFamily:DS.font, fontSize:'11px', fontWeight:'700', cursor:'pointer' }}
           >
             {t('sort')}: {txSort}
           </button>
@@ -771,7 +769,7 @@ export const Dashboard: React.FC = () => {
               style={{
                 border:'none', borderRadius:'20px', padding:'8px 18px',
                 fontFamily:DS.font, fontSize:'11px', fontWeight:'700',
-                background: txFilter===f ? 'linear-gradient(135deg,#C2185B,#4A0E4E)' : 'rgba(255,255,255,0.07)',
+                background: txFilter===f ? 'linear-gradient(135deg,#C2185B,#4A0E4E)' : '#EFEFFA',
                 color: txFilter===f ? 'white' : DS.textSub,
                 cursor:'pointer', whiteSpace:'nowrap',
                 boxShadow: txFilter===f ? '0 4px 16px rgba(194,24,91,0.35)' : 'none',
@@ -843,14 +841,14 @@ export const Dashboard: React.FC = () => {
 
       {/* ── DESKTOP SIDEBAR ── */}
       {isDesktop && (
-        <div style={{ width:'260px', background:'rgba(255,255,255,0.03)', borderRight:'1px solid rgba(255,255,255,0.07)', padding:'28px 20px', display:'flex', flexDirection:'column', justifyContent:'space-between', flexShrink:0 }}>
+        <div style={{ width:'260px', background:'#FFFFFF', borderRight:'1px solid rgba(74,14,78,0.08)', padding:'28px 20px', display:'flex', flexDirection:'column', justifyContent:'space-between', flexShrink:0 }}>
           <div style={{ display:'flex', flexDirection:'column', gap:'32px' }}>
             {/* Logo */}
             <div style={{ display:'flex', alignItems:'center', gap:'12px', padding:'0 8px' }}>
               <div style={{ width:'40px', height:'40px', borderRadius:'12px', background:'linear-gradient(135deg,#29001D,#4A0E4E)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 16px rgba(74,14,78,0.5)' }}>
                 <Award size={22} color={DS.gold} />
               </div>
-              <span style={{ fontFamily:DS.font, fontWeight:'900', fontSize:'20px', color:'white', letterSpacing:'0.3px' }}>Aishwaryam</span>
+              <span style={{ fontFamily:DS.font, fontWeight:'900', fontSize:'20px', color:'#29001D', letterSpacing:'0.3px' }}>Aishwaryam</span>
             </div>
 
             {/* Nav */}
@@ -868,10 +866,10 @@ export const Dashboard: React.FC = () => {
                     display:'flex', alignItems:'center', gap:'12px', width:'100%', height:'48px',
                     borderRadius:'12px', border:'none', padding:'0 16px', cursor:'pointer', textAlign:'left',
                     fontFamily:DS.font, fontSize:'13px', fontWeight:selectedTab===tab?'800':'500',
-                    background:selectedTab===tab?'rgba(74,14,78,0.5)':'transparent',
-                    color:selectedTab===tab?DS.gold:DS.textSub,
+                    background:selectedTab===tab?'rgba(74,14,78,0.08)':'transparent',
+                    color:selectedTab===tab?'#4A0E4E':DS.textSub,
                     transition:'all 0.2s ease',
-                    boxShadow:selectedTab===tab?'0 2px 12px rgba(74,14,78,0.3)':'none'
+                    boxShadow:'none'
                   }}
                 >
                   {icon}<span>{label}</span>
@@ -880,7 +878,7 @@ export const Dashboard: React.FC = () => {
               <button
                 className="sidebar-nav-btn"
                 onClick={()=>navigate('/ai_assistant')}
-                style={{ display:'flex', alignItems:'center', gap:'12px', width:'100%', height:'48px', borderRadius:'12px', border:'none', background:'transparent', color:DS.textSub, fontFamily:DS.font, fontWeight:'500', cursor:'pointer', padding:'0 16px', fontSize:'13px', textAlign:'left', transition:'all 0.2s ease' }}
+                style={{ display:'flex', alignItems:'center', gap:'12px', width:'100%', height:'48px', borderRadius:'12px', border:'none', background:'transparent', color:DS.textSub, fontFamily:DS.font, fontWeight:'600', cursor:'pointer', padding:'0 16px', fontSize:'13px', textAlign:'left', transition:'all 0.2s ease' }}
               >
                 <Headset size={18} /><span>AI Assistant</span>
               </button>
@@ -888,10 +886,10 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* User info + logout */}
-          <div style={{ display:'flex', flexDirection:'column', gap:'12px', borderTop:'1px solid rgba(255,255,255,0.07)', paddingTop:'20px' }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:'12px', borderTop:'1px solid rgba(74,14,78,0.08)', paddingTop:'20px' }}>
             <div style={{ display:'flex', alignItems:'center', gap:'10px', padding:'0 8px' }}>
-              <div style={{ width:'36px', height:'36px', borderRadius:'50%', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, background:'rgba(74,14,78,0.4)', border:'1px solid rgba(255,215,0,0.2)' }}>
-                {profile?.profilePictureBase64 ? <img src={profile.profilePictureBase64} style={{ width:'100%',height:'100%',objectFit:'cover' }} alt="Avatar" /> : <User size={20} color={DS.gold} />}
+              <div style={{ width:'36px', height:'36px', borderRadius:'50%', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, background:'rgba(74,14,78,0.1)', border:'1px solid rgba(74,14,78,0.15)' }}>
+                {profile?.profilePictureBase64 ? <img src={profile.profilePictureBase64} style={{ width:'100%',height:'100%',objectFit:'cover' }} alt="Avatar" /> : <User size={20} color="#4A0E4E" />}
               </div>
               <div style={{ overflow:'hidden' }}>
                 <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'800', color:DS.textWhite, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', display:'block' }}>{userName}</span>
@@ -911,16 +909,16 @@ export const Dashboard: React.FC = () => {
         {/* TOP NAVBAR */}
         {selectedTab !== 2 && (
           <div style={{
-            background:'rgba(15,15,26,0.9)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
-            borderBottom:'1px solid rgba(255,255,255,0.07)',
+            background:'rgba(255,255,255,0.95)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
+            borderBottom:'1px solid rgba(74,14,78,0.08)',
             paddingTop: isDesktop ? '16px' : 'calc(0px + env(safe-area-inset-top, 0px))',
             paddingLeft:'20px', paddingRight:'20px',
             paddingBottom: isDesktop ? '16px' : '12px',
             display:'flex', justifyContent:'space-between', alignItems:'center', zIndex:10
           }}>
             <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-              <div style={{ width:'38px', height:'38px', borderRadius:'50%', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, background:'rgba(74,14,78,0.5)', border:'1.5px solid rgba(255,215,0,0.25)' }}>
-                {profile?.profilePictureBase64 ? <img src={profile.profilePictureBase64} style={{ width:'100%',height:'100%',objectFit:'cover' }} alt="Avatar" /> : <User size={20} color={DS.gold} />}
+              <div style={{ width:'38px', height:'38px', borderRadius:'50%', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, background:'rgba(74,14,78,0.08)', border:'1.5px solid rgba(74,14,78,0.15)' }}>
+                {profile?.profilePictureBase64 ? <img src={profile.profilePictureBase64} style={{ width:'100%',height:'100%',objectFit:'cover' }} alt="Avatar" /> : <User size={20} color="#4A0E4E" />}
               </div>
               <div>
                 <span style={{ fontFamily:DS.font, fontSize:'14px', fontWeight:'800', color:DS.textWhite, display:'block' }}>
@@ -931,7 +929,7 @@ export const Dashboard: React.FC = () => {
             </div>
             <button
               onClick={()=>{ setUnreadNotifCount(0); navigate('/notifications'); }}
-              style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'50%', width:'38px', height:'38px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', position:'relative' }}
+              style={{ background:'rgba(74,14,78,0.06)', border:'1px solid rgba(74,14,78,0.1)', borderRadius:'50%', width:'38px', height:'38px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', position:'relative' }}
             >
               <Bell size={18} color={DS.textSub} />
               {unreadNotifCount > 0 && <span style={{ position:'absolute', top:'7px', right:'7px', width:'8px', height:'8px', background:'#EF4444', borderRadius:'50%' }} />}
@@ -994,9 +992,9 @@ export const Dashboard: React.FC = () => {
 
               {/* mobile profile header */}
               {!isDesktop && (
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:'16px 20px', background:'rgba(255,255,255,0.02)', position:'relative', zIndex:10, marginTop:'30px' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:'16px 20px', background:'#FFFFFF', borderBottom:'1px solid rgba(74,14,78,0.06)', position:'relative', zIndex:10, marginTop:'30px' }}>
                   <button onClick={()=>setSelectedTab(0)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:'8px', display:'flex', alignItems:'center', justifyContent:'center', color:DS.textWhite, position:'absolute', left:'12px', zIndex:11 }}>
-                    <ChevronLeft size={24} color={DS.textWhite} />
+                    <ChevronLeft size={24} color="#4A0E4E" />
                   </button>
                   <span style={{ fontFamily:DS.font, fontSize:'18px', fontWeight:'900', color:DS.textWhite, textAlign:'center' }}>{t('my_profile')}</span>
                 </div>
@@ -1005,12 +1003,12 @@ export const Dashboard: React.FC = () => {
               {/* Avatar + user details */}
               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'32px 20px 24px 20px' }}>
                 <div style={{ position:'relative', width:'96px', height:'96px', marginBottom:'16px' }}>
-                  <div style={{ width:'100%', height:'100%', borderRadius:'50%', overflow:'hidden', background:'rgba(74,14,78,0.4)', border:'3px solid rgba(255,215,0,0.3)', boxShadow:'0 8px 32px rgba(74,14,78,0.4)' }}>
+                  <div style={{ width:'100%', height:'100%', borderRadius:'50%', overflow:'hidden', background:'rgba(74,14,78,0.08)', border:'3px solid rgba(74,14,78,0.2)', boxShadow:'0 8px 24px rgba(74,14,78,0.15)' }}>
                     {profile?.profilePictureBase64 ? (
                       <img src={profile.profilePictureBase64} style={{ width:'100%',height:'100%',objectFit:'cover' }} alt="Avatar" />
                     ) : (
                       <div style={{ width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center' }}>
-                        <User size={40} color={DS.gold} />
+                        <User size={40} color="#4A0E4E" />
                       </div>
                     )}
                   </div>
@@ -1083,8 +1081,8 @@ export const Dashboard: React.FC = () => {
                 {/* Language selector */}
                 <div style={{ ...DS.glass, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 18px' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-                    <div style={{ width:'42px', height:'42px', borderRadius:'12px', background:'rgba(74,14,78,0.3)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      <Languages size={20} color={DS.gold} />
+                    <div style={{ width:'42px', height:'42px', borderRadius:'12px', background:'rgba(74,14,78,0.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      <Languages size={20} color="#4A0E4E" />
                     </div>
                     <div>
                       <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'800', color:DS.textWhite, display:'block' }}>{t('language')}</span>
@@ -1095,7 +1093,7 @@ export const Dashboard: React.FC = () => {
                     <span style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:lang==='en'?DS.gold:DS.textMuted }}>EN</span>
                     <button
                       onClick={async()=>{ const nextLang=lang==='en'?'ta':'en'; changeLanguage(nextLang); const userId=SessionManager.getUserId(); if(userId){try{await ApiClient.put(`api/User/profile/${userId}`,{preferredLanguage:nextLang});}catch(err){}} }}
-                      style={{ width:'46px', height:'24px', borderRadius:'12px', background:lang==='ta'?'linear-gradient(135deg,#C2185B,#4A0E4E)':'rgba(255,255,255,0.1)', border:'none', position:'relative', cursor:'pointer', transition:'background 0.2s ease', padding:0 }}
+                      style={{ width:'46px', height:'24px', borderRadius:'12px', background:lang==='ta'?'linear-gradient(135deg,#C2185B,#4A0E4E)':'rgba(74,14,78,0.12)', border:'none', position:'relative', cursor:'pointer', transition:'background 0.2s ease', padding:0 }}
                     >
                       <div style={{ width:'18px', height:'18px', borderRadius:'50%', background:'white', position:'absolute', top:'3px', left:lang==='ta'?'25px':'3px', transition:'left 0.2s ease', boxShadow:'0 1px 3px rgba(0,0,0,0.3)' }} />
                     </button>
@@ -1116,7 +1114,7 @@ export const Dashboard: React.FC = () => {
 
         {/* ── BOTTOM TAB BAR (mobile only) ── */}
         {!isDesktop && (
-          <div style={{ background:'rgba(15,15,26,0.95)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', borderTop:'1px solid rgba(255,255,255,0.07)', height:`calc(64px + env(safe-area-inset-bottom, 0px))`, paddingBottom:'env(safe-area-inset-bottom, 0px)', display:'flex', justifyContent:'space-around', alignItems:'center', zIndex:10, boxSizing:'border-box' }}>
+          <div style={{ background:'#FFFFFF', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', borderTop:'1px solid rgba(74,14,78,0.08)', height:`calc(64px + env(safe-area-inset-bottom, 0px))`, paddingBottom:'env(safe-area-inset-bottom, 0px)', display:'flex', justifyContent:'space-around', alignItems:'center', zIndex:10, boxSizing:'border-box' }}>
             {[
               { tab:0, icon:Home, label:t('tab_home') },
               { tab:1, icon:History, label:t('tab_history') },
@@ -1128,10 +1126,10 @@ export const Dashboard: React.FC = () => {
                 style={{ background:'transparent', border:'none', display:'flex', flexDirection:'column', alignItems:'center', gap:'4px', cursor:'pointer', padding:'0 12px', position:'relative' }}
               >
                 {selectedTab === tab && (
-                  <div style={{ position:'absolute', top:'-8px', left:'50%', transform:'translateX(-50%)', width:'28px', height:'3px', borderRadius:'2px', background:'linear-gradient(90deg,#C2185B,#FFD700)' }} />
+                  <div style={{ position:'absolute', top:'-8px', left:'50%', transform:'translateX(-50%)', width:'28px', height:'3px', borderRadius:'2px', background:'linear-gradient(90deg,#C2185B,#4A0E4E)' }} />
                 )}
-                <Icon size={22} color={selectedTab===tab ? DS.gold : 'rgba(255,255,255,0.3)'} />
-                <span style={{ fontFamily:DS.font, fontSize:'10px', fontWeight:selectedTab===tab?'800':'500', color:selectedTab===tab?DS.gold:'rgba(255,255,255,0.3)' }}>{label}</span>
+                <Icon size={22} color={selectedTab===tab ? '#4A0E4E' : '#B0B0C8'} />
+                <span style={{ fontFamily:DS.font, fontSize:'10px', fontWeight:selectedTab===tab?'800':'500', color:selectedTab===tab?'#4A0E4E':'#B0B0C8' }}>{label}</span>
               </button>
             ))}
           </div>
@@ -1141,10 +1139,10 @@ export const Dashboard: React.FC = () => {
       {/* ── TRANSACTION DETAIL MODAL ── */}
       {selectedTxDetail && (
         <div style={{ position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.75)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100 }}>
-          <div style={{ width:'90%', maxWidth:'360px', background:'#1A1A2E', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow:'0 20px 60px rgba(0,0,0,0.5)' }}>
+          <div style={{ width:'90%', maxWidth:'360px', background:'#FFFFFF', border:'1px solid rgba(74,14,78,0.1)', borderRadius:'24px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow:'0 20px 60px rgba(74,14,78,0.15)' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <span style={{ fontFamily:DS.font, fontSize:'16px', fontWeight:'900', color:DS.textWhite }}>Receipt Details</span>
-              <button onClick={()=>setSelectedTxDetail(null)} style={{ background:'rgba(255,255,255,0.08)', border:'none', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+              <button onClick={()=>setSelectedTxDetail(null)} style={{ background:'rgba(74,14,78,0.06)', border:'none', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
                 <X size={16} color={DS.textSub} />
               </button>
             </div>
@@ -1162,7 +1160,7 @@ export const Dashboard: React.FC = () => {
                     <span style={{ fontFamily:DS.font, fontWeight:'800', color:DS.textWhite, textAlign:'right', maxWidth:'55%', wordBreak:'break-all' }}>{value}</span>
                   </div>
                 ))}
-                <div style={{ height:'1px', background:'rgba(255,255,255,0.07)', margin:'4px 0' }} />
+                <div style={{ height:'1px', background:'rgba(74,14,78,0.08)', margin:'4px 0' }} />
                 <div style={{ display:'flex', justifyContent:'space-between', fontSize:'14px', fontWeight:'800' }}>
                   <span style={{ fontFamily:DS.font, color:DS.textWhite }}>Bonus Gold Earned</span>
                   <span style={{ fontFamily:DS.font, color:'#10B981' }}>{mgToGrams(selectedTxDetail.goldWeightMg)}</span>
@@ -1183,7 +1181,7 @@ export const Dashboard: React.FC = () => {
                     <span style={{ fontFamily:DS.font, fontWeight:'800', color:color||DS.textWhite, textAlign:'right', maxWidth:'55%', wordBreak:'break-all' }}>{value}</span>
                   </div>
                 ))}
-                <div style={{ height:'1px', background:'rgba(255,255,255,0.07)', margin:'4px 0' }} />
+                <div style={{ height:'1px', background:'rgba(74,14,78,0.08)', margin:'4px 0' }} />
                 <div style={{ display:'flex', justifyContent:'space-between', fontSize:'14px', fontWeight:'800' }}>
                   <span style={{ fontFamily:DS.font, color:DS.textWhite }}>{selectedTxDetail.type==='SCHEME_JOIN'?'Installment Size':'Amount Paid'}</span>
                   <span style={{ fontFamily:DS.font, color:DS.magenta }}>{formatRupees(selectedTxDetail.amountPaise)}</span>
@@ -1204,10 +1202,10 @@ export const Dashboard: React.FC = () => {
       {/* ── EDIT PROFILE MODAL ── */}
       {showEditProfileModal && (
         <div style={{ position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.75)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100, overflowY:'auto' }}>
-          <div style={{ width:'90%', maxWidth:'450px', background:'#1A1A2E', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow:'0 20px 60px rgba(0,0,0,0.5)', maxHeight:'90vh', overflowY:'auto' }}>
+          <div style={{ width:'90%', maxWidth:'450px', background:'#FFFFFF', border:'1px solid rgba(74,14,78,0.1)', borderRadius:'24px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow:'0 20px 60px rgba(74,14,78,0.15)', maxHeight:'90vh', overflowY:'auto' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <span style={{ fontFamily:DS.font, fontSize:'18px', fontWeight:'900', color:DS.textWhite }}>Edit Profile</span>
-              <button onClick={()=>setShowEditProfileModal(false)} style={{ background:'rgba(255,255,255,0.08)', border:'none', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+              <button onClick={()=>setShowEditProfileModal(false)} style={{ background:'rgba(74,14,78,0.06)', border:'none', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
                 <X size={16} color={DS.textSub} />
               </button>
             </div>
@@ -1215,8 +1213,8 @@ export const Dashboard: React.FC = () => {
             <div style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
               {/* photo upload */}
               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'10px' }}>
-                <div style={{ width:'85px', height:'85px', borderRadius:'50%', overflow:'hidden', background:'rgba(74,14,78,0.4)', border:'2px solid rgba(255,215,0,0.25)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  {editImageBase64 ? <img src={editImageBase64} style={{ width:'100%',height:'100%',objectFit:'cover' }} alt="Preview" /> : <User size={36} color={DS.gold} />}
+                <div style={{ width:'85px', height:'85px', borderRadius:'50%', overflow:'hidden', background:'rgba(74,14,78,0.08)', border:'2px solid rgba(74,14,78,0.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  {editImageBase64 ? <img src={editImageBase64} style={{ width:'100%',height:'100%',objectFit:'cover' }} alt="Preview" /> : <User size={36} color="#4A0E4E" />}
                 </div>
                 <label style={{ fontFamily:DS.font, fontSize:'12px', fontWeight:'700', color:DS.magenta, cursor:isMinor?'not-allowed':'pointer', padding:'6px 16px', borderRadius:'16px', border:`1.5px solid ${DS.magenta}`, background:'transparent', opacity:isMinor?0.5:1, pointerEvents:isMinor?'none':'auto' }}>
                   Change Photo<input type="file" accept="image/*" disabled={isMinor} onChange={handleImageChange} style={{ display:'none' }} />
@@ -1234,7 +1232,7 @@ export const Dashboard: React.FC = () => {
                 <div key={label}>
                   <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>{label}</label>
                   <input type={type} value={value} disabled={disabled} onChange={(e)=>onChange(e.target.value)}
-                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:disabled?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:disabled?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
+                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(74,14,78,0.12)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:disabled?'#F4F5FB':'#FFFFFF', color:disabled?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
                   />
                 </div>
               ))}
@@ -1243,13 +1241,13 @@ export const Dashboard: React.FC = () => {
                 <div style={{ flex:1 }}>
                   <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Date of Birth{editDob&&calculatedAge>0?` (Age: ${calculatedAge}${isMinor?' - Minor':''})`:''}</label>
                   <input type="date" value={editDob} onChange={(e)=>setEditDob(e.target.value)} onClick={(e)=>{try{(e.target as any).showPicker();}catch(err){}}}
-                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:'rgba(255,255,255,0.06)', color:DS.textWhite, boxSizing:'border-box' }}
+                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(74,14,78,0.12)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:'#FFFFFF', color:DS.textWhite, boxSizing:'border-box' }}
                   />
                 </div>
                 <div style={{ flex:1 }}>
                   <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Gender</label>
                   <select value={editGender} disabled={isMinor} onChange={(e)=>setEditGender(e.target.value)}
-                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:isMinor?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
+                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(74,14,78,0.12)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'#F4F5FB':'#FFFFFF', color:isMinor?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
                   >
                     <option value="">Select Gender</option>
                     <option value="Male">Male</option>
@@ -1262,17 +1260,17 @@ export const Dashboard: React.FC = () => {
               <div>
                 <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Wedding Anniversary Date</label>
                 <input type="date" value={editWeddingDate} disabled={isMinor} onChange={(e)=>setEditWeddingDate(e.target.value)} onClick={(e)=>{try{(e.target as any).showPicker();}catch(err){}}}
-                  style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:isMinor?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
+                  style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(74,14,78,0.12)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'#F4F5FB':'#FFFFFF', color:isMinor?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
                 />
               </div>
 
-              <div style={{ height:'1px', background:'rgba(255,255,255,0.07)', margin:'4px 0' }} />
+              <div style={{ height:'1px', background:'rgba(74,14,78,0.08)', margin:'4px 0' }} />
               <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'800', color:DS.textWhite }}>Nominee Details</span>
 
               <div>
                 <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Nominee Name</label>
                 <input type="text" value={editNomineeName} disabled={isMinor} onChange={(e)=>setEditNomineeName(e.target.value)}
-                  style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:isMinor?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
+                  style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(74,14,78,0.12)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'#F4F5FB':'#FFFFFF', color:isMinor?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
                 />
               </div>
 
@@ -1280,13 +1278,13 @@ export const Dashboard: React.FC = () => {
                 <div style={{ flex:1 }}>
                   <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Nominee Mobile</label>
                   <input type="text" value={editNomineePhone} disabled={isMinor} onChange={(e)=>setEditNomineePhone(e.target.value.replace(/\D/g,'').slice(0,10))}
-                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:isMinor?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
+                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(74,14,78,0.12)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'#F4F5FB':'#FFFFFF', color:isMinor?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
                   />
                 </div>
                 <div style={{ flex:1 }}>
                   <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Relationship</label>
                   <select value={editNomineeRelation} disabled={isMinor} onChange={(e)=>setEditNomineeRelation(e.target.value)}
-                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:isMinor?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
+                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(74,14,78,0.12)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'#F4F5FB':'#FFFFFF', color:isMinor?DS.textMuted:DS.textWhite, boxSizing:'border-box' }}
                   >
                     <option value="">Select</option>
                     {['Father','Mother','Wife','Husband','Son','Daughter','Brother','Guardian'].map((rel)=>(<option key={rel} value={rel}>{rel}</option>))}
@@ -1299,7 +1297,7 @@ export const Dashboard: React.FC = () => {
               <button onClick={handleSaveProfile} disabled={isSavingProfile} style={{ flex:1, height:'46px', borderRadius:'12px', background:'linear-gradient(135deg,#29001D,#C2185B)', color:'white', border:'none', fontFamily:DS.font, fontWeight:'800', fontSize:'13px', cursor:'pointer', opacity:isSavingProfile?0.7:1, boxShadow:'0 4px 16px rgba(194,24,91,0.35)' }}>
                 {isSavingProfile ? 'Saving...' : 'Save Changes'}
               </button>
-              <button onClick={()=>setShowEditProfileModal(false)} style={{ flex:1, height:'46px', borderRadius:'12px', background:'rgba(255,255,255,0.06)', color:DS.textSub, border:'1px solid rgba(255,255,255,0.1)', fontFamily:DS.font, fontWeight:'700', fontSize:'13px', cursor:'pointer' }}>
+              <button onClick={()=>setShowEditProfileModal(false)} style={{ flex:1, height:'46px', borderRadius:'12px', background:'#F4F5FB', color:DS.textSub, border:'1px solid rgba(74,14,78,0.1)', fontFamily:DS.font, fontWeight:'700', fontSize:'13px', cursor:'pointer' }}>
                 Cancel
               </button>
             </div>
