@@ -38,14 +38,18 @@ export const Mpin: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  // Tracks which box has focus for the blinking border animation
-  const [focusedBoxIdx, setFocusedBoxIdx] = useState<number | null>(null);
+
+  // Focus states for derived visual active styling
+  const [isMpinFocused, setIsMpinFocused] = useState(false);
+  const [isNewMpinFocused, setIsNewMpinFocused] = useState(false);
+  const [isConfirmMpinFocused, setIsConfirmMpinFocused] = useState(false);
+  const [isOtpFocused, setIsOtpFocused] = useState(false);
 
   // Refs for focusing inputs
-  const mpinRef = useRef<HTMLInputElement[]>([]);
-  const newMpinRef = useRef<HTMLInputElement[]>([]);
-  const confirmMpinRef = useRef<HTMLInputElement[]>([]);
-  const otpRef = useRef<HTMLInputElement[]>([]);
+  const mpinInputRef = useRef<HTMLInputElement>(null);
+  const newMpinInputRef = useRef<HTMLInputElement>(null);
+  const confirmMpinInputRef = useRef<HTMLInputElement>(null);
+  const otpInputRef = useRef<HTMLInputElement>(null);
 
   // Focus helper on flow switch
   useEffect(() => {
@@ -56,12 +60,12 @@ export const Mpin: React.FC = () => {
     setOtp('');
 
     setTimeout(() => {
-      if (flowState === MpinFlowState.ENTER_PIN && mpinRef.current[0]) {
-        mpinRef.current[0].focus();
-      } else if ((flowState === MpinFlowState.SETUP_PIN || flowState === MpinFlowState.FORGOT_NEW_PIN) && newMpinRef.current[0]) {
-        newMpinRef.current[0].focus();
-      } else if (flowState === MpinFlowState.FORGOT_ENTER_OTP && otpRef.current[0]) {
-        otpRef.current[0].focus();
+      if (flowState === MpinFlowState.ENTER_PIN && mpinInputRef.current) {
+        mpinInputRef.current.focus();
+      } else if ((flowState === MpinFlowState.SETUP_PIN || flowState === MpinFlowState.FORGOT_NEW_PIN) && newMpinInputRef.current) {
+        newMpinInputRef.current.focus();
+      } else if (flowState === MpinFlowState.FORGOT_ENTER_OTP && otpInputRef.current) {
+        otpInputRef.current.focus();
       }
     }, 150);
   }, [flowState]);
@@ -77,7 +81,7 @@ export const Mpin: React.FC = () => {
     return () => clearInterval(interval);
   }, [flowState, secondsRemaining]);
 
-  // ── Injected CSS: Kotak-style blinking pin box + spin animation ────────────
+  // Kotak-style blinking pin box style
   const mpinStyles = `
     @keyframes pinBoxBlink {
       0%, 100% { border-color: #4A0E4E; box-shadow: 0 0 0 2px rgba(74,14,78,0.2); }
@@ -87,9 +91,7 @@ export const Mpin: React.FC = () => {
     @keyframes spin  { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   `;
 
-  // ── BULLETPROOF ERROR CLEARING ──────────────────────────────────────────
   // Layer 1: Reactively clear error whenever ANY pin input value changes.
-  // This catches typing, autofill, paste, and programmatic resets.
   useEffect(() => {
     if (errorMsg) setErrorMsg(null);
   }, [mpin, newMpin, confirmMpin, otp]);
@@ -100,7 +102,6 @@ export const Mpin: React.FC = () => {
     const timer = setTimeout(() => setErrorMsg(null), 4000);
     return () => clearTimeout(timer);
   }, [errorMsg]);
-  // ────────────────────────────────────────────────────────────────────────
 
   // Handle verify existing MPIN
   const handleVerifyExistingMpin = async (val: string) => {
@@ -122,12 +123,12 @@ export const Mpin: React.FC = () => {
       } else {
         setErrorMsg(response.data.message || 'Incorrect PIN. Please try again.');
         setMpin('');
-        if (mpinRef.current[0]) mpinRef.current[0].focus();
+        mpinInputRef.current?.focus();
       }
     } catch (err: any) {
       setErrorMsg(err.response?.data?.message || 'Incorrect PIN. Please try again.');
       setMpin('');
-      if (mpinRef.current[0]) mpinRef.current[0].focus();
+      mpinInputRef.current?.focus();
     } finally {
       setIsLoading(false);
     }
@@ -173,63 +174,14 @@ export const Mpin: React.FC = () => {
       } else {
         setErrorMsg(response.data.message || 'Invalid verification code.');
         setOtp('');
-        if (otpRef.current[0]) otpRef.current[0].focus();
+        otpInputRef.current?.focus();
       }
     } catch (err: any) {
       setErrorMsg(err.response?.data?.message || 'Invalid verification code.');
       setOtp('');
-      if (otpRef.current[0]) otpRef.current[0].focus();
+      otpInputRef.current?.focus();
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Keypad navigation helpers
-  const handlePinBoxChange = (
-    index: number,
-    val: string,
-    stateSetter: React.Dispatch<React.SetStateAction<string>>,
-    currentState: string,
-    inputsRef: React.MutableRefObject<HTMLInputElement[]>,
-    length: number,
-    onComplete: (completedVal: string) => void
-  ) => {
-    // Layer 3: Clear error immediately on any digit change
-    if (errorMsg) setErrorMsg(null);
-
-    const clean = val.replace(/\D/g, '').slice(0, 1);
-    const pinArray = currentState.split('');
-    pinArray[index] = clean;
-    const nextVal = pinArray.join('');
-    stateSetter(nextVal);
-
-    if (clean && index < length - 1) {
-      if (inputsRef.current[index + 1]) inputsRef.current[index + 1].focus();
-    }
-
-    // Only fire onComplete when ALL slots have a digit AND not mid-request
-    const allFilled = pinArray.length === length && pinArray.every((ch) => ch !== '' && ch !== undefined);
-    if (allFilled && !isLoading) {
-      if (inputsRef.current[index]) inputsRef.current[index].blur();
-      onComplete(nextVal);
-    }
-  };
-
-  // Layer 4: Clear error when user taps/focuses any pin box
-  const handlePinFocus = () => {
-    if (errorMsg) setErrorMsg(null);
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>, currentState: string, stateSetter: React.Dispatch<React.SetStateAction<string>>, inputsRef: React.MutableRefObject<HTMLInputElement[]>) => {
-    if (e.key === 'Backspace') {
-      // Clear error on backspace too
-      setErrorMsg(null);
-      if (!currentState[index] && index > 0) {
-        const pinArray = currentState.split('');
-        pinArray[index - 1] = '';
-        stateSetter(pinArray.join(''));
-        if (inputsRef.current[index - 1]) inputsRef.current[index - 1].focus();
-      }
     }
   };
 
@@ -376,44 +328,63 @@ export const Mpin: React.FC = () => {
           {/* State Renderers */}
           {flowState === MpinFlowState.ENTER_PIN && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '24px' }}>
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} style={{ position: 'relative' }}>
-                    <input
-                      type="text"
-                      pattern="[0-9]*"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={mpin[i] ? '●' : ''}
-                      readOnly={!!mpin[i]}
-                      onFocus={() => { handlePinFocus(); setFocusedBoxIdx(i); }}
-                      onBlur={() => setFocusedBoxIdx(null)}
-                      onChange={(e) => {
-                        if (mpin[i]) return; // already filled, ignore
-                        handlePinBoxChange(i, e.target.value, setMpin, mpin, mpinRef, 4, (completedVal) => {
-                          handleVerifyExistingMpin(completedVal);
-                        });
-                      }}
-                      onKeyDown={(e) => handleKeyDown(i, e, mpin, setMpin, mpinRef)}
-                      ref={(el) => { if (el) mpinRef.current[i] = el; }}
-                      className={focusedBoxIdx === i ? 'pin-box-active' : ''}
+              {/* Hidden input for PIN */}
+              <input
+                ref={mpinInputRef}
+                type="tel"
+                pattern="[0-9]*"
+                inputMode="numeric"
+                maxLength={4}
+                value={mpin}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                  setMpin(val);
+                  if (errorMsg) setErrorMsg(null);
+                  if (val.length === 4) {
+                    handleVerifyExistingMpin(val);
+                  }
+                }}
+                onFocus={() => setIsMpinFocused(true)}
+                onBlur={() => setIsMpinFocused(false)}
+                style={{
+                  position: 'absolute',
+                  opacity: 0,
+                  pointerEvents: 'none',
+                  width: '1px',
+                  height: '1px'
+                }}
+              />
+
+              <div 
+                onClick={() => mpinInputRef.current?.focus()}
+                style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '24px', cursor: 'pointer' }}
+              >
+                {Array.from({ length: 4 }).map((_, i) => {
+                  const isFocused = isMpinFocused && (mpin.length < 4 ? mpin.length === i : i === 3);
+                  return (
+                    <div
+                      key={i}
+                      className={isFocused ? 'pin-box-active' : ''}
                       style={{
                         width: '52px',
                         height: '52px',
                         borderRadius: '14px',
-                        border: `2px solid ${mpin[i] ? '#4A0E4E' : 'rgba(74,14,78,0.2)'}`,
+                        border: `2px solid ${isFocused ? '#4A0E4E' : mpin[i] ? '#4A0E4E' : 'rgba(74,14,78,0.2)'}`,
                         textAlign: 'center',
                         fontSize: mpin[i] ? '28px' : '16px',
-                        outline: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         background: mpin[i] ? 'rgba(74,14,78,0.06)' : '#F9F9F9',
                         color: '#4A0E4E',
                         fontWeight: '900',
-                        caretColor: 'transparent',
                         transition: 'border-color 0.2s ease, background 0.2s ease',
                       } as React.CSSProperties}
-                    />
-                  </div>
-                ))}
+                    >
+                      {mpin[i] ? '●' : ''}
+                    </div>
+                  );
+                })}
               </div>
 
               <button
@@ -460,82 +431,123 @@ export const Mpin: React.FC = () => {
 
           {(flowState === MpinFlowState.SETUP_PIN || flowState === MpinFlowState.FORGOT_NEW_PIN) && (
             <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '16px' }}>
+              {/* Hidden inputs for Set PIN */}
+              <input
+                ref={newMpinInputRef}
+                type="tel"
+                pattern="[0-9]*"
+                inputMode="numeric"
+                maxLength={4}
+                value={newMpin}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                  setNewMpin(val);
+                  if (errorMsg) setErrorMsg(null);
+                  if (val.length === 4) {
+                    confirmMpinInputRef.current?.focus();
+                  }
+                }}
+                onFocus={() => setIsNewMpinFocused(true)}
+                onBlur={() => setIsNewMpinFocused(false)}
+                style={{
+                  position: 'absolute',
+                  opacity: 0,
+                  pointerEvents: 'none',
+                  width: '1px',
+                  height: '1px'
+                }}
+              />
+              <input
+                ref={confirmMpinInputRef}
+                type="tel"
+                pattern="[0-9]*"
+                inputMode="numeric"
+                maxLength={4}
+                value={confirmMpin}
+                disabled={newMpin.length !== 4}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                  setConfirmMpin(val);
+                  if (errorMsg) setErrorMsg(null);
+                }}
+                onFocus={() => setIsConfirmMpinFocused(true)}
+                onBlur={() => setIsConfirmMpinFocused(false)}
+                style={{
+                  position: 'absolute',
+                  opacity: 0,
+                  pointerEvents: 'none',
+                  width: '1px',
+                  height: '1px'
+                }}
+              />
+
               <div>
                 <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>Enter New PIN</span>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '6px' }}>
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} style={{ position: 'relative' }}>
-                      <input
-                        type="text"
-                        pattern="[0-9]*"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={newMpin[i] || ''}
-                        onFocus={() => { handlePinFocus(); setFocusedBoxIdx(100 + i); }}
-                        onBlur={() => setFocusedBoxIdx(null)}
-                        onChange={(e) => handlePinBoxChange(i, e.target.value, setNewMpin, newMpin, newMpinRef, 4, () => {
-                          if (confirmMpinRef.current[0]) confirmMpinRef.current[0].focus();
-                        })}
-                        onKeyDown={(e) => handleKeyDown(i, e, newMpin, setNewMpin, newMpinRef)}
-                        ref={(el) => { if (el) newMpinRef.current[i] = el; }}
-                        className={focusedBoxIdx === 100 + i ? 'pin-box-active' : ''}
+                <div 
+                  onClick={() => newMpinInputRef.current?.focus()}
+                  style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '6px', cursor: 'pointer' }}
+                >
+                  {Array.from({ length: 4 }).map((_, i) => {
+                    const isFocused = isNewMpinFocused && (newMpin.length < 4 ? newMpin.length === i : i === 3);
+                    return (
+                      <div
+                        key={i}
+                        className={isFocused ? 'pin-box-active' : ''}
                         style={{
                           width: '48px',
                           height: '48px',
                           borderRadius: '12px',
-                          border: `2px solid ${newMpin[i] ? '#4A0E4E' : 'rgba(74,14,78,0.2)'}`,
+                          border: `2px solid ${isFocused ? '#4A0E4E' : newMpin[i] ? '#4A0E4E' : 'rgba(74,14,78,0.2)'}`,
                           textAlign: 'center',
                           fontSize: '20px',
                           fontWeight: '800',
-                          outline: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           background: newMpin[i] ? 'rgba(74,14,78,0.06)' : '#F9F9F9',
                           color: '#4A0E4E',
-                          caretColor: 'transparent',
                           transition: 'border-color 0.2s ease, background 0.2s ease',
                         } as React.CSSProperties}
-                      />
-                    </div>
-                  ))}
+                      >
+                        {newMpin[i] || ''}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
               <div>
                 <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>Confirm New PIN</span>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '6px' }}>
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} style={{ position: 'relative' }}>
-                      <input
-                        type="text"
-                        pattern="[0-9]*"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={confirmMpin[i] || ''}
-                        disabled={newMpin.length !== 4}
-                        onFocus={() => { handlePinFocus(); setFocusedBoxIdx(200 + i); }}
-                        onBlur={() => setFocusedBoxIdx(null)}
-                        onChange={(e) => handlePinBoxChange(i, e.target.value, setConfirmMpin, confirmMpin, confirmMpinRef, 4, () => {
-                          // No auto-save: user must press the Save button explicitly
-                        })}
-                        onKeyDown={(e) => handleKeyDown(i, e, confirmMpin, setConfirmMpin, confirmMpinRef)}
-                        ref={(el) => { if (el) confirmMpinRef.current[i] = el; }}
-                        className={focusedBoxIdx === 200 + i ? 'pin-box-active' : ''}
+                <div 
+                  onClick={() => { if (newMpin.length === 4) confirmMpinInputRef.current?.focus(); }}
+                  style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '6px', cursor: newMpin.length === 4 ? 'pointer' : 'default' }}
+                >
+                  {Array.from({ length: 4 }).map((_, i) => {
+                    const isFocused = isConfirmMpinFocused && (confirmMpin.length < 4 ? confirmMpin.length === i : i === 3);
+                    return (
+                      <div
+                        key={i}
+                        className={isFocused ? 'pin-box-active' : ''}
                         style={{
                           width: '48px',
                           height: '48px',
                           borderRadius: '12px',
-                          border: `2px solid ${confirmMpin[i] ? '#4A0E4E' : newMpin.length === 4 ? 'rgba(74,14,78,0.2)' : 'rgba(74,14,78,0.08)'}`,
+                          border: `2px solid ${isFocused ? '#4A0E4E' : confirmMpin[i] ? '#4A0E4E' : newMpin.length === 4 ? 'rgba(74,14,78,0.2)' : 'rgba(74,14,78,0.08)'}`,
                           textAlign: 'center',
                           fontSize: '20px',
                           fontWeight: '800',
-                          outline: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           background: confirmMpin[i] ? 'rgba(74,14,78,0.06)' : newMpin.length === 4 ? '#F9F9F9' : '#ECECEC',
                           color: '#4A0E4E',
-                          caretColor: 'transparent',
                           transition: 'border-color 0.2s ease, background 0.2s ease',
                         } as React.CSSProperties}
-                      />
-                    </div>
-                  ))}
+                      >
+                        {confirmMpin[i] || ''}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -591,42 +603,63 @@ export const Mpin: React.FC = () => {
 
           {flowState === MpinFlowState.FORGOT_ENTER_OTP && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '24px' }}>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <input
-                    key={i}
-                    type="text"
-                    pattern="[0-9]*"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={otp[i] || ''}
-                    onChange={(e) => handlePinBoxChange(i, e.target.value, setOtp, otp, otpRef, 6, handleVerifyOtp)}
-                    onKeyDown={(e) => handleKeyDown(i, e, otp, setOtp, otpRef)}
-                    onPaste={(e) => {
-                      e.preventDefault();
-                      const pastedData = e.clipboardData.getData('text').trim();
-                      if (pastedData.length === 6 && /^\d+$/.test(pastedData)) {
-                        setOtp(pastedData);
-                        if (otpRef.current[5]) {
-                          otpRef.current[5].focus();
-                        }
-                        handleVerifyOtp(pastedData);
-                      }
-                    }}
-                    ref={(el) => { if (el) otpRef.current[i] = el; }}
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '8px',
-                      border: '1.5px solid rgba(74,14,78,0.15)',
-                      textAlign: 'center',
-                      fontSize: '16px',
-                      fontWeight: 'bold',
-                      outline: 'none',
-                      background: '#F9F9F9'
-                    }}
-                  />
-                ))}
+              {/* Hidden OTP input */}
+              <input
+                ref={otpInputRef}
+                type="tel"
+                pattern="[0-9]*"
+                inputMode="numeric"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setOtp(val);
+                  if (errorMsg) setErrorMsg(null);
+                  if (val.length === 6) {
+                    handleVerifyOtp(val);
+                  }
+                }}
+                onFocus={() => setIsOtpFocused(true)}
+                onBlur={() => setIsOtpFocused(false)}
+                style={{
+                  position: 'absolute',
+                  opacity: 0,
+                  pointerEvents: 'none',
+                  width: '1px',
+                  height: '1px'
+                }}
+              />
+
+              <div 
+                onClick={() => otpInputRef.current?.focus()}
+                style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '24px', width: '100%', cursor: 'pointer' }}
+              >
+                {Array.from({ length: 6 }).map((_, i) => {
+                  const isFocused = isOtpFocused && (otp.length < 6 ? otp.length === i : i === 5);
+                  return (
+                    <div
+                      key={i}
+                      className={isFocused ? 'pin-box-active' : ''}
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '8px',
+                        border: `1.5px solid ${isFocused ? '#4A0E4E' : otp[i] ? '#4A0E4E' : 'rgba(74,14,78,0.15)'}`,
+                        textAlign: 'center',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#F9F9F9',
+                        color: '#4A0E4E',
+                        transition: 'border-color 0.2s ease, background 0.2s ease',
+                      } as React.CSSProperties}
+                    >
+                      {otp[i] || ''}
+                    </div>
+                  );
+                })}
               </div>
 
               {secondsRemaining > 0 ? (
@@ -680,7 +713,7 @@ export const Mpin: React.FC = () => {
             width: '100%',
             boxSizing: 'border-box'
           }}>
-          <strong>For your security:</strong> Do not share your PIN with anyone. Aishwaryam @ Your Home will never ask for your PIN.
+            <strong>For your security:</strong> Do not share your PIN with anyone. Aishwaryam @ Your Home will never ask for your PIN.
           </div>
         </div>
       </div>
@@ -743,3 +776,5 @@ export const Mpin: React.FC = () => {
     </div>
   );
 };
+
+export default Mpin;
