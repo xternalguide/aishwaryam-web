@@ -122,14 +122,12 @@ export const Mpin: React.FC = () => {
         setSuccessMessage('Login Successful!');
         setShowSuccessDialog(true);
       } else {
-        const msg = response.data?.message || response.data?.Message || 'Incorrect PIN. Please try again.';
-        setErrorMsg(msg);
+        setErrorMsg(response.data.message || 'Incorrect PIN. Please try again.');
         setMpin('');
         if (mpinRef.current[0]) mpinRef.current[0].focus();
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.response?.data?.Message || 'Incorrect PIN. Please try again.';
-      setErrorMsg(msg);
+      setErrorMsg(err.response?.data?.message || 'Incorrect PIN. Please try again.');
       setMpin('');
       if (mpinRef.current[0]) mpinRef.current[0].focus();
     } finally {
