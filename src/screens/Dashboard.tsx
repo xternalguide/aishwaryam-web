@@ -1206,11 +1206,11 @@ export const Dashboard: React.FC = () => {
       {/* ── TRANSACTION DETAIL MODAL ── */}
       {selectedTxDetail && (
         <div style={{ position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.75)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100 }}>
-          <div style={{ width:'90%', maxWidth:'360px', background:'#1A1A2E', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow:'0 20px 60px rgba(0,0,0,0.5)' }}>
+          <div style={{ width:'90%', maxWidth:'360px', background: isDark ? '#1A1A2E' : '#FFFFFF', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.1)', borderRadius:'24px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.5)' : '0 20px 60px rgba(74,14,78,0.15)' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <span style={{ fontFamily:DS.font, fontSize:'16px', fontWeight:'900', color:'#FFFFFF' }}>Receipt Details</span>
-              <button onClick={()=>setSelectedTxDetail(null)} style={{ background:'rgba(255,255,255,0.08)', border:'none', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-                <X size={16} color="rgba(255,255,255,0.7)" />
+              <span style={{ fontFamily:DS.font, fontSize:'16px', fontWeight:'900', color:DS.textWhite }}>Receipt Details</span>
+              <button onClick={()=>setSelectedTxDetail(null)} style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(74,14,78,0.06)', border:'none', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                <X size={16} color={DS.textSub} />
               </button>
             </div>
 
@@ -1223,13 +1223,13 @@ export const Dashboard: React.FC = () => {
                   { label:'Bonus Percentage', value:selectedTxDetail.bonusPercentage?`${selectedTxDetail.bonusPercentage}%`:'N/A' },
                 ].map(({ label, value }) => (
                   <div key={label} style={{ display:'flex', justifyContent:'space-between', fontSize:'12px' }}>
-                    <span style={{ fontFamily:DS.font, color:'rgba(255,255,255,0.5)', fontWeight:'600' }}>{label}</span>
-                    <span style={{ fontFamily:DS.font, fontWeight:'800', color:'#FFFFFF', textAlign:'right', maxWidth:'55%', wordBreak:'break-all' }}>{value}</span>
+                    <span style={{ fontFamily:DS.font, color:DS.textSub, fontWeight:'600' }}>{label}</span>
+                    <span style={{ fontFamily:DS.font, fontWeight:'800', color:DS.textWhite, textAlign:'right', maxWidth:'55%', wordBreak:'break-all' }}>{value}</span>
                   </div>
                 ))}
-                <div style={{ height:'1px', background:'rgba(255,255,255,0.07)', margin:'4px 0' }} />
+                <div style={{ height:'1px', background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(74,14,78,0.08)', margin:'4px 0' }} />
                 <div style={{ display:'flex', justifyContent:'space-between', fontSize:'14px', fontWeight:'800' }}>
-                  <span style={{ fontFamily:DS.font, color:'#FFFFFF' }}>Bonus Gold Earned</span>
+                  <span style={{ fontFamily:DS.font, color:DS.textWhite }}>Bonus Gold Earned</span>
                   <span style={{ fontFamily:DS.font, color:'#10B981' }}>{mgToGrams(selectedTxDetail.goldWeightMg)}</span>
                 </div>
               </div>
@@ -1244,14 +1244,14 @@ export const Dashboard: React.FC = () => {
                   { label:'Status', value:getStatusDetails(selectedTxDetail.status).text, show:true, color:getStatusDetails(selectedTxDetail.status).color },
                 ].filter(i=>i.show).map(({ label, value, color }) => (
                   <div key={label} style={{ display:'flex', justifyContent:'space-between', fontSize:'12px' }}>
-                    <span style={{ fontFamily:DS.font, color:'rgba(255,255,255,0.5)', fontWeight:'600' }}>{label}</span>
-                    <span style={{ fontFamily:DS.font, fontWeight:'800', color:color||'#FFFFFF', textAlign:'right', maxWidth:'55%', wordBreak:'break-all' }}>{value}</span>
+                    <span style={{ fontFamily:DS.font, color:DS.textSub, fontWeight:'600' }}>{label}</span>
+                    <span style={{ fontFamily:DS.font, fontWeight:'800', color:color||DS.textWhite, textAlign:'right', maxWidth:'55%', wordBreak:'break-all' }}>{value}</span>
                   </div>
                 ))}
-                <div style={{ height:'1px', background:'rgba(255,255,255,0.07)', margin:'4px 0' }} />
+                <div style={{ height:'1px', background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(74,14,78,0.08)', margin:'4px 0' }} />
                 <div style={{ display:'flex', justifyContent:'space-between', fontSize:'14px', fontWeight:'800' }}>
-                  <span style={{ fontFamily:DS.font, color:'#FFFFFF' }}>{selectedTxDetail.type==='SCHEME_JOIN'?'Installment Size':'Amount Paid'}</span>
-                  <span style={{ fontFamily:DS.font, color:'#FFD700' }}>{formatRupees(selectedTxDetail.amountPaise)}</span>
+                  <span style={{ fontFamily:DS.font, color:DS.textWhite }}>{selectedTxDetail.type==='SCHEME_JOIN'?'Installment Size':'Amount Paid'}</span>
+                  <span style={{ fontFamily:DS.font, color: isDark ? '#FFD700' : '#B8860B' }}>{formatRupees(selectedTxDetail.amountPaise)}</span>
                 </div>
               </div>
             )}
@@ -1267,13 +1267,14 @@ export const Dashboard: React.FC = () => {
       )}
 
       {/* ── EDIT PROFILE MODAL ── */}
+      {/* ── EDIT PROFILE MODAL ── */}
       {showEditProfileModal && (
         <div style={{ position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.75)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100, overflowY:'auto' }}>
-          <div style={{ width:'90%', maxWidth:'450px', background:'#1A1A2E', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow:'0 20px 60px rgba(0,0,0,0.5)', maxHeight:'90vh', overflowY:'auto' }}>
+          <div style={{ width:'90%', maxWidth:'450px', background: isDark ? '#1A1A2E' : '#FFFFFF', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.1)', borderRadius:'24px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.5)' : '0 20px 60px rgba(74,14,78,0.15)', maxHeight:'90vh', overflowY:'auto' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <span style={{ fontFamily:DS.font, fontSize:'18px', fontWeight:'900', color:'#FFFFFF' }}>Edit Profile</span>
-              <button onClick={()=>setShowEditProfileModal(false)} style={{ background:'rgba(255,255,255,0.08)', border:'none', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-                <X size={16} color="rgba(255,255,255,0.7)" />
+              <span style={{ fontFamily:DS.font, fontSize:'18px', fontWeight:'900', color:DS.textWhite }}>Edit Profile</span>
+              <button onClick={()=>setShowEditProfileModal(false)} style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(74,14,78,0.06)', border:'none', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                <X size={16} color={DS.textSub} />
               </button>
             </div>
  
@@ -1287,7 +1288,7 @@ export const Dashboard: React.FC = () => {
                   Change Photo<input type="file" accept="image/*" disabled={isMinor} onChange={handleImageChange} style={{ display:'none' }} />
                 </label>
                 {uploadError && <span style={{ fontFamily:DS.font, fontSize:'11px', color:'#EF4444', textAlign:'center' }}>{uploadError}</span>}
-                <span style={{ fontFamily:DS.font, fontSize:'9px', color:'rgba(255,255,255,0.4)' }}>Allowed: JPG, JPEG, PNG (Max 2MB)</span>
+                <span style={{ fontFamily:DS.font, fontSize:'9px', color:DS.textMuted }}>Allowed: JPG, JPEG, PNG (Max 2MB)</span>
               </div>
  
               {/* input fields styling */}
@@ -1297,64 +1298,64 @@ export const Dashboard: React.FC = () => {
                 { label:'Email Address', value:editEmail, onChange:(v:string)=>setEditEmail(v), type:'email', disabled:isMinor },
               ].map(({ label, value, onChange, type, disabled }) => (
                 <div key={label}>
-                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:'rgba(255,255,255,0.7)' }}>{label}</label>
+                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>{label}</label>
                   <input type={type} value={value} disabled={disabled} onChange={(e)=>onChange(e.target.value)}
-                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:disabled?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:disabled?'rgba(255,255,255,0.38)':'#FFFFFF', boxSizing:'border-box' }}
+                    style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: disabled ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)'), color: disabled ? DS.textMuted : DS.textWhite, boxSizing:'border-box' }}
                   />
                 </div>
               ))}
  
               <div style={{ display:'flex', gap:'12px' }}>
                 <div style={{ flex:1 }}>
-                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:'rgba(255,255,255,0.7)' }}>Date of Birth{editDob&&calculatedAge>0?` (Age: ${calculatedAge}${isMinor?' - Minor':''})`:''}</label>
+                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Date of Birth{editDob&&calculatedAge>0?` (Age: ${calculatedAge}${isMinor?' - Minor':''})`:''}</label>
                   <input type="date" value={editDob} onChange={(e)=>setEditDob(e.target.value)} onClick={(e)=>{try{(e.target as any).showPicker();}catch(err){}}}
-                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:'rgba(255,255,255,0.06)', color:'#FFFFFF', boxSizing:'border-box' }}
+                    style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)', color:DS.textWhite, boxSizing:'border-box' }}
                   />
                 </div>
                 <div style={{ flex:1 }}>
-                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:'rgba(255,255,255,0.7)' }}>Gender</label>
+                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Gender</label>
                   <select value={editGender} disabled={isMinor} onChange={(e)=>setEditGender(e.target.value)}
-                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:isMinor?'rgba(255,255,255,0.38)':'#FFFFFF', boxSizing:'border-box' }}
+                    style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isMinor ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)'), color: isMinor ? DS.textMuted : DS.textWhite, boxSizing:'border-box' }}
                   >
-                    <option style={{ background: '#1A1A2E', color: '#FFFFFF' }} value="">Select Gender</option>
-                    <option style={{ background: '#1A1A2E', color: '#FFFFFF' }} value="Male">Male</option>
-                    <option style={{ background: '#1A1A2E', color: '#FFFFFF' }} value="Female">Female</option>
-                    <option style={{ background: '#1A1A2E', color: '#FFFFFF' }} value="Other">Other</option>
+                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="">Select Gender</option>
+                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="Male">Male</option>
+                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="Female">Female</option>
+                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="Other">Other</option>
                   </select>
                 </div>
               </div>
  
               <div>
-                <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:'rgba(255,255,255,0.7)' }}>Wedding Anniversary Date</label>
+                <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Wedding Anniversary Date</label>
                 <input type="date" value={editWeddingDate} disabled={isMinor} onChange={(e)=>setEditWeddingDate(e.target.value)} onClick={(e)=>{try{(e.target as any).showPicker();}catch(err){}}}
-                  style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:isMinor?'rgba(255,255,255,0.38)':'#FFFFFF', boxSizing:'border-box' }}
+                  style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isMinor ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)'), color: isMinor ? DS.textMuted : DS.textWhite, boxSizing:'border-box' }}
                 />
               </div>
  
-              <div style={{ height:'1px', background:'rgba(255,255,255,0.07)', margin:'4px 0' }} />
-              <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'800', color:'#FFFFFF' }}>Nominee Details</span>
+              <div style={{ height:'1px', background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(74,14,78,0.08)', margin:'4px 0' }} />
+              <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'800', color:DS.textWhite }}>Nominee Details</span>
  
               <div>
-                <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:'rgba(255,255,255,0.7)' }}>Nominee Name</label>
+                <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Nominee Name</label>
                 <input type="text" value={editNomineeName} disabled={isMinor} onChange={(e)=>setEditNomineeName(e.target.value)}
-                  style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:isMinor?'rgba(255,255,255,0.38)':'#FFFFFF', boxSizing:'border-box' }}
+                  style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isMinor ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)'), color: isMinor ? DS.textMuted : DS.textWhite, boxSizing:'border-box' }}
                 />
               </div>
  
               <div style={{ display:'flex', gap:'12px' }}>
                 <div style={{ flex:1 }}>
-                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:'rgba(255,255,255,0.7)' }}>Nominee Mobile</label>
+                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Nominee Mobile</label>
                   <input type="text" value={editNomineePhone} disabled={isMinor} onChange={(e)=>setEditNomineePhone(e.target.value.replace(/\D/g,'').slice(0,10))}
-                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:isMinor?'rgba(255,255,255,0.38)':'#FFFFFF', boxSizing:'border-box' }}
+                    style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isMinor ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)'), color: isMinor ? DS.textMuted : DS.textWhite, boxSizing:'border-box' }}
                   />
                 </div>
                 <div style={{ flex:1 }}>
-                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:'rgba(255,255,255,0.7)' }}>Relationship</label>
+                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Relationship</label>
                   <select value={editNomineeRelation} disabled={isMinor} onChange={(e)=>setEditNomineeRelation(e.target.value)}
-                    style={{ width:'100%', height:'42px', borderRadius:'10px', border:'1px solid rgba(255,255,255,0.1)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background:isMinor?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.06)', color:isMinor?'rgba(255,255,255,0.38)':'#FFFFFF', boxSizing:'border-box' }}
+                    style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isMinor ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)'), color: isMinor ? DS.textMuted : DS.textWhite, boxSizing:'border-box' }}
                   >
-                    <option style={{ background: '#1A1A2E', color: '#FFFFFF' }} value="">Select</option>
-                    {['Father','Mother','Wife','Husband','Son','Daughter','Brother','Guardian'].map((rel)=>(<option style={{ background: '#1A1A2E', color: '#FFFFFF' }} key={rel} value={rel}>{rel}</option>))}
+                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="">Select</option>
+                    {['Father','Mother','Wife','Husband','Son','Daughter','Brother','Guardian'].map((rel)=>(<option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} key={rel} value={rel}>{rel}</option>))}
                   </select>
                 </div>
               </div>
@@ -1364,7 +1365,7 @@ export const Dashboard: React.FC = () => {
               <button onClick={handleSaveProfile} disabled={isSavingProfile} style={{ flex:1, height:'46px', borderRadius:'12px', background:'linear-gradient(135deg,#29001D,#C2185B)', color:'white', border:'none', fontFamily:DS.font, fontWeight:'800', fontSize:'13px', cursor:'pointer', opacity:isSavingProfile?0.7:1, boxShadow:'0 4px 16px rgba(194,24,91,0.35)' }}>
                 {isSavingProfile ? 'Saving...' : 'Save Changes'}
               </button>
-              <button onClick={()=>setShowEditProfileModal(false)} style={{ flex:1, height:'46px', borderRadius:'12px', background:'rgba(255,255,255,0.06)', color:'#FFFFFF', border:'1px solid rgba(255,255,255,0.1)', fontFamily:DS.font, fontWeight:'700', fontSize:'13px', cursor:'pointer' }}>
+              <button onClick={()=>setShowEditProfileModal(false)} style={{ flex:1, height:'46px', borderRadius:'12px', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', color:DS.textWhite, border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.1)', fontFamily:DS.font, fontWeight:'700', fontSize:'13px', cursor:'pointer' }}>
                 Cancel
               </button>
             </div>
