@@ -562,9 +562,15 @@ export const ProfileKyc: React.FC = () => {
 
     try {
       await ApiClient.put(`api/User/profile/${userId}`, {
+        fullName: profile?.fullName || 'User',
+        email: profile?.email || null,
+        dateOfBirth: profile?.dateOfBirth || null,
+        weddingAnniversaryDate: profile?.weddingAnniversaryDate || null,
+        gender: profile?.gender || null,
         nomineeName: newNomineeInput,
         nomineePhoneNumber: newNomineePhone,
-        nomineeRelationship: newNomineeRelationship
+        nomineeRelationship: newNomineeRelationship,
+        profilePictureBase64: profile?.profilePictureBase64 || null
       });
       
       SessionManager.saveNomineeName(newNomineeInput);
