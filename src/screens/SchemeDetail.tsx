@@ -343,7 +343,7 @@ export const SchemeDetail: React.FC = () => {
         userId,
         amountPaise,
         userSchemeId: customSchemeId || userSchemeId || null
-      });
+      }, { timeout: 60000 });
 
       if (res.data) {
         const orderData = res.data;

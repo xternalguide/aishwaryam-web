@@ -20,7 +20,7 @@ export const getDeviceFingerprint = (): string => {
 
 const instance: AxiosInstance = axios.create({
   baseURL: BASE_URL,
-  timeout: 15000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
   }
