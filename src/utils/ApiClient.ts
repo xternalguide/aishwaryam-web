@@ -9,7 +9,7 @@ const isLocalHost =
   window.location.hostname.startsWith('10.') || 
   window.location.protocol === 'file:';
 
-const BASE_URL = isLocalHost
+export const BASE_URL = isLocalHost
   ? 'http://192.168.1.36:5044/'
   : 'https://aishwaryam.blazewing.in/';
 
