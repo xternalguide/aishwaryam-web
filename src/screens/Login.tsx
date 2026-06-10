@@ -400,7 +400,7 @@ export const Login: React.FC = () => {
           )}
 
           <button
-            onClick={() => window.open('tel:+919443000000')}
+            onClick={() => window.location.href = 'tel:+919443000000'}
             style={{
               background: 'transparent',
               border: 'none',

@@ -338,7 +338,7 @@ export const AiAssistant: React.FC = () => {
         </div>
 
         <button 
-          onClick={() => window.open('tel:+919443000000')}
+          onClick={() => window.location.href = 'tel:+919443000000'}
           style={{
             background: 'rgba(74, 14, 78, 0.06)',
             border: 'none',
