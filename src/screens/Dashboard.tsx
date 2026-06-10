@@ -522,16 +522,16 @@ export const Dashboard: React.FC = () => {
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
         {/* Gold */}
-        <div style={{ background:'rgba(255,215,0,0.08)', padding:'14px', borderRadius:'14px', border:'1px solid rgba(255,215,0,0.2)' }}>
-          <span style={{ fontFamily:DS.font, fontSize:'10px', color:'rgba(255,215,0,0.7)', display:'block', marginBottom:'6px', fontWeight:'600', textTransform:'uppercase', letterSpacing:'0.3px' }}>Gold 22K (per g)</span>
+        <div style={{ background: isDark ? 'rgba(255,215,0,0.08)' : 'rgba(184,134,11,0.08)', padding:'14px', borderRadius:'14px', border: isDark ? '1px solid rgba(255,215,0,0.2)' : '1px solid rgba(184,134,11,0.2)' }}>
+          <span style={{ fontFamily:DS.font, fontSize:'10px', color: isDark ? 'rgba(255,215,0,0.8)' : '#996F00', display:'block', marginBottom:'6px', fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.3px' }}>Gold 22K (per g)</span>
           <span style={{ fontFamily:DS.font, fontSize:'20px', fontWeight:'900', color:DS.gold, display:'block' }}>
             ₹{new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}).format((livePrice?.price22KPaise||701000)/100)}
           </span>
         </div>
         {/* Silver */}
-        <div style={{ background:'rgba(207,216,220,0.08)', padding:'14px', borderRadius:'14px', border:'1px solid rgba(207,216,220,0.15)' }}>
-          <span style={{ fontFamily:DS.font, fontSize:'10px', color:'rgba(207,216,220,0.7)', display:'block', marginBottom:'6px', fontWeight:'600', textTransform:'uppercase', letterSpacing:'0.3px' }}>Silver 99.9% (per g)</span>
-          <span style={{ fontFamily:DS.font, fontSize:'20px', fontWeight:'900', color:'#CFD8DC', display:'block' }}>
+        <div style={{ background: isDark ? 'rgba(207,216,220,0.08)' : 'rgba(84,110,122,0.07)', padding:'14px', borderRadius:'14px', border: isDark ? '1px solid rgba(207,216,220,0.15)' : '1px solid rgba(84,110,122,0.18)' }}>
+          <span style={{ fontFamily:DS.font, fontSize:'10px', color: isDark ? 'rgba(207,216,220,0.8)' : '#455A64', display:'block', marginBottom:'6px', fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.3px' }}>Silver 99.9% (per g)</span>
+          <span style={{ fontFamily:DS.font, fontSize:'20px', fontWeight:'900', color: isDark ? '#CFD8DC' : '#546E7A', display:'block' }}>
             ₹{new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}).format((livePrice?.priceSilverPaise||9900)/100)}
           </span>
         </div>
@@ -542,7 +542,7 @@ export const Dashboard: React.FC = () => {
   /** Quick actions 3×1 grid */
   const renderQuickActionsGrid = () => {
     const actions = [
-      { label:'Explore Schemes', icon:<TrendingUp size={22} color="#FFD700" />, bg:'rgba(255,215,0,0.15)', onClick:()=>navigate('/scheme-explorer') },
+      { label:'Explore Schemes', icon:<TrendingUp size={22} color={isDark ? '#FFD700' : '#B8860B'} />, bg: isDark ? 'rgba(255,215,0,0.15)' : 'rgba(184,134,11,0.12)', onClick:()=>navigate('/scheme-explorer') },
       { label:'My Bonuses',      icon:<Award size={22} color="#C2185B" />,      bg:'rgba(194,24,91,0.15)',  onClick:()=>navigate('/my-bonuses') },
       { label:'Refer & Earn',   icon:<Gift size={22} color="#10B981" />,        bg:'rgba(16,185,129,0.15)', onClick:()=>navigate('/referral') },
     ];
@@ -556,7 +556,9 @@ export const Dashboard: React.FC = () => {
             style={{
               display:'flex', flexDirection:'column', alignItems:'center', gap:'10px',
               padding:'16px 8px', borderRadius:'18px', cursor:'pointer',
-              background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.07)',
+              background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.85)',
+              border: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(74,14,78,0.1)',
+              boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.06)',
               transition:'all 0.2s ease'
             }}
           >
@@ -971,15 +973,7 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-              {/* Theme toggle */}
-              <button
-                onClick={toggleTheme}
-                title={isDark ? 'Switch to Light' : 'Switch to Dark'}
-                style={{ background: isDark ? 'rgba(255,215,0,0.12)' : 'rgba(74,14,78,0.1)', border: isDark ? '1px solid rgba(255,215,0,0.25)' : '1px solid rgba(74,14,78,0.2)', borderRadius:'50%', width:'38px', height:'38px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:'18px', transition:'all 0.3s ease' }}
-              >
-                {isDark ? '☀️' : '🌙'}
-              </button>
-              {/* Notifications */}
+              {/* Notifications only - theme toggle moved to Profile page */}
               <button
                 onClick={()=>{ setUnreadNotifCount(0); navigate('/notifications'); }}
                 style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(74,14,78,0.08)', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(74,14,78,0.15)', borderRadius:'50%', width:'38px', height:'38px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', position:'relative' }}
@@ -1153,6 +1147,25 @@ export const Dashboard: React.FC = () => {
                     </button>
                     <span style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:lang==='ta'?DS.gold:DS.textMuted }}>தமிழ்</span>
                   </div>
+                </div>
+
+                {/* Theme Toggle Row */}
+                <div style={{ ...DS.glass, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 18px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'14px' }}>
+                    <div style={{ width:'42px', height:'42px', borderRadius:'12px', background: isDark ? 'rgba(255,215,0,0.15)' : 'rgba(74,14,78,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px' }}>
+                      {isDark ? '☀️' : '🌙'}
+                    </div>
+                    <div>
+                      <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'800', color:DS.textWhite, display:'block' }}>Appearance</span>
+                      <span style={{ fontFamily:DS.font, fontSize:'11px', color:DS.textSub }}>{isDark ? 'Dark Mode' : 'Light Mode'}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={toggleTheme}
+                    style={{ width:'52px', height:'28px', borderRadius:'14px', background: isDark ? 'linear-gradient(135deg,#C2185B,#4A0E4E)' : 'rgba(74,14,78,0.15)', border:'none', position:'relative', cursor:'pointer', transition:'background 0.3s ease', padding:0 }}
+                  >
+                    <div style={{ width:'20px', height:'20px', borderRadius:'50%', background: isDark ? '#FFD700' : 'white', position:'absolute', top:'4px', left: isDark ? '28px' : '4px', transition:'left 0.3s ease', boxShadow:'0 2px 4px rgba(0,0,0,0.3)' }} />
+                  </button>
                 </div>
 
                 {/* Logout (mobile) */}
