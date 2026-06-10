@@ -165,6 +165,10 @@ export const Dashboard: React.FC = () => {
 
   const [userName, setUserName] = useState('');
   const [kycLevel, setKycLevel] = useState('BASIC');
+
+  // Ref for the tab scroll container — used to reset scroll on tab switch
+  const tabScrollRef = useRef<HTMLDivElement>(null);
+
   const [activeSchemes, setActiveSchemes] = useState<ActiveScheme[]>([]);
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
@@ -344,6 +348,10 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('DASHBOARD_ACTIVE_TAB', String(selectedTab));
     if (selectedTab === 1) refreshData(true);
+    // Reset scroll to top whenever the user switches tabs
+    if (tabScrollRef.current) {
+      tabScrollRef.current.scrollTop = 0;
+    }
   }, [selectedTab]);
 
   useEffect(() => {
@@ -940,7 +948,7 @@ export const Dashboard: React.FC = () => {
         )}
 
         {/* TAB CONTAINER */}
-        <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', paddingBottom:isDesktop?'32px':(isAndroidApp?'96px':'32px') }}>
+        <div ref={tabScrollRef} style={{ flex:1, overflowY:'auto', overflowX:'hidden', paddingBottom:isDesktop?'32px':(isAndroidApp?'96px':'32px') }}>
 
           {/* ── TAB 0: HOME ── */}
           {selectedTab === 0 && (

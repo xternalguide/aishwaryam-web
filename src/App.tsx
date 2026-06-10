@@ -1,5 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+
+// ── SCROLL TO TOP ON EVERY ROUTE CHANGE ─────────────────────────────────────
+// Resets both window scroll and the #root element scroll on every navigation.
+// This replaces the deleted ScrollToTop component.
+const ScrollToTop: React.FC = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    // Reset window scroll
+    window.scrollTo(0, 0);
+    // Also reset the #root element which is the main scroll container
+    const root = document.getElementById('root');
+    if (root) root.scrollTop = 0;
+  }, [pathname]);
+  return null;
+};
+// ────────────────────────────────────────────────────────────────────────────
+
 import { Splash } from './screens/Splash';
 import { Welcome } from './screens/Welcome';
 import { Login } from './screens/Login';
@@ -191,6 +208,7 @@ const App: React.FC = () => {
     <div className="app-container">
       <AppProvider>
         <Router>
+          <ScrollToTop />
           <PushNotificationHandler />
           <BackButtonHandler />
           <Routes>
