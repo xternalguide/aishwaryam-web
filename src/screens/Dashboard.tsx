@@ -610,8 +610,8 @@ export const Dashboard: React.FC = () => {
                   <span>Progress</span>
                   <span>{sch.remainingDaysForScheme} days left</span>
                 </div>
-                <div style={{ width:'100%', height:'5px', background:'rgba(255,255,255,0.1)', borderRadius:'3px', overflow:'hidden' }}>
-                  <div style={{ width:`${progressPercent}%`, height:'100%', background:'linear-gradient(90deg, #C2185B 0%, #FFD700 100%)', borderRadius:'3px', transition:'width 0.5s ease' }} />
+                <div style={{ width:'100%', height:'5px', background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius:'3px', overflow:'hidden' }}>
+                  <div style={{ width:`${Math.max(3, progressPercent)}%`, height:'100%', background:'linear-gradient(90deg, #C2185B 0%, #FFD700 100%)', borderRadius:'3px', transition:'width 0.5s ease' }} />
                 </div>
               </div>
 
@@ -684,9 +684,9 @@ export const Dashboard: React.FC = () => {
                     <span style={{ fontFamily:DS.font, fontSize:'14px', fontWeight:'800', color:DS.textWhite }}>{formatRupees(scheme.installmentAmountPaise)}</span>
                   </div>
                 </div>
-                <div style={{ background:'rgba(255,215,0,0.1)', borderRadius:'10px', padding:'8px 12px', border:'1px solid rgba(255,215,0,0.2)' }}>
-                  <span style={{ fontFamily:DS.font, fontSize:'9px', color:'rgba(255,215,0,0.7)', fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.3px', display:'block', marginBottom:'2px' }}>Bonus Offer</span>
-                  <span style={{ fontFamily:DS.font, fontSize:'12px', fontWeight:'800', color:DS.gold }}>Get up to {maxBonus} Extra Gold!</span>
+                <div style={{ background: isDark ? 'rgba(255,215,0,0.1)' : 'rgba(194,24,91,0.06)', borderRadius:'10px', padding:'8px 12px', border: isDark ? '1px solid rgba(255,215,0,0.2)' : '1px solid rgba(194,24,91,0.15)' }}>
+                  <span style={{ fontFamily:DS.font, fontSize:'9px', color: isDark ? 'rgba(255,215,0,0.7)' : DS.magenta, fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.3px', display:'block', marginBottom:'2px' }}>Bonus Offer</span>
+                  <span style={{ fontFamily:DS.font, fontSize:'12px', fontWeight:'800', color: isDark ? DS.gold : DS.purple }}>Get up to {maxBonus} Extra Gold!</span>
                 </div>
                 {keywords.length > 0 && (
                   <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
