@@ -202,6 +202,9 @@ export const Mpin: React.FC = () => {
     length: number,
     onComplete: (completedVal: string) => void
   ) => {
+    // Clear any stale error as soon as the user starts typing
+    setErrorMsg(null);
+
     const clean = val.replace(/\D/g, '').slice(0, 1);
     const pinArray = currentState.split('');
     pinArray[index] = clean;
@@ -212,7 +215,9 @@ export const Mpin: React.FC = () => {
       if (inputsRef.current[index + 1]) inputsRef.current[index + 1].focus();
     }
 
-    if (nextVal.length === length) {
+    // Only fire onComplete when ALL slots are filled with digits
+    const allFilled = pinArray.length === length && pinArray.every((ch) => ch !== '' && ch !== undefined);
+    if (allFilled) {
       // Auto blur to dismiss keyboard
       if (inputsRef.current[index]) {
         inputsRef.current[index].blur();
@@ -222,11 +227,15 @@ export const Mpin: React.FC = () => {
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>, currentState: string, stateSetter: React.Dispatch<React.SetStateAction<string>>, inputsRef: React.MutableRefObject<HTMLInputElement[]>) => {
-    if (e.key === 'Backspace' && !currentState[index] && index > 0) {
-      const pinArray = currentState.split('');
-      pinArray[index - 1] = '';
-      stateSetter(pinArray.join(''));
-      if (inputsRef.current[index - 1]) inputsRef.current[index - 1].focus();
+    if (e.key === 'Backspace') {
+      // Clear error on backspace too
+      setErrorMsg(null);
+      if (!currentState[index] && index > 0) {
+        const pinArray = currentState.split('');
+        pinArray[index - 1] = '';
+        stateSetter(pinArray.join(''));
+        if (inputsRef.current[index - 1]) inputsRef.current[index - 1].focus();
+      }
     }
   };
 
