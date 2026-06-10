@@ -1257,7 +1257,17 @@ export const Dashboard: React.FC = () => {
             )}
 
             <button
-              onClick={()=>{ if(selectedTxDetail&&selectedTxDetail.transactionId) window.open(`${BASE_URL}api/Gold/receipt/download/${selectedTxDetail.transactionId}`,'_blank'); }}
+              onClick={()=>{ 
+                if(selectedTxDetail&&selectedTxDetail.transactionId) {
+                  const url = `${BASE_URL}api/Gold/receipt/download/${selectedTxDetail.transactionId}`;
+                  const isCapacitor = !!(window as any).Capacitor;
+                  if (isCapacitor) {
+                    window.open(url, '_system');
+                  } else {
+                    window.open(url, '_blank');
+                  }
+                }
+              }}
               style={{ width:'100%', height:'44px', borderRadius:'12px', background:'linear-gradient(135deg,#29001D,#C2185B)', color:'white', border:'none', fontFamily:DS.font, fontWeight:'800', fontSize:'13px', cursor:'pointer', boxShadow:'0 4px 16px rgba(194,24,91,0.35)' }}
             >
               Download Receipt
