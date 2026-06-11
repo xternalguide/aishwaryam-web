@@ -22,7 +22,6 @@ instance.interceptors.request.use(
   (config) => {
     // Exempt public auth endpoints from carrying the authorization header
     const publicEndpoints = [
-      'api/Auth/verify-mpin',
       'api/Auth/send-otp',
       'api/Auth/verify-otp',
       'api/Auth/refresh'
