@@ -70,6 +70,18 @@ instance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const publicEndpoints = [
+      'api/Auth/verify-mpin',
+      'api/Auth/send-otp',
+      'api/Auth/verify-otp',
+      'api/Auth/refresh'
+    ];
+    const url = originalRequest?.url || '';
+    const isPublic = publicEndpoints.some(endpoint => url.includes(endpoint));
+
+    if (isPublic) {
+      return Promise.reject(error);
+    }
 
     // Attempt token refresh rotation on 401
     if (error.response?.status === 401 && !originalRequest._retry) {
