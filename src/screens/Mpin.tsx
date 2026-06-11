@@ -91,9 +91,11 @@ export const Mpin: React.FC = () => {
     @keyframes spin  { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   `;
 
-  // Layer 1: Reactively clear error whenever ANY pin input value changes.
+  // Layer 1: Reactively clear error whenever ANY pin input value is actively typed/changed (non-empty).
   useEffect(() => {
-    if (errorMsg) setErrorMsg(null);
+    if (errorMsg && (mpin || newMpin || confirmMpin || otp)) {
+      setErrorMsg(null);
+    }
   }, [mpin, newMpin, confirmMpin, otp]);
 
   // Layer 2: Auto-dismiss error after 4 seconds as an absolute safety net.
