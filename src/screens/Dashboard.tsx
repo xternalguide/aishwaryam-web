@@ -407,11 +407,7 @@ export const Dashboard: React.FC = () => {
   const getImageUrl = (url: string) => {
     if (!url) return '';
     if (url.startsWith('data:')) return url;
-    const isDev = import.meta.env.DEV;
-    const isCapacitor = !!(window as any).Capacitor;
-    const activeBaseUrl = isDev
-      ? (isCapacitor ? 'http://192.168.1.36:5044/' : 'http://localhost:5044/')
-      : 'https://aishwaryam.blazewing.in/';
+    const activeBaseUrl = 'https://aishwaryam.blazewing.in/';
     const activeBase = activeBaseUrl.endsWith('/') ? activeBaseUrl : activeBaseUrl + '/';
     if (url.includes('/uploads/')) { const parts = url.split('/uploads/'); return activeBase + 'uploads/' + parts[1]; }
     if (url.startsWith('http://') || url.startsWith('https://')) return url;

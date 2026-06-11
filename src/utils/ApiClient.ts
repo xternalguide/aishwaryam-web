@@ -2,12 +2,7 @@ import axios from 'axios';
 import type { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
 import { SessionManager } from './SessionManager';
 
-const isDev = import.meta.env.DEV;
-const isCapacitor = !!(window as any).Capacitor;
-
-export const BASE_URL = isDev
-  ? (isCapacitor ? 'http://192.168.1.36:5044/' : 'http://localhost:5044/')
-  : 'https://aishwaryam.blazewing.in/';
+export const BASE_URL = 'https://aishwaryam.blazewing.in/';
 
 export const getDeviceFingerprint = (): string => {
   const isCapacitor = !!(window as any).Capacitor;
