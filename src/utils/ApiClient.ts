@@ -29,9 +29,21 @@ const instance: AxiosInstance = axios.create({
 // Request interceptor: add bearer token if session exists
 instance.interceptors.request.use(
   (config) => {
-    const token = SessionManager.getToken();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Exempt public auth endpoints from carrying the authorization header
+    const publicEndpoints = [
+      'api/Auth/verify-mpin',
+      'api/Auth/send-otp',
+      'api/Auth/verify-otp',
+      'api/Auth/refresh'
+    ];
+    const url = config.url || '';
+    const isPublic = publicEndpoints.some(endpoint => url.includes(endpoint));
+
+    if (!isPublic) {
+      const token = SessionManager.getToken();
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -114,7 +126,7 @@ instance.interceptors.response.use(
             const customError = new Error(res.data?.message || 'Session expired');
             onRefreshFailed(customError);
             SessionManager.clearSession();
-            window.location.hash = '#/login';
+            window.location.href = '/';
             return Promise.reject(customError);
           }
         } catch (refreshErr: any) {
@@ -124,7 +136,7 @@ instance.interceptors.response.use(
           if (status === 400 || status === 401) {
             onRefreshFailed(refreshErr);
             SessionManager.clearSession();
-            window.location.hash = '#/login';
+            window.location.href = '/';
             return Promise.reject(refreshErr);
           } else {
             // Transient error (network down, 503, etc.). Do NOT clear session.
@@ -138,7 +150,7 @@ instance.interceptors.response.use(
         isRefreshing = false;
         const noTokenErr = new Error('No refresh token available');
         SessionManager.clearSession();
-        window.location.hash = '#/login';
+        window.location.href = '/';
         return Promise.reject(noTokenErr);
       }
     }
