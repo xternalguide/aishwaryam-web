@@ -38,7 +38,11 @@ export const Splash: React.FC = () => {
       if (!hasSeenWelcome) {
         navigate('/welcome');
       } else if (!hasToken) {
-        navigate('/login');
+        if (SessionManager.getPhoneNumber()) {
+          navigate('/mpin/verify');
+        } else {
+          navigate('/login');
+        }
       } else if (stage === OnboardingStage.OTP_VERIFIED) {
         navigate('/mpin/setup');
       } else if (stage === OnboardingStage.MPIN_CREATED) {

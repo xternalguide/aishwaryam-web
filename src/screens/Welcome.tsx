@@ -1,61 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SessionManager } from '../utils/SessionManager';
 import { useTranslation } from '../utils/translation';
-import { Star, Shield, Award } from 'lucide-react';
+import { ApiClient } from '../utils/ApiClient';
+import { Star } from 'lucide-react';
 
 interface Slide {
-  icon: React.ReactNode;
-  iconBg: string;
-  badge: string;
+  id?: string;
   title: string;
-  subtitle: string;
-  body: string;
-  stat: string;
-  statLabel: string;
-  accent: string;
+  subtitle?: string;
+  body?: string;
+  stat?: string;
+  statLabel?: string;
+  badge?: string;
+  accent?: string;
+  imageBase64?: string;
+  iconBg?: string;
 }
 
 export const Welcome: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [current, setCurrent] = useState(0);
+  const [slides, setSlides] = useState<Slide[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const slides: Slide[] = [
-    {
-      icon: <Star size={48} color="white" fill="white" />,
-      iconBg: 'linear-gradient(135deg, #FFD700 0%, #B8860B 100%)',
-      badge: t('trusted_gold_platform'),
-      title: t('save_for_future'),
-      subtitle: t('start_with_small_steps'),
-      body: t('save_for_future_body'),
-      stat: '₹100',
-      statLabel: t('min_starting_savings'),
-      accent: 'var(--gold-warm)'
-    },
-    {
-      icon: <Shield size={48} color="white" fill="white" />,
-      iconBg: 'linear-gradient(135deg, #10B981 0%, #047857 100%)',
-      badge: t('secured_vault'),
-      title: t('safe_and_certified'),
-      subtitle: t('pure_gold_guaranteed'),
-      body: t('safe_and_certified_body'),
-      stat: '99.9%',
-      statLabel: t('purity_guarantee'),
-      accent: 'var(--success-green)'
-    },
-    {
-      icon: <Award size={48} color="white" fill="white" />,
-      iconBg: 'linear-gradient(135deg, #C2185B 0%, #4A0E4E 100%)',
-      badge: t('extra_bonus_benefits'),
-      title: t('loyalty_bonus_rewards'),
-      subtitle: t('up_to_bonus'),
-      body: t('loyalty_bonus_rewards_body'),
-      stat: '7.5%',
-      statLabel: t('max_loyalty_bonus'),
-      accent: 'var(--brand-accent)'
-    }
-  ];
+  useEffect(() => {
+    const fetchWelcomeSlides = async () => {
+      try {
+        const res = await ApiClient.get('api/Welcome/slides');
+        if (res.data && res.data.success && res.data.slides && res.data.slides.length > 0) {
+          setSlides(res.data.slides);
+        } else {
+          // If no sliders are configured in the admin panel, skip completely
+          SessionManager.markWelcomeOnboardingSeen();
+          navigate('/login');
+        }
+      } catch (err) {
+        console.warn('Failed to load dynamic welcome slides, skipping onboarding sliders view:', err);
+        SessionManager.markWelcomeOnboardingSeen();
+        navigate('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchWelcomeSlides();
+  }, [navigate]);
+
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        background: 'var(--gradient-brand)',
+        color: 'white'
+      }}>
+        <div style={{ width: '32px', height: '32px', border: '3px solid rgba(255,255,255,0.3)', borderTop: '3px solid white', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      </div>
+    );
+  }
+
+  if (slides.length === 0) {
+    return null;
+  }
 
   const isLast = current === slides.length - 1;
 
@@ -74,6 +84,13 @@ export const Welcome: React.FC = () => {
   };
 
   const slide = slides[current];
+  const accentColor = slide.accent || 'var(--gold-warm)';
+
+  const getSlideImage = (base64?: string) => {
+    if (!base64) return '';
+    if (base64.startsWith('data:')) return base64;
+    return `data:image/png;base64,${base64}`;
+  };
 
   return (
     <div style={{
@@ -125,40 +142,60 @@ export const Welcome: React.FC = () => {
           justifyContent: 'center',
           paddingTop: isLast ? '40px' : '0'
         }}>
-          {/* Animated Icon Container */}
+          {/* Animated Image/Icon Container */}
           <div style={{
-            width: '120px',
-            height: '120px',
-            borderRadius: '50%',
-            background: slide.iconBg,
+            width: '140px',
+            height: '140px',
+            borderRadius: '24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: `0 10px 30px rgba(0, 0, 0, 0.3)`,
             marginBottom: '28px',
-            animation: 'pulse 3s infinite alternate'
+            animation: 'pulse 3s infinite alternate',
+            overflow: 'hidden',
+            background: slide.iconBg || 'rgba(255, 255, 255, 0.05)'
           }}>
-            {slide.icon}
+            {slide.imageBase64 ? (
+              <img
+                src={getSlideImage(slide.imageBase64)}
+                alt={slide.title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div style={{
+                width: '100%',
+                height: '100%',
+                background: slide.iconBg || 'linear-gradient(135deg, #FFD700 0%, #B8860B 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Star size={48} color="white" fill="white" />
+              </div>
+            )}
           </div>
 
           {/* Badge */}
-          <div style={{
-            background: `${slide.accent}2E`,
-            border: `1px solid ${slide.accent}4D`,
-            padding: '6px 14px',
-            borderRadius: '20px',
-            marginBottom: '16px'
-          }}>
-            <span style={{
-              color: slide.accent,
-              fontSize: '10px',
-              fontWeight: 'bold',
-              letterSpacing: '1.5px',
-              textTransform: 'uppercase'
+          {slide.badge && (
+            <div style={{
+              background: `${accentColor}2E`,
+              border: `1px solid ${accentColor}4D`,
+              padding: '6px 14px',
+              borderRadius: '20px',
+              marginBottom: '16px'
             }}>
-              {slide.badge}
-            </span>
-          </div>
+              <span style={{
+                color: accentColor,
+                fontSize: '10px',
+                fontWeight: 'bold',
+                letterSpacing: '1.5px',
+                textTransform: 'uppercase'
+              }}>
+                {slide.badge}
+              </span>
+            </div>
+          )}
 
           {/* Title */}
           <h1 style={{
@@ -172,51 +209,59 @@ export const Welcome: React.FC = () => {
           </h1>
 
           {/* Subtitle */}
-          <h3 style={{
-            fontSize: '14px',
-            color: slide.accent,
-            fontWeight: 600,
-            marginBottom: '16px'
-          }}>
-            {slide.subtitle}
-          </h3>
+          {slide.subtitle && (
+            <h3 style={{
+              fontSize: '14px',
+              color: accentColor,
+              fontWeight: 600,
+              marginBottom: '16px'
+            }}>
+              {slide.subtitle}
+            </h3>
+          )}
 
           {/* Body Text */}
-          <p style={{
-            fontSize: '13px',
-            lineHeight: '20px',
-            color: 'rgba(255, 255, 255, 0.75)',
-            maxWidth: '300px',
-            marginBottom: '28px'
-          }}>
-            {slide.body}
-          </p>
+          {slide.body && (
+            <p style={{
+              fontSize: '13px',
+              lineHeight: '20px',
+              color: 'rgba(255, 255, 255, 0.75)',
+              maxWidth: '300px',
+              marginBottom: '28px'
+            }}>
+              {slide.body}
+            </p>
+          )}
 
           {/* Stats highlight chip */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.08)',
-            border: `1px solid ${slide.accent}4D`,
-            borderRadius: '20px',
-            padding: '12px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <span style={{
-              fontSize: '24px',
-              fontWeight: '900',
-              color: slide.accent
+          {slide.stat && (
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: `1px solid ${accentColor}4D`,
+              borderRadius: '20px',
+              padding: '12px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
             }}>
-              {slide.stat}
-            </span>
-            <span style={{
-              fontSize: '13px',
-              color: 'rgba(255, 255, 255, 0.8)',
-              textAlign: 'left'
-            }}>
-              {slide.statLabel}
-            </span>
-          </div>
+              <span style={{
+                fontSize: '24px',
+                fontWeight: '900',
+                color: accentColor
+              }}>
+                {slide.stat}
+              </span>
+              {slide.statLabel && (
+                <span style={{
+                  fontSize: '13px',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  textAlign: 'left'
+                }}>
+                  {slide.statLabel}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Bottom Pager Indicators & CTA Button */}
@@ -238,7 +283,7 @@ export const Welcome: React.FC = () => {
                     width: isActive ? '24px' : '8px',
                     height: '8px',
                     borderRadius: '4px',
-                    background: isActive ? slide.accent : 'rgba(255, 255, 255, 0.4)',
+                    background: isActive ? accentColor : 'rgba(255, 255, 255, 0.4)',
                     transition: 'all 0.3s ease'
                   }}
                 />

@@ -86,7 +86,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             console.warn('Unauthorized on server. Logging out...');
             SessionManager.clearSession();
             clearData();
-            window.location.hash = '#/login';
+            if (SessionManager.getPhoneNumber()) {
+              window.location.href = '/#/mpin/verify';
+            } else {
+              window.location.href = '/';
+            }
             return;
           } else if (reason.response.status === 404) {
             console.warn('User profile not found on server. Redirecting to profile setup...');
