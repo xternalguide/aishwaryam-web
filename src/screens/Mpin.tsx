@@ -122,7 +122,7 @@ export const Mpin: React.FC = () => {
         const refreshToken = response.data.refreshToken || SessionManager.getRefreshToken() || '';
         SessionManager.saveSession(userId, token, refreshToken);
         SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
-        await refreshData();
+        refreshData().catch((err) => console.warn('Background preload failed on login:', err));
         setSuccessMessage('Login Successful!');
         setShowSuccessDialog(true);
       } else {
