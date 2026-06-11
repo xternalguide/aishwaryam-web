@@ -117,7 +117,10 @@ export const Mpin: React.FC = () => {
         deviceFingerprint: ApiClient.getDeviceFingerprint()
       });
       if (response.data && response.data.success) {
-        SessionManager.saveSession(response.data.userId, response.data.token, response.data.refreshToken);
+        const userId = response.data.userId || SessionManager.getUserId() || '';
+        const token = response.data.token || response.data.accessToken || SessionManager.getToken() || '';
+        const refreshToken = response.data.refreshToken || SessionManager.getRefreshToken() || '';
+        SessionManager.saveSession(userId, token, refreshToken);
         SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
         await refreshData();
         setSuccessMessage('Login Successful!');
