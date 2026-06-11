@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ApiClient } from '../utils/ApiClient';
-import { SessionManager } from '../utils/SessionManager';
+import { SessionManager, OnboardingStage } from '../utils/SessionManager';
 
 interface AppContextType {
   profile: any;
@@ -81,12 +81,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (profileRes.status === 'rejected') {
         const reason = profileRes.reason;
-        if (reason && reason.response && (reason.response.status === 404 || reason.response.status === 401)) {
-          console.warn('User profile not found or unauthorized on server. Logging out...');
-          SessionManager.clearSession();
-          clearData();
-          window.location.hash = '#/login';
-          return;
+        if (reason && reason.response) {
+          if (reason.response.status === 401) {
+            console.warn('Unauthorized on server. Logging out...');
+            SessionManager.clearSession();
+            clearData();
+            window.location.hash = '#/login';
+            return;
+          } else if (reason.response.status === 404) {
+            console.warn('User profile not found on server. Redirecting to profile setup...');
+            SessionManager.saveOnboardingStage(OnboardingStage.MPIN_CREATED);
+            window.location.hash = '#/profile-setup';
+            return;
+          }
         }
       }
       if (profileRes.status === 'fulfilled' && profileRes.value.data) {
