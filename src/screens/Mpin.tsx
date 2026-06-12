@@ -18,7 +18,7 @@ type MpinFlowState = typeof MpinFlowState[keyof typeof MpinFlowState];
 export const Mpin: React.FC = () => {
   const navigate = useNavigate();
   const { refreshData } = useApp();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { mode } = useParams<{ mode: 'setup' | 'verify' | 'change' }>();
   const isSetupMode = mode === 'setup' || mode === 'change';
 
@@ -123,7 +123,7 @@ export const Mpin: React.FC = () => {
         SessionManager.saveSession(userId, token, refreshToken);
         SessionManager.saveOnboardingStage(OnboardingStage.FULLY_VERIFIED);
         refreshData().catch((err) => console.warn('Background preload failed on login:', err));
-        setSuccessMessage('Login Successful!');
+        setSuccessMessage(lang === 'ta' ? 'உள்நுழைவு வெற்றிகரமாக முடிந்தது!' : 'Login Successful!');
         setShowSuccessDialog(true);
       } else {
         setErrorMsg(response.data.message || 'Incorrect PIN. Please try again.');
@@ -151,7 +151,13 @@ export const Mpin: React.FC = () => {
         phoneNumber: SessionManager.getPhoneNumber() || ''
       });
       if (response.data && response.data.success) {
-        setSuccessMessage(mode === 'change' ? 'PIN Changed Successfully!' : flowState === MpinFlowState.SETUP_PIN ? 'PIN Set Successfully!' : 'PIN Reset Successfully!');
+        setSuccessMessage(
+          mode === 'change'
+            ? (lang === 'ta' ? 'பின் எண் வெற்றிகரமாக மாற்றப்பட்டது!' : 'PIN Changed Successfully!')
+            : flowState === MpinFlowState.SETUP_PIN
+              ? (lang === 'ta' ? 'பின் எண் வெற்றிகரமாக அமைக்கப்பட்டது!' : 'PIN Set Successfully!')
+              : (lang === 'ta' ? 'பின் எண் வெற்றிகரமாக மீட்டமைக்கப்பட்டது!' : 'PIN Reset Successfully!')
+        );
         setShowSuccessDialog(true);
       } else {
         setErrorMsg(response.data.message || 'Failed to update PIN.');
@@ -291,17 +297,16 @@ export const Mpin: React.FC = () => {
 
           {/* Title */}
           <h2 style={{
-            fontSize: '20px',
-            fontWeight: 'bold',
-            color: 'var(--brand-dark)',
+            fontFamily: 'var(--font-playfair)',
+            color: 'var(--brand-deep)',
+            fontSize: '24px',
             marginBottom: '8px',
-            fontFamily: 'var(--font-poppins)',
             textAlign: 'center'
           }}>
-            {flowState === MpinFlowState.ENTER_PIN && 'Enter your PIN'}
-            {flowState === MpinFlowState.SETUP_PIN && (mode === 'change' ? 'Change Login PIN' : 'Set your 4-Digit PIN')}
-            {flowState === MpinFlowState.FORGOT_ENTER_OTP && 'Verify OTP'}
-            {flowState === MpinFlowState.FORGOT_NEW_PIN && 'Reset your 4-Digit PIN'}
+            {flowState === MpinFlowState.ENTER_PIN && t('enter_pin')}
+            {flowState === MpinFlowState.SETUP_PIN && (mode === 'change' ? t('change_login_pin') : t('set_your_pin'))}
+            {flowState === MpinFlowState.FORGOT_ENTER_OTP && t('verify_otp')}
+            {flowState === MpinFlowState.FORGOT_NEW_PIN && t('reset_your_pin')}
           </h2>
 
           {/* Subtitle */}
@@ -313,10 +318,10 @@ export const Mpin: React.FC = () => {
             marginBottom: '24px',
             padding: '0 8px'
           }}>
-            {flowState === MpinFlowState.ENTER_PIN && 'Enter your 4-digit PIN to access your account.'}
-            {flowState === MpinFlowState.SETUP_PIN && (mode === 'change' ? 'Create and confirm your new 4-digit login PIN.' : 'Create a secure PIN for quick login.')}
-            {flowState === MpinFlowState.FORGOT_ENTER_OTP && 'OTP sent to your registered phone number.'}
-            {flowState === MpinFlowState.FORGOT_NEW_PIN && 'Create and repeat your new 4-digit login PIN.'}
+            {flowState === MpinFlowState.ENTER_PIN && t('enter_pin_desc')}
+            {flowState === MpinFlowState.SETUP_PIN && (mode === 'change' ? t('create_confirm_pin_desc') : t('create_secure_pin_desc'))}
+            {flowState === MpinFlowState.FORGOT_ENTER_OTP && t('otp_sent_desc')}
+            {flowState === MpinFlowState.FORGOT_NEW_PIN && t('create_repeat_pin_desc')}
           </p>
 
           {errorMsg && (
@@ -431,7 +436,7 @@ export const Mpin: React.FC = () => {
                   cursor: 'pointer'
                 }}
               >
-                Forgot PIN? Reset via OTP
+                {t('forgot_pin_reset')}
               </button>
             </div>
           )}
@@ -492,7 +497,7 @@ export const Mpin: React.FC = () => {
               />
 
               <div>
-                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>Enter New PIN</span>
+                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>{t('enter_new_pin')}</span>
                 <div 
                   onClick={() => newMpinInputRef.current?.focus()}
                   style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '6px', cursor: 'pointer' }}
@@ -527,7 +532,7 @@ export const Mpin: React.FC = () => {
               </div>
 
               <div>
-                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>Confirm New PIN</span>
+                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>{t('confirm_new_pin')}</span>
                 <div 
                   onClick={() => { if (newMpin.length === 4) confirmMpinInputRef.current?.focus(); }}
                   style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '6px', cursor: newMpin.length === 4 ? 'pointer' : 'default' }}
@@ -563,7 +568,7 @@ export const Mpin: React.FC = () => {
 
               {newMpin.length === 4 && confirmMpin.length === 4 && newMpin !== confirmMpin && (
                 <span style={{ color: 'var(--error-red)', fontSize: '12px', textAlign: 'center', fontWeight: 'bold', marginTop: '4px' }}>
-                  PINs do not match
+                  {t('pins_do_not_match')}
                 </span>
               )}
 
@@ -588,7 +593,7 @@ export const Mpin: React.FC = () => {
                 {isLoading ? (
                   <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
                 ) : (
-                  'Save'
+                  lang === 'ta' ? 'சேமி' : 'Save'
                 )}
               </button>
 
@@ -605,7 +610,7 @@ export const Mpin: React.FC = () => {
                     cursor: 'pointer'
                   }}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
               )}
             </div>
@@ -675,7 +680,7 @@ export const Mpin: React.FC = () => {
 
               {secondsRemaining > 0 ? (
                 <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                  Resend in {secondsRemaining}s
+                  {lang === 'ta' ? `மீண்டும் அனுப்ப ${secondsRemaining} விநாடிகள்` : `Resend in ${secondsRemaining}s`}
                 </span>
               ) : (
                 <button
@@ -690,7 +695,7 @@ export const Mpin: React.FC = () => {
                     marginBottom: '16px'
                   }}
                 >
-                  Resend OTP
+                  {lang === 'ta' ? 'மீண்டும் OTP அனுப்பவும்' : 'Resend OTP'}
                 </button>
               )}
 
@@ -705,7 +710,7 @@ export const Mpin: React.FC = () => {
                   cursor: 'pointer'
                 }}
               >
-                Back to PIN Login
+                {lang === 'ta' ? 'பின் உள்நுழைவுக்குத் திரும்பவும்' : 'Back to PIN Login'}
               </button>
             </div>
           )}
@@ -724,7 +729,7 @@ export const Mpin: React.FC = () => {
             width: '100%',
             boxSizing: 'border-box'
           }}>
-            <strong>For your security:</strong> Do not share your PIN with anyone. Aishwaryam @ Your Home will never ask for your PIN.
+            🔐 <strong>{lang === 'ta' ? 'உங்கள் பாதுகாப்பிற்கு:' : 'For your security:'}</strong> {t('pin_security_notice')}
           </div>
         </div>
       </div>

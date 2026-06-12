@@ -9,7 +9,7 @@ import { useTranslation } from '../utils/translation';
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { refreshData } = useApp();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 2;
 
@@ -395,7 +395,7 @@ export const Onboarding: React.FC = () => {
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
           <span style={{ fontSize: '16px', fontWeight: 'bold', fontFamily: 'var(--font-poppins)' }}>
-            Aishwaryam · Step {currentStep} of {totalSteps}
+            Aishwaryam · {lang === 'ta' ? `படி ${currentStep} / ${totalSteps}` : `Step ${currentStep} of ${totalSteps}`}
           </span>
         </div>
       </div>
@@ -438,16 +438,16 @@ export const Onboarding: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <CheckCircle color="var(--brand-accent)" size={24} />
-                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Step 1: Basic Profile</h2>
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('step_1_basic_profile')}</h2>
               </div>
 
               {/* Box 1: Core Details */}
               <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Full Name <span style={{ color: 'var(--error-red)' }}>*</span></label>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('full_name_label')} <span style={{ color: 'var(--error-red)' }}>*</span></label>
                   <input
                     type="text"
-                    placeholder="Enter Full Name"
+                    placeholder={t('enter_full_name')}
                     value={name}
                     onChange={(e) => {
                       if (/^[a-zA-Z\s]*$/.test(e.target.value)) {
@@ -468,7 +468,7 @@ export const Onboarding: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Date of Birth (DD/MM/YYYY) <span style={{ color: 'var(--error-red)' }}>*</span></label>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('dob_placeholder')} <span style={{ color: 'var(--error-red)' }}>*</span></label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type="date"
@@ -502,17 +502,17 @@ export const Onboarding: React.FC = () => {
                   </div>
                   {dob && isValidDateString(dob) && dobError === null && (
                     <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--brand-mid)', marginTop: '6px', display: 'block' }}>
-                      Age: {calculateAge(dob)} years
+                      {lang === 'ta' ? 'வயது' : 'Age'}: {calculateAge(dob)} {lang === 'ta' ? 'ஆண்டுகள்' : 'years'}
                     </span>
                   )}
                   {dobError && <span style={{ fontSize: '11px', color: 'var(--error-red)', marginTop: '4px', display: 'block' }}>{dobError}</span>}
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Nominee Name</label>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('nominee_label')}</label>
                   <input
                     type="text"
-                    placeholder="Enter Nominee Name"
+                    placeholder={t('enter_nominee_name')}
                     value={nomineeName}
                     onChange={(e) => {
                       if (/^[a-zA-Z\s]*$/.test(e.target.value)) {
@@ -533,7 +533,7 @@ export const Onboarding: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-                  <span style={{ fontSize: '13px', fontWeight: '500' }}>Marital Status: {isMarried ? 'Married' : 'Single'}</span>
+                  <span style={{ fontSize: '13px', fontWeight: '500' }}>{t('marital_status')}: {isMarried ? t('marital_married') : t('marital_single')}</span>
                   <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '44px', height: '24px' }}>
                     <input
                       type="checkbox"
@@ -556,7 +556,7 @@ export const Onboarding: React.FC = () => {
 
                 {isMarried && (
                   <div>
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Wedding Date (DD/MM/YYYY)</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('wedding_date_placeholder')}</label>
                     <div style={{ position: 'relative' }}>
                       <input
                         type="date"
@@ -596,7 +596,7 @@ export const Onboarding: React.FC = () => {
               {/* Box 2: Contact Details */}
               <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Phone Number <span style={{ color: 'var(--error-red)' }}>*</span></label>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('phone_number_label')} <span style={{ color: 'var(--error-red)' }}>*</span></label>
                   <input
                     type="tel"
                     disabled
@@ -616,10 +616,10 @@ export const Onboarding: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Email Address <span style={{ color: 'var(--error-red)' }}>*</span></label>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('email_address_label')} <span style={{ color: 'var(--error-red)' }}>*</span></label>
                   <input
                     type="email"
-                    placeholder="Enter Email Address"
+                    placeholder={t('enter_email_address')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     style={{
@@ -636,7 +636,7 @@ export const Onboarding: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Gender <span style={{ color: 'var(--error-red)' }}>*</span></label>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('gender_label')} <span style={{ color: 'var(--error-red)' }}>*</span></label>
                   <div style={{ display: 'flex', gap: '24px', marginTop: '8px' }}>
                     {['Male', 'Female'].map((g) => (
                       <label key={g} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
@@ -648,7 +648,7 @@ export const Onboarding: React.FC = () => {
                           onChange={() => setGender(g)}
                           style={{ accentColor: 'var(--brand-mid)' }}
                         />
-                        {g}
+                        {g === 'Male' ? t('gender_male') : t('gender_female')}
                       </label>
                     ))}
                   </div>
@@ -658,12 +658,12 @@ export const Onboarding: React.FC = () => {
               {/* Box 3: Address & Pincode */}
               <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Pincode <span style={{ color: 'var(--error-red)' }}>*</span></label>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('pincode_label')} <span style={{ color: 'var(--error-red)' }}>*</span></label>
                   <input
                     type="tel"
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    placeholder="Enter 6-digit Pincode"
+                    placeholder={t('enter_pincode')}
                     value={pincode}
                     onChange={(e) => handlePincodeChange(e.target.value)}
                     style={{
@@ -681,12 +681,12 @@ export const Onboarding: React.FC = () => {
 
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>State</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('state_label')}</label>
                     <input
                       type="text"
                       disabled
                       value={state}
-                      placeholder="Auto-populated"
+                      placeholder={t('auto_populated')}
                       style={{
                         width: '100%',
                         height: '48px',
@@ -702,12 +702,12 @@ export const Onboarding: React.FC = () => {
                   </div>
 
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>City</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('city_label')}</label>
                     <input
                       type="text"
                       disabled
                       value={city}
-                      placeholder="Auto-populated"
+                      placeholder={t('auto_populated')}
                       style={{
                         width: '100%',
                         height: '48px',
@@ -725,13 +725,13 @@ export const Onboarding: React.FC = () => {
 
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
-                    Area <span style={{ color: 'var(--error-red)' }}>*</span>
+                    {t('area_label')} <span style={{ color: 'var(--error-red)' }}>*</span>
                   </label>
                   <input
                     type="text"
                     value={area}
                     onChange={(e) => setArea(e.target.value)}
-                    placeholder="Enter your area name"
+                    placeholder={t('enter_area_name')}
                     style={{
                       width: '100%',
                       height: '48px',
@@ -756,7 +756,7 @@ export const Onboarding: React.FC = () => {
                   style={{ accentColor: 'var(--brand-mid)', marginTop: '3px' }}
                 />
                 <span>
-                  I accept the{' '}
+                  {t('accept_terms_prefix')}{' '}
                   <span
                     onClick={(e) => {
                       e.preventDefault();
@@ -765,9 +765,9 @@ export const Onboarding: React.FC = () => {
                     }}
                     style={{ color: 'var(--brand-mid)', textDecoration: 'underline', fontWeight: 'bold', cursor: 'pointer' }}
                   >
-                    Terms of Service
+                    {t('terms_of_service')}
                   </span>
-                  {' '}and{' '}
+                  {t('accept_terms_and')}{' '}
                   <span
                     onClick={(e) => {
                       e.preventDefault();
@@ -776,9 +776,9 @@ export const Onboarding: React.FC = () => {
                     }}
                     style={{ color: 'var(--brand-mid)', textDecoration: 'underline', fontWeight: 'bold', cursor: 'pointer' }}
                   >
-                    Privacy Policy
+                    {t('privacy_policy')}
                   </span>
-                  .
+                  {lang === 'ta' ? ' ஆகியவற்றை ஒப்புக்கொள்கிறேன்.' : '.'}
                 </span>
               </label>
             </div>
@@ -788,18 +788,18 @@ export const Onboarding: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <ShieldCheck color="var(--brand-accent)" size={24} />
-                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Step 2: KYC Verification</h2>
+                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('step_2_kyc_verification')}</h2>
               </div>
 
-              {/* PAN Card Box */}
+              {/* PAN Verification */}
               <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>PAN Verification</h3>
+                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('pan_verification')}</h3>
 
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>PAN Card Number <span style={{ color: 'var(--error-red)' }}>*</span></label>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('pan_card_number')} <span style={{ color: 'var(--error-red)' }}>*</span></label>
                   <input
                     type="text"
-                    placeholder="Enter 10-digit PAN (e.g. ABCDE1234F)"
+                    placeholder={t('enter_pan_placeholder')}
                     value={panNumber}
                     onChange={(e) => handlePanNumberChange(e.target.value)}
                     maxLength={10}
@@ -825,7 +825,7 @@ export const Onboarding: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Upload PAN Card Photo <span style={{ color: 'var(--error-red)' }}>*</span></span>
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('upload_pan_photo')} <span style={{ color: 'var(--error-red)' }}>*</span></span>
                   <label style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -851,24 +851,24 @@ export const Onboarding: React.FC = () => {
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: 'var(--brand-mid)' }}>
                         <Upload size={24} />
-                        <span style={{ fontSize: '13px', fontWeight: '500' }}>Tap to Scan / Upload PAN</span>
+                        <span style={{ fontSize: '13px', fontWeight: '500' }}>{t('tap_scan_upload_pan')}</span>
                       </div>
                     )}
                   </label>
                 </div>
               </div>
 
-              {/* Identity Aadhaar Box */}
+              {/* Aadhaar Verification */}
               <div className="glass-card" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>Identity Verification (Aadhaar)</h3>
+                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>{t('identity_verification_aadhaar')}</h3>
 
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Aadhaar Card Number <span style={{ color: 'var(--error-red)' }}>*</span></label>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('aadhaar_card_number')} <span style={{ color: 'var(--error-red)' }}>*</span></label>
                   <input
                     type="text"
                     pattern="[0-9]*"
                     inputMode="numeric"
-                    placeholder="Enter 12-digit Aadhaar Number"
+                    placeholder={t('enter_aadhaar_placeholder')}
                     value={aadhaarNumber}
                     onChange={(e) => {
                       const raw = e.target.value.replace(/\D/g, '').slice(0, 12);
@@ -883,7 +883,7 @@ export const Onboarding: React.FC = () => {
                       if (raw.length === 12) {
                         setAadhaarError(null);
                       } else {
-                        setAadhaarError('Aadhaar number must be exactly 12 digits');
+                        setAadhaarError(lang === 'ta' ? 'ஆதார் எண் 12 இலக்கங்களாக இருக்க வேண்டும்' : 'Aadhaar number must be exactly 12 digits');
                       }
                     }}
                     maxLength={14}
@@ -909,7 +909,7 @@ export const Onboarding: React.FC = () => {
 
                 <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Aadhaar Front <span style={{ color: 'var(--error-red)' }}>*</span></span>
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('upload_aadhaar_front')} <span style={{ color: 'var(--error-red)' }}>*</span></span>
                     <label style={{
                       display: 'flex',
                       flexDirection: 'column',
@@ -935,14 +935,14 @@ export const Onboarding: React.FC = () => {
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: 'var(--brand-mid)' }}>
                           <Upload size={20} />
-                          <span style={{ fontSize: '11px', fontWeight: '500', textAlign: 'center' }}>Upload Front</span>
+                          <span style={{ fontSize: '11px', fontWeight: '500', textAlign: 'center' }}>{t('tap_scan_upload_front')}</span>
                         </div>
                       )}
                     </label>
                   </div>
 
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Aadhaar Back <span style={{ color: 'var(--error-red)' }}>*</span></span>
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('upload_aadhaar_back')} <span style={{ color: 'var(--error-red)' }}>*</span></span>
                     <label style={{
                       display: 'flex',
                       flexDirection: 'column',
@@ -968,7 +968,7 @@ export const Onboarding: React.FC = () => {
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: 'var(--brand-mid)' }}>
                           <Upload size={20} />
-                          <span style={{ fontSize: '11px', fontWeight: '500', textAlign: 'center' }}>Upload Back</span>
+                          <span style={{ fontSize: '11px', fontWeight: '500', textAlign: 'center' }}>{t('tap_scan_upload_back')}</span>
                         </div>
                       )}
                     </label>
@@ -1004,7 +1004,7 @@ export const Onboarding: React.FC = () => {
                   fontSize: '15px'
                 }}
               >
-                Previous
+                {lang === 'ta' ? 'முந்தைய' : 'Previous'}
               </button>
             )}
 
@@ -1050,7 +1050,7 @@ export const Onboarding: React.FC = () => {
               {isSaving ? (
                 <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
               ) : (
-                currentStep === totalSteps ? 'Finish' : 'Next'
+                currentStep === totalSteps ? (lang === 'ta' ? 'முடிக்கவும்' : 'Finish') : (lang === 'ta' ? 'அடுத்து' : 'Next')
               )}
             </button>
           </div>
@@ -1072,7 +1072,7 @@ export const Onboarding: React.FC = () => {
                 transition: 'all 0.2s ease'
               }}
             >
-              Skip this step
+              {lang === 'ta' ? 'இந்தப்படியைத் தவிர்க்கவும்' : 'Skip this step'}
             </button>
           )}
         </div>
@@ -1261,9 +1261,9 @@ export const Onboarding: React.FC = () => {
             }}>
               <ShieldCheck size={32} />
             </div>
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>KYC Under Verification</h3>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{t('kyc_under_verification')}</h3>
             <p style={{ margin: 0, fontSize: '14px', lineHeight: '22px', color: 'var(--text-secondary, #5c5d64)' }}>
-              Your KYC will be verified in 24 hours to 48 hours
+              {t('kyc_duration_desc')}
             </p>
             <div className="spinner" style={{
               width: '24px',

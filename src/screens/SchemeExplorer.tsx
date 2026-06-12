@@ -17,7 +17,7 @@ interface AvailableScheme {
 
 export const SchemeExplorer: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, autoT } = useTranslation();
   const { availableSchemes, activeSchemes, refreshData } = useApp();
 
   const [schemes, setSchemes] = useState<AvailableScheme[]>(availableSchemes);
@@ -84,16 +84,16 @@ export const SchemeExplorer: React.FC = () => {
           <ArrowLeft size={24} />
         </button>
         <span style={{ fontSize: '18px', fontWeight: 'bold', color: 'white', fontFamily: 'var(--font-poppins)', letterSpacing: '0.5px' }}>
-          Explore Gold Schemes
+          {t('explore_gold_schemes')}
         </span>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: '4px 0 0 0' }}>
-          Choose a Gold Savings Plan
+          {t('choose_savings_plan')}
         </h2>
         <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-          Accumulate certified metals regularly and claim bonuses upon maturity.
+          {t('accumulate_metals_desc')}
         </p>
 
         {isLoading ? (
@@ -126,20 +126,20 @@ export const SchemeExplorer: React.FC = () => {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0, flex: 1 }}>
-                      {scheme.planName}
+                      {autoT(scheme.planName)}
                     </h3>
                     {joined && (
                       <span style={{
                         fontSize: '9px', fontWeight: 'bold', color: 'var(--success-green)', background: 'var(--success-light)',
                         padding: '2px 8px', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.2)'
                       }}>
-                        ACTIVE
+                        {t('active_badge')}
                       </span>
                     )}
                   </div>
 
                   <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '18px', margin: 0 }}>
-                    {scheme.description}
+                    {autoT(scheme.description)}
                   </p>
 
                   {/* Highlights */}
@@ -150,7 +150,7 @@ export const SchemeExplorer: React.FC = () => {
                           fontSize: '10px', fontWeight: '500', color: 'var(--brand-accent)', background: '#FFF0F5',
                           padding: '2px 8px', borderRadius: '8px'
                         }}>
-                          {kw}
+                          {autoT(kw)}
                         </span>
                       ))}
                     </div>
@@ -160,13 +160,13 @@ export const SchemeExplorer: React.FC = () => {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>MIN. INVESTMENT</span>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>{t('min_investment')}</span>
                       <span style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                        Start from {formatRupees(scheme.installmentAmountPaise)}
+                        {t('start_from')} {formatRupees(scheme.installmentAmountPaise)}
                       </span>
                     </div>
                     <div>
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textAlign: 'right' }}>TENURE</span>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textAlign: 'right' }}>{t('tenure').toUpperCase()}</span>
                       <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-primary)', display: 'block', textAlign: 'right' }}>
                         {scheme.totalInstallments} {scheme.durationUnit ? (scheme.durationUnit.toLowerCase().startsWith('day') ? t('days') : t('months')) : (scheme.frequency === 'Daily' ? t('days') : t('months'))}
                       </span>

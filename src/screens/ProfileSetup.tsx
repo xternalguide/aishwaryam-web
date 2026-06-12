@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SessionManager, OnboardingStage } from '../utils/SessionManager';
 import { ApiClient } from '../utils/ApiClient';
+import { useTranslation } from '../utils/translation';
 
 export const ProfileSetup: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState(SessionManager.getPartialName() || '');
   const [email, setEmail] = useState(SessionManager.getPartialEmail() || '');
   const [referralCode, setReferralCode] = useState('');
@@ -64,7 +66,7 @@ export const ProfileSetup: React.FC = () => {
             marginBottom: '8px',
             textAlign: 'center'
           }}>
-            Account Registration
+            {t('account_registration')}
           </h1>
           <p style={{
             color: 'var(--text-secondary)',
@@ -72,7 +74,7 @@ export const ProfileSetup: React.FC = () => {
             marginBottom: '40px',
             textAlign: 'center'
           }}>
-            Please provide your contact information
+            {t('provide_contact_info')}
           </p>
 
           {errorMsg && (
@@ -90,11 +92,11 @@ export const ProfileSetup: React.FC = () => {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div>
               <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>
-                Full Name <span style={{ color: 'var(--error-red)' }}>*</span>
+                {t('full_name_label')} <span style={{ color: 'var(--error-red)' }}>*</span>
               </label>
               <input
                 type="text"
-                placeholder="Enter Full Name"
+                placeholder={t('enter_full_name')}
                 value={fullName}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -118,11 +120,11 @@ export const ProfileSetup: React.FC = () => {
 
             <div>
               <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>
-                Email Address <span style={{ color: 'var(--error-red)' }}>*</span>
+                {t('email_address_label')} <span style={{ color: 'var(--error-red)' }}>*</span>
               </label>
               <input
                 type="email"
-                placeholder="Enter Email Address"
+                placeholder={t('enter_email_address')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{
@@ -141,11 +143,11 @@ export const ProfileSetup: React.FC = () => {
 
             <div>
               <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>
-                Referral Code (Optional)
+                {t('referral_code_optional')}
               </label>
               <input
                 type="text"
-                placeholder="Enter Referral Code"
+                placeholder={t('enter_referral_code')}
                 value={referralCode}
                 onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
                 style={{
@@ -191,7 +193,7 @@ export const ProfileSetup: React.FC = () => {
           {isLoading ? (
             <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid white', borderTop: '3px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
           ) : (
-            'Complete Registration'
+            t('complete_registration')
           )}
         </button>
       </div>

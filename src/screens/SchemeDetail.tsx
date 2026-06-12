@@ -30,7 +30,7 @@ interface MilestoneItem {
 export const SchemeDetail: React.FC = () => {
   const navigate = useNavigate();
   const { schemeId } = useParams<{ schemeId: string }>();
-  const { t, lang } = useTranslation();
+  const { t, lang, autoT } = useTranslation();
 
   const [isLoading, setIsLoading] = useState(true);
   const [scheme, setScheme] = useState<AvailableScheme | null>(null);
@@ -1492,7 +1492,7 @@ export const SchemeDetail: React.FC = () => {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--brand-dark)', margin: 0 }}>
-                Scheme Join Form
+                {t('scheme_join_form')}
               </h3>
               <button onClick={() => setShowSetupModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                 <X size={20} />
@@ -1500,17 +1500,17 @@ export const SchemeDetail: React.FC = () => {
             </div>
 
             <span style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '16px' }}>
-              To join this gold savings scheme, please provide nominee details and address details.
+              {t('scheme_join_form_desc')}
             </span>
 
             {/* Nominee details */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Nominee Information</span>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{t('nominee_information')}</span>
               <div>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Nominee Name</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{t('nominee_name_label')}</label>
                 <input
                   type="text"
-                  placeholder="Enter nominee name"
+                  placeholder={t('enter_nominee_name')}
                   value={setupNomineeName}
                   onChange={(e) => setSetupNomineeName(e.target.value)}
                   style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
@@ -1518,10 +1518,10 @@ export const SchemeDetail: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Nominee Mobile</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{t('nominee_mobile')}</label>
                 <input
                   type="text"
-                  placeholder="10-digit mobile number"
+                  placeholder={t('ten_digit_mobile')}
                   value={setupNomineePhone}
                   onChange={(e) => setSetupNomineePhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
@@ -1529,15 +1529,15 @@ export const SchemeDetail: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Relationship</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{t('relationship')}</label>
                 <select
                   value={setupNomineeRelationship}
                   onChange={(e) => setSetupNomineeRelationship(e.target.value)}
                   style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: 'white' }}
                 >
-                  <option value="">Select Relationship</option>
+                  <option value="">{t('select_relationship')}</option>
                   {RELATIONSHIPS.map((rel) => (
-                    <option key={rel} value={rel}>{rel}</option>
+                    <option key={rel} value={rel}>{autoT(rel)}</option>
                   ))}
                 </select>
               </div>
@@ -1545,13 +1545,13 @@ export const SchemeDetail: React.FC = () => {
 
             {/* Address details */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px', borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: '12px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>Primary Address</span>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{t('primary_address')}</span>
               
               <div>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>PIN Code</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{t('pincode_label')}</label>
                 <input
                   type="text"
-                  placeholder="6-digit PIN Code"
+                  placeholder={t('enter_pincode')}
                   value={setupPincode}
                   onChange={(e) => handleSetupPincodeChange(e.target.value)}
                   style={{ width: '100%', height: '38px', borderRadius: '8px', border: setupPinError ? '1px solid var(--error-red)' : '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
@@ -1564,7 +1564,7 @@ export const SchemeDetail: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>State</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{t('state_label')}</label>
                 <select
                   value={setupState}
                   onChange={(e) => {
@@ -1575,15 +1575,15 @@ export const SchemeDetail: React.FC = () => {
                   }}
                   style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: 'white' }}
                 >
-                  <option value="">Select State</option>
+                  <option value="">{t('select_state')}</option>
                   {STATES.map((st) => (
-                    <option key={st} value={st}>{st}</option>
+                    <option key={st} value={st}>{autoT(st)}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>City</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{t('city_label')}</label>
                 <select
                   value={setupCity}
                   onChange={(e) => {
@@ -1594,18 +1594,18 @@ export const SchemeDetail: React.FC = () => {
                   disabled={!setupState}
                   style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px', background: !setupState ? '#F3F4F6' : 'white' }}
                 >
-                  <option value="">Select City</option>
+                  <option value="">{t('select_city')}</option>
                   {(CITIES_BY_STATE[setupState] || []).map((ct) => (
-                    <option key={ct} value={ct}>{ct}</option>
+                    <option key={ct} value={ct}>{autoT(ct)}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Street Address</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{t('street_address')}</label>
                 <input
                   type="text"
-                  placeholder="Flat/House no., street name"
+                  placeholder={t('street_address_placeholder')}
                   value={setupStreet}
                   onChange={(e) => setSetupStreet(e.target.value)}
                   style={{ width: '100%', height: '38px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', padding: '0 12px', fontSize: '13px', outline: 'none', marginTop: '4px' }}
@@ -1644,7 +1644,7 @@ export const SchemeDetail: React.FC = () => {
                 ) ? 0.5 : 1
               }}
             >
-              {isProcessing ? 'Saving...' : 'Save & Proceed'}
+              {isProcessing ? t('saving') : t('save_proceed')}
             </button>
           </div>
         </div>
@@ -1729,7 +1729,7 @@ export const SchemeDetail: React.FC = () => {
             </div>
  
             <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)', lineHeight: '16px' }}>
-              Select a purchase amount or gold weight. Your purchase will qualify for the <strong>Tier 1 Loyalty Bonus (7.5%)</strong>!
+              {t('join_sheet_desc')}
             </span>
  
             {/* Toggle tabs */}
@@ -1743,7 +1743,7 @@ export const SchemeDetail: React.FC = () => {
                   boxShadow: joinType === 'RUPEES' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer'
                 }}
               >
-                Amount (₹) to Gold
+                {t('amount_to_gold')}
               </button>
               <button
                 onClick={() => { setJoinType('GRAMS'); setJoinAmount('0.1'); }}
@@ -1754,14 +1754,14 @@ export const SchemeDetail: React.FC = () => {
                   boxShadow: joinType === 'GRAMS' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer'
                 }}
               >
-                Gold (g) to Amount
+                {t('gold_to_amount')}
               </button>
             </div>
  
             {/* Inputs */}
             <div>
               <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
-                {joinType === 'RUPEES' ? 'Enter Amount' : 'Enter Weight (grams)'}
+                {joinType === 'RUPEES' ? t('enter_amount') : t('enter_weight')}
               </label>
               <div style={{ position: 'relative', marginTop: '6px' }}>
                 <span style={{ position: 'absolute', left: '12px', top: '11px', fontSize: '15px', fontWeight: 'bold' }}>
@@ -1805,42 +1805,42 @@ export const SchemeDetail: React.FC = () => {
                 {joinType === 'RUPEES' ? (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      <span>Savings Deposit</span>
+                      <span>{t('savings_deposit')}</span>
                       <span style={{ fontWeight: 'bold' }}>₹{parseFloat(joinAmount).toFixed(2)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      <span>GST (3% Included)</span>
+                      <span>{t('gst_included')}</span>
                       <span>₹{(parseFloat(joinAmount) - (parseFloat(joinAmount) / 1.03)).toFixed(2)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--brand-mid)', fontWeight: 'bold' }}>
-                      <span>Loyalty Bonus weight (7.5%)</span>
+                      <span>{t('loyalty_bonus_structure')} (7.5%)</span>
                       <span>+ ₹{(parseFloat(joinAmount) / 1.03 * 0.075).toFixed(2)} equivalent</span>
                     </div>
                     <div style={{ height: '1px', background: 'rgba(0,0,0,0.05)' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
-                      <span>Effective gold added</span>
+                      <span>{t('effective_gold_added')}</span>
                       <span style={{ color: 'var(--gold-deep)' }}>
-                        {((parseFloat(joinAmount) / 1.03 * 1.075 * 100) / goldPrice22K).toFixed(4)} grams
+                        {((parseFloat(joinAmount) / 1.03 * 1.075 * 100) / goldPrice22K).toFixed(4)} {t('grams_suffix')}
                       </span>
                     </div>
                   </>
                 ) : (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      <span>Base Metal Value</span>
+                      <span>{t('base_metal_value_22k')}</span>
                       <span style={{ fontWeight: 'bold' }}>₹{(parseFloat(joinAmount) * goldPrice22K / 100).toFixed(2)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      <span>GST (3%)</span>
+                      <span>{t('gst_3_percent')}</span>
                       <span>₹{(parseFloat(joinAmount) * goldPrice22K / 100 * 0.03).toFixed(2)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--brand-mid)', fontWeight: 'bold' }}>
-                      <span>Loyalty Bonus weight (7.5%)</span>
-                      <span>+ {(parseFloat(joinAmount) * 0.075).toFixed(4)} g equivalent</span>
+                      <span>{t('loyalty_bonus_structure')} (7.5%)</span>
+                      <span>+ {(parseFloat(joinAmount) * 0.075).toFixed(4)} {t('grams_suffix')} equivalent</span>
                     </div>
                     <div style={{ height: '1px', background: 'rgba(0,0,0,0.05)' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>
-                      <span>Total Amount Payable</span>
+                      <span>{t('total_amount_payable')}</span>
                       <span style={{ color: 'var(--brand-dark)' }}>
                         ₹{(parseFloat(joinAmount) * goldPrice22K / 100 * 1.03).toFixed(2)}
                       </span>
@@ -1853,10 +1853,10 @@ export const SchemeDetail: React.FC = () => {
             {/* Validation warning */}
             {(validationError || (parsedJoinVal > 0 && !isJoinAmountValid)) && (
               <span style={{ fontSize: '11px', color: 'var(--error-red)', fontWeight: 'bold', textAlign: 'center', display: 'block', marginTop: '-4px' }}>
-                {validationError || `Minimum investment amount is ₹100. (Current: ₹${joinAmountRupees.toFixed(2)})`}
+                {validationError || `${t('minimum_investment_amount')} (Current: ₹${joinAmountRupees.toFixed(2)})`}
               </span>
             )}
-
+ 
             <button
               onClick={handlePayJoinPlan}
               disabled={parsedJoinVal <= 0 || !isJoinAmountValid || isProcessing}

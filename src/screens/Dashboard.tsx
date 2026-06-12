@@ -132,7 +132,7 @@ interface TransactionItem {
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const isAndroidApp = !!(window as any).Capacitor && /android/i.test(navigator.userAgent);
-  const { t, lang, changeLanguage } = useTranslation();
+  const { t, autoT, lang, changeLanguage } = useTranslation();
   const [selectedTab, setSelectedTab] = useState(() => {
     const saved = localStorage.getItem('DASHBOARD_ACTIVE_TAB');
     return saved ? parseInt(saved, 10) : 0;
@@ -163,6 +163,12 @@ export const Dashboard: React.FC = () => {
     @keyframes theme-toggle-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     .animate-spin { animation: spin 1s linear infinite; }
+    
+    /* Prevent Tamil word fragmentation */
+    * {
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
   `;
 
   // Ref for the tab scroll container — used to reset scroll on tab switch
@@ -742,7 +748,7 @@ export const Dashboard: React.FC = () => {
                   <span style={{ fontFamily:DS.font, fontSize:'9px', color:DS.magenta, fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:'3px' }}>
                     {sch.frequency === 'Daily' ? 'DAILY SCHEME' : 'MONTHLY SCHEME'}
                   </span>
-                  <span style={{ fontFamily:DS.font, fontSize:'14px', fontWeight:'800', color:DS.textWhite }}>{sch.planName}</span>
+                  <span style={{ fontFamily:DS.font, fontSize:'14px', fontWeight:'800', color:DS.textWhite }}>{autoT(sch.planName)}</span>
                 </div>
                 <span style={{ fontFamily:DS.font, fontSize:'10px', background:'rgba(255,215,0,0.15)', color:DS.gold, padding:'4px 10px', borderRadius:'20px', fontWeight:'700', border:'1px solid rgba(255,215,0,0.2)' }}>
                   Day {sch.schemeDayNumber||1}
@@ -812,7 +818,7 @@ export const Dashboard: React.FC = () => {
               >
                 <div style={{ position:'absolute', top:'-30px', right:'-30px', width:'90px', height:'90px', borderRadius:'50%', background:'radial-gradient(circle, rgba(255,215,0,0.15) 0%, transparent 70%)', pointerEvents:'none' }} />
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-                  <span style={{ fontFamily:DS.font, fontSize:'15px', fontWeight:'800', color:DS.textWhite, flex:1, marginRight:'12px' }}>{scheme.planName}</span>
+                  <span style={{ fontFamily:DS.font, fontSize:'15px', fontWeight:'800', color:DS.textWhite, flex:1, marginRight:'12px' }}>{autoT(scheme.planName)}</span>
                   <span style={{ fontFamily:DS.font, fontSize:'9px', fontWeight:'700', color:DS.magenta, background:'rgba(194,24,91,0.15)', padding:'3px 8px', borderRadius:'10px', border:'1px solid rgba(194,24,91,0.2)', whiteSpace:'nowrap' }}>
                     {scheme.frequency === 'Daily' ? 'DAILY' : 'MONTHLY'}
                   </span>
@@ -1003,9 +1009,9 @@ export const Dashboard: React.FC = () => {
                   </div>
                   <div>
                     <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'3px' }}>
-                      <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'700', color:DS.textWhite }}>{tx.schemeName || details.label}</span>
+                      <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'700', color:DS.textWhite }}>{autoT(tx.schemeName) || details.label}</span>
                       <span style={{ fontFamily:DS.font, fontSize:'9px', fontWeight:'700', color:getStatusDetails(tx.status).color, background:getStatusDetails(tx.status).bgColor, padding:'2px 7px', borderRadius:'8px' }}>
-                        {getStatusDetails(tx.status).text}
+                        {autoT(getStatusDetails(tx.status).text)}
                       </span>
                     </div>
                     <span style={{ fontFamily:DS.font, fontSize:'10px', color:DS.textMuted }}>
@@ -1519,17 +1525,17 @@ export const Dashboard: React.FC = () => {
                   {editImageBase64 ? <img src={editImageBase64} style={{ width:'100%',height:'100%',objectFit:'cover' }} alt="Preview" /> : <User size={36} color={DS.gold} />}
                 </div>
                 <label style={{ fontFamily:DS.font, fontSize:'12px', fontWeight:'700', color:DS.magenta, cursor:isMinor?'not-allowed':'pointer', padding:'6px 16px', borderRadius:'16px', border:`1.5px solid ${DS.magenta}`, background:'transparent', opacity:isMinor?0.5:1, pointerEvents:isMinor?'none':'auto' }}>
-                  Change Photo<input type="file" accept="image/*" disabled={isMinor} onChange={handleImageChange} style={{ display:'none' }} />
+                  {t('change_photo')}<input type="file" accept="image/*" disabled={isMinor} onChange={handleImageChange} style={{ display:'none' }} />
                 </label>
                 {uploadError && <span style={{ fontFamily:DS.font, fontSize:'11px', color:'#EF4444', textAlign:'center' }}>{uploadError}</span>}
-                <span style={{ fontFamily:DS.font, fontSize:'9px', color:DS.textMuted }}>Allowed: JPG, JPEG, PNG (Max 2MB)</span>
+                <span style={{ fontFamily:DS.font, fontSize:'9px', color:DS.textMuted }}>{t('allowed_formats_hint')}</span>
               </div>
  
               {/* input fields styling */}
               {[
-                { label:'Full Name', value:editName, onChange:(v:string)=>setEditName(v), type:'text', disabled:isMinor },
-                { label:'Mobile Number', value:profile?.phoneNumber?`+91 ${profile.phoneNumber}`:'', onChange:()=>{}, type:'text', disabled:true },
-                { label:'Email Address', value:editEmail, onChange:(v:string)=>setEditEmail(v), type:'email', disabled:isMinor },
+                { label: t('full_name_label'), value:editName, onChange:(v:string)=>setEditName(v), type:'text', disabled:isMinor },
+                { label: t('phone_number_label'), value:profile?.phoneNumber?`+91 ${profile.phoneNumber}`:'', onChange:()=>{}, type:'text', disabled:true },
+                { label: t('email_address_label'), value:editEmail, onChange:(v:string)=>setEditEmail(v), type:'email', disabled:isMinor },
               ].map(({ label, value, onChange, type, disabled }) => (
                 <div key={label}>
                   <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>{label}</label>
@@ -1541,36 +1547,36 @@ export const Dashboard: React.FC = () => {
  
               <div style={{ display:'flex', gap:'12px' }}>
                 <div style={{ flex:1 }}>
-                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Date of Birth{editDob&&calculatedAge>0?` (Age: ${calculatedAge}${isMinor?' - Minor':''})`:''}</label>
+                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>{t('dob_label')}{editDob&&calculatedAge>0?` (${lang==='ta'?'வயது':'Age'}: ${calculatedAge}${isMinor?` - ${lang==='ta'?'மைனர்':'Minor'}`:''})`:''}</label>
                   <input type="date" value={editDob} onChange={(e)=>setEditDob(e.target.value)} onClick={(e)=>{try{(e.target as any).showPicker();}catch(err){}}}
                     style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)', color:DS.textWhite, boxSizing:'border-box' }}
                   />
                 </div>
                 <div style={{ flex:1 }}>
-                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Gender</label>
+                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>{t('gender_label')}</label>
                   <select value={editGender} disabled={isMinor} onChange={(e)=>setEditGender(e.target.value)}
                     style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isMinor ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)'), color: isMinor ? DS.textMuted : DS.textWhite, boxSizing:'border-box' }}
                   >
-                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="">Select Gender</option>
-                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="Male">Male</option>
-                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="Female">Female</option>
-                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="Other">Other</option>
+                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="">{t('select_gender')}</option>
+                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="Male">{t('gender_male')}</option>
+                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="Female">{t('gender_female')}</option>
+                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="Other">{t('gender_other')}</option>
                   </select>
                 </div>
               </div>
  
               <div>
-                <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Wedding Anniversary Date</label>
+                <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>{t('wedding_anniversary')}</label>
                 <input type="date" value={editWeddingDate} disabled={isMinor} onChange={(e)=>setEditWeddingDate(e.target.value)} onClick={(e)=>{try{(e.target as any).showPicker();}catch(err){}}}
                   style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isMinor ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)'), color: isMinor ? DS.textMuted : DS.textWhite, boxSizing:'border-box' }}
                 />
               </div>
  
               <div style={{ height:'1px', background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(74,14,78,0.08)', margin:'4px 0' }} />
-              <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'800', color:DS.textWhite }}>Nominee Details</span>
+              <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'800', color:DS.textWhite }}>{t('nominee_details')}</span>
  
               <div>
-                <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Nominee Name</label>
+                <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>{t('nominee_name_label')}</label>
                 <input type="text" value={editNomineeName} disabled={isMinor} onChange={(e)=>setEditNomineeName(e.target.value)}
                   style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isMinor ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)'), color: isMinor ? DS.textMuted : DS.textWhite, boxSizing:'border-box' }}
                 />
@@ -1578,18 +1584,18 @@ export const Dashboard: React.FC = () => {
  
               <div style={{ display:'flex', gap:'12px' }}>
                 <div style={{ flex:1 }}>
-                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Nominee Mobile</label>
+                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>{t('nominee_mobile')}</label>
                   <input type="tel" inputMode="numeric" value={editNomineePhone} disabled={isMinor} onChange={(e)=>setEditNomineePhone(e.target.value.replace(/\D/g,'').slice(0,10))}
                     style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isMinor ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)'), color: isMinor ? DS.textMuted : DS.textWhite, boxSizing:'border-box' }}
                   />
                 </div>
                 <div style={{ flex:1 }}>
-                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>Relationship</label>
+                  <label style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'700', color:DS.textSub }}>{t('relationship')}</label>
                   <select value={editNomineeRelation} disabled={isMinor} onChange={(e)=>setEditNomineeRelation(e.target.value)}
                     style={{ width:'100%', height:'42px', borderRadius:'10px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.15)', padding:'0 14px', fontFamily:DS.font, fontSize:'13px', outline:'none', marginTop:'5px', background: isMinor ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.02)'), color: isMinor ? DS.textMuted : DS.textWhite, boxSizing:'border-box' }}
                   >
-                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="">Select</option>
-                    {['Father','Mother','Wife','Husband','Son','Daughter','Brother','Guardian'].map((rel)=>(<option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} key={rel} value={rel}>{rel}</option>))}
+                    <option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} value="">{t('select')}</option>
+                    {['Father','Mother','Wife','Husband','Son','Daughter','Brother','Guardian'].map((rel)=>(<option style={{ background: isDark ? '#1A1A2E' : '#FFFFFF', color: DS.textWhite }} key={rel} value={rel}>{autoT(rel)}</option>))}
                   </select>
                 </div>
               </div>
@@ -1597,10 +1603,10 @@ export const Dashboard: React.FC = () => {
  
             <div style={{ display:'flex', gap:'12px', marginTop:'4px' }}>
               <button onClick={handleSaveProfile} disabled={isSavingProfile} style={{ flex:1, height:'46px', borderRadius:'12px', background:'linear-gradient(135deg,#29001D,#C2185B)', color:'white', border:'none', fontFamily:DS.font, fontWeight:'800', fontSize:'13px', cursor:'pointer', opacity:isSavingProfile?0.7:1, boxShadow:'0 4px 16px rgba(194,24,91,0.35)' }}>
-                {isSavingProfile ? 'Saving...' : 'Save Changes'}
+                {isSavingProfile ? (lang==='ta'?'சேமிக்கிறது...':'Saving...') : t('save_changes')}
               </button>
               <button onClick={()=>setShowEditProfileModal(false)} style={{ flex:1, height:'46px', borderRadius:'12px', background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', color:DS.textWhite, border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.1)', fontFamily:DS.font, fontWeight:'700', fontSize:'13px', cursor:'pointer' }}>
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           </div>

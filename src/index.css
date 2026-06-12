@@ -224,8 +224,9 @@ html body iframe[src*="razorpay"] {
 
 /* Tamil UI responsiveness, text wrapping and spacing fixes */
 body, button, p, span, div, h1, h2, h3, h4, h5, h6, label {
-  word-wrap: break-word;
-  word-break: break-word;
+  word-wrap: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 button, input, select {
   max-width: 100%;

@@ -421,7 +421,113 @@ export const translations = {
     grams_suffix: "grams",
     base_metal_value_22k: "Base Metal Value (22K)",
     gst_3_percent: "GST (3%)",
-    total_amount_payable: "Total Amount Payable"
+    total_amount_payable: "Total Amount Payable",
+
+    // Additional profile & PIN keys
+    change_photo: "Change Photo",
+    allowed_formats_hint: "Allowed: JPG, JPEG, PNG (Max 2MB)",
+    save_changes: "Save Changes",
+    select_gender: "Select Gender",
+    gender_male: "Male",
+    gender_female: "Female",
+    gender_other: "Other",
+    nominee_mobile: "Nominee Mobile",
+    relationship: "Relationship",
+    select: "Select",
+    nominee_details: "Nominee Details",
+    nominee_name_label: "Nominee Name",
+
+    // PIN / MPIN pages keys
+    enter_pin: "Enter your PIN",
+    change_login_pin: "Change Login PIN",
+    set_your_pin: "Set your 4-Digit PIN",
+    reset_your_pin: "Reset your 4-Digit PIN",
+    enter_pin_desc: "Enter your 4-digit PIN to access your account.",
+    create_confirm_pin_desc: "Create and confirm your new 4-digit login PIN.",
+    create_secure_pin_desc: "Create a secure PIN for quick login.",
+    otp_sent_desc: "OTP sent to your registered phone number.",
+    create_repeat_pin_desc: "Create and repeat your new 4-digit login PIN.",
+    forgot_pin_reset: "Forgot PIN? Reset via OTP",
+    enter_new_pin: "Enter New PIN",
+    confirm_new_pin: "Confirm New PIN",
+    gender_label: "Gender",
+    wedding_anniversary: "Wedding Anniversary Date",
+
+    // Profile Setup & Onboarding keys
+    account_registration: "Account Registration",
+    provide_contact_info: "Please provide your contact information",
+    referral_code_optional: "Referral Code (Optional)",
+    enter_referral_code: "Enter Referral Code",
+    complete_registration: "Complete Registration",
+    enter_full_name: "Enter Full Name",
+    enter_email_address: "Enter Email Address",
+    enter_nominee_name: "Enter Nominee Name",
+    dob_placeholder: "Date of Birth (DD/MM/YYYY)",
+    marital_status: "Marital Status",
+    marital_married: "Married",
+    marital_single: "Single",
+    wedding_date_placeholder: "Wedding Date (DD/MM/YYYY)",
+    pincode_label: "Pincode",
+    enter_pincode: "Enter 6-digit Pincode",
+    state_label: "State",
+    city_label: "City",
+    area_label: "Area",
+    enter_area_name: "Enter your area name",
+    auto_populated: "Auto-populated",
+    accept_terms_prefix: "I accept the ",
+    accept_terms_and: " and ",
+    privacy_policy: "Privacy Policy",
+    pan_card_number: "PAN Card Number",
+    enter_pan_placeholder: "Enter 10-digit PAN (e.g. ABCDE1234F)",
+    upload_pan_photo: "Upload PAN Card Photo",
+    tap_scan_upload_pan: "Tap to Scan / Upload PAN",
+    aadhaar_card_number: "Aadhaar Card Number",
+    enter_aadhaar_placeholder: "Enter 12-digit Aadhaar Number",
+    upload_aadhaar_front: "Upload Aadhaar Front Photo",
+    tap_scan_upload_front: "Tap to Scan / Upload Front",
+    upload_aadhaar_back: "Upload Aadhaar Back Photo",
+    tap_scan_upload_back: "Tap to Scan / Upload Back",
+    complete_profile_proceed: "Complete Profile & Proceed",
+    skipping_kyc_warning: "Skipping KYC? You will be limited to basic features.",
+    skip_kyc_verification: "Skip KYC Verification",
+    kyc_success_title: "KYC Submission Successful!",
+    kyc_success_desc: "Your documents have been submitted for verification. We are updating your profile.",
+    
+    // Scheme Explorer
+    explore_gold_schemes: "Explore Gold Schemes",
+    choose_savings_plan: "Choose a Gold Savings Plan",
+    accumulate_metals_desc: "Accumulate certified metals regularly and claim bonuses upon maturity.",
+    min_investment: "MIN. INVESTMENT",
+    start_from: "Start from",
+    active_badge: "ACTIVE",
+
+    // Scheme Detail Additional
+    plan_name: "Plan Name",
+    description: "Description",
+    setup_profile_address: "Set up profile address before continuing",
+    kyc_not_completed: "KYC not completed",
+    failed_to_join: "Failed to join scheme.",
+    payment_failed_title: "Payment Failed",
+    kyc_duration_desc: "Your KYC will be verified in 24 hours to 48 hours",
+    pins_do_not_match: "PINs do not match",
+    save_update_pin: "Save & Update PIN",
+    pin_security_notice: "Do not share your PIN with anyone. Aishwaryam @ Your Home will never ask for your PIN.",
+    pin_changed_success: "PIN Changed Successfully!",
+    scheme_join_form: "Scheme Join Form",
+    scheme_join_form_desc: "To join this gold savings scheme, please provide nominee details and address details.",
+    nominee_information: "Nominee Information",
+    ten_digit_mobile: "10-digit mobile number",
+    select_relationship: "Select Relationship",
+    primary_address: "Primary Address",
+    select_state: "Select State",
+    select_city: "Select City",
+    street_address: "Street Address",
+    street_address_placeholder: "Flat/House no., street name",
+    save_proceed: "Save & Proceed",
+    saving: "Saving...",
+    pin_must_be_6_digits: "PIN Code must be exactly 6 digits.",
+    min_investment_100: "Minimum investment amount is ₹100.",
+    join_sheet_desc: "Select a purchase amount or gold weight. Your purchase will qualify for the Tier 1 Loyalty Bonus (7.5%)!"
   },
   ta: {
     app_name: "Aishwaryam @ Your Home",
@@ -841,8 +947,199 @@ export const translations = {
     grams_suffix: "கிராம்கள்",
     base_metal_value_22k: "அடிப்படை உலோக மதிப்பு (22K)",
     gst_3_percent: "ஜிஎஸ்டி (3%)",
-    total_amount_payable: "செலுத்த வேண்டிய மொத்த தொகை"
+    total_amount_payable: "செலுத்த வேண்டிய மொத்த தொகை",
+
+    // Additional profile & PIN keys (Tamil)
+    change_photo: "புகைப்படத்தை மாற்று",
+    allowed_formats_hint: "அனுமதிக்கப்பட்டவை: JPG, JPEG, PNG (அதிகபட்சம் 2MB)",
+    save_changes: "மாற்றங்களைச் சேமி",
+    select_gender: "பாலினத்தைத் தேர்ந்தெடுக்கவும்",
+    gender_male: "ஆண்",
+    gender_female: "பெண்",
+    gender_other: "இதர",
+    nominee_mobile: "வாரிசுதாரர் மொபைல்",
+    relationship: "உறவுமுறை",
+    select: "தேர்ந்தெடு",
+    nominee_details: "வாரிசுதாரர் விவரங்கள்",
+    nominee_name_label: "வாரிசுதாரர் பெயர்",
+
+    // PIN / MPIN pages keys (Tamil)
+    enter_pin: "உங்கள் பின் (PIN) எண்ணை உள்ளிடவும்",
+    change_login_pin: "உள்நுழைவு பின் எண்ணை மாற்றவும்",
+    set_your_pin: "உங்கள் 4-இலக்க பின் எண்ணை அமைக்கவும்",
+    reset_your_pin: "உங்கள் 4-இலக்க பின் எண்ணை மீட்டமைக்கவும்",
+    enter_pin_desc: "உங்கள் கணக்கை அணுக 4-இலக்க பின் எண்ணை உள்ளிடவும்.",
+    create_confirm_pin_desc: "உங்கள் புதிய 4-இலக்க பின் எண்ணை உருவாக்கி உறுதிப்படுத்தவும்.",
+    create_secure_pin_desc: "விரைவான உள்நுழைவுக்கு பாதுகாப்பான பின் எண்ணை உருவாக்கவும்.",
+    otp_sent_desc: "உங்கள் பதிவு செய்யப்பட்ட தொலைபேசி எண்ணிற்கு OTP அனுப்பப்பட்டது.",
+    create_repeat_pin_desc: "உங்கள் புதிய 4-இலக்க பின் எண்ணை உருவாக்கி மீண்டும் உள்ளிடவும்.",
+    forgot_pin_reset: "பின் எண்ணை மறந்துவிட்டதா? OTP மூலம் மீட்டமைக்கவும்",
+    enter_new_pin: "புதிய பின் எண்ணை உள்ளிடவும்",
+    confirm_new_pin: "புதிய பின் எண்ணை உறுதிப்படுத்தவும்",
+    gender_label: "பாலினம்",
+    wedding_anniversary: "திருமண நாள்",
+
+    // Profile Setup & Onboarding keys
+    account_registration: "கணக்கு பதிவு",
+    provide_contact_info: "தயவுசெய்து உங்கள் தொடர்பு தகவலை வழங்கவும்",
+    referral_code_optional: "பரிந்துரை குறியீடு (விருப்பம்)",
+    enter_referral_code: "பரிந்துரை குறியீட்டை உள்ளிடவும்",
+    complete_registration: "பதிவை முடிக்கவும்",
+    enter_full_name: "முழு பெயரை உள்ளிடவும்",
+    enter_email_address: "மின்னஞ்சல் முகவரியை உள்ளிடவும்",
+    enter_nominee_name: "வாரிசுதாரர் பெயரை உள்ளிடவும்",
+    dob_placeholder: "பிறந்த தேதி (DD/MM/YYYY)",
+    marital_status: "திருமண நிலை",
+    marital_married: "திருமணமானவர்",
+    marital_single: "திருமணமாகாதவர்",
+    wedding_date_placeholder: "திருமண தேதி (DD/MM/YYYY)",
+    pincode_label: "அஞ்சல் குறியீடு (Pincode)",
+    enter_pincode: "6-இலக்க பின் எண்ணை உள்ளிடவும்",
+    state_label: "மாநிலம்",
+    city_label: "நகரம்",
+    area_label: "பகுதி (Area)",
+    enter_area_name: "உங்கள் பகுதியின் பெயரை உள்ளிடவும்",
+    auto_populated: "தானாக நிரப்பப்பட்டது",
+    accept_terms_prefix: "நான் ",
+    accept_terms_and: " மற்றும் ",
+    privacy_policy: "தனியுரிமைக் கொள்கை",
+    pan_card_number: "PAN அட்டை எண்",
+    enter_pan_placeholder: "10-இலக்க PAN எண்ணை உள்ளிடவும் (எ.கா. ABCDE1234F)",
+    upload_pan_photo: "PAN அட்டை புகைப்படத்தைப் பதிவேற்றவும்",
+    tap_scan_upload_pan: "PAN-ஐ ஸக்கேன் / பதிவேற்ற தட்டவும்",
+    aadhaar_card_number: "ஆதார் அட்டை எண்",
+    enter_aadhaar_placeholder: "12-இலக்க ஆதார் எண்ணை உள்ளிடவும்",
+    upload_aadhaar_front: "ஆதார் முன்பக்க புகைப்படத்தைப் பதிவேற்றவும்",
+    tap_scan_upload_front: "முன்பக்கத்தை ஸ்கேன் / பதிவேற்ற தட்டவும்",
+    upload_aadhaar_back: "ஆதார் பின்பக்க புகைப்படத்தைப் பதிவேற்றவும்",
+    tap_scan_upload_back: "பின்பக்கத்தை ஸ்கேன் / பதிவேற்ற தட்டவும்",
+    complete_profile_proceed: "சுயவிவரத்தை முடித்து தொடரவும்",
+    skipping_kyc_warning: "KYC-ஐத் தவிர்க்கிறீர்களா? நீங்கள் அடிப்படை அம்சங்களுக்கு மட்டுமே கட்டுப்படுத்தப்படுவீர்கள்.",
+    skip_kyc_verification: "KYC சரிபார்ப்பைத் தவிர்க்கவும்",
+    kyc_success_title: "KYC சமர்ப்பிப்பு வெற்றி பெற்றது!",
+    kyc_success_desc: "சரிபார்ப்பிற்காக உங்கள் ஆவணங்கள் சமர்ப்பிக்கப்பட்டுள்ளன. உங்கள் சுயவிவரத்தை நாங்கள் புதுப்பிக்கிறோம்.",
+    
+    // Scheme Explorer
+    explore_gold_schemes: "தங்கத் திட்டங்களை ஆராயுங்கள்",
+    choose_savings_plan: "தங்க சேமிப்புத் திட்டத்தைத் தேர்ந்தெடுக்கவும்",
+    accumulate_metals_desc: "சான்றளிக்கப்பட்ட தங்கம் மற்றும் வெள்ளியைத் தொடர்ந்து சேமித்து முதிர்வு காலத்தில் போனஸ் பெறுங்கள்.",
+    min_investment: "குறைந்தபட்ச முதலீடு",
+    start_from: "இங்கிருந்து தொடங்கவும்",
+    active_badge: "செயலில் உள்ளது",
+
+    // Scheme Detail Additional
+    plan_name: "திட்டத்தின் பெயர்",
+    description: "விவரம்",
+    setup_profile_address: "தொடர்வதற்கு முன் சுயவிவர முகவரியை அமைக்கவும்",
+    kyc_not_completed: "KYC முடிக்கப்படவில்லை",
+    failed_to_join: "திட்டத்தில் சேர முடியவில்லை.",
+    payment_failed_title: "பரிவர்த்தனை தோல்வியடைந்தது",
+    kyc_duration_desc: "உங்கள் KYC 24 முதல் 48 மணி நேரத்திற்குள் சரிபார்க்கப்படும்",
+    pins_do_not_match: "பின் எண்கள் பொருந்தவில்லை",
+    save_update_pin: "சேமி & பின்-ஐ புதுப்பி",
+    pin_security_notice: "உங்கள் பின் எண்ணை யாருடனும் பகிர வேண்டாம். Aishwaryam @ Your Home ஒருபோதும் உங்கள் பின் எண்ணைக் கேட்காது.",
+    pin_changed_success: "பின் எண் வெற்றிகரமாக மாற்றப்பட்டது!",
+    scheme_join_form: "திட்ட சேர்க்கை படிவம்",
+    scheme_join_form_desc: "இந்த தங்க சேமிப்பு திட்டத்தில் சேர, வாரிசுதாரர் மற்றும் முகவரி விவரங்களை வழங்கவும்.",
+    nominee_information: "வாரிசுதாரர் விவரம்",
+    ten_digit_mobile: "10-இலக்க மொபைல் எண்",
+    select_relationship: "உறவுமுறையைத் தேர்ந்தெடுக்கவும்",
+    primary_address: "முதன்மை முகவரி",
+    select_state: "மாநிலத்தைத் தேர்ந்தெடுக்கவும்",
+    select_city: "நகரத்தைத் தேர்ந்தெடுக்கவும்",
+    street_address: "தெரு முகவரி",
+    street_address_placeholder: "கதவு/வீட்டு எண், தெரு பெயர்",
+    save_proceed: "சேமித்து தொடரவும்",
+    saving: "சேமிக்கப்படுகிறது...",
+    pin_must_be_6_digits: "அஞ்சல் குறியீடு (PIN Code) சரியாக 6 இலக்கங்களாக இருக்க வேண்டும்.",
+    min_investment_100: "குறைந்தபட்ச முதலீட்டுத் தொகை ₹100 ஆகும்.",
+    join_sheet_desc: "வாங்கும் தொகை அல்லது தங்கத்தின் எடையைத் தேர்ந்தெடுக்கவும். நீங்கள் வாங்குவது அடுக்கு 1 விசுவாச போனஸிற்கு (7.5%) தகுதி பெறும்!"
   }
+};
+
+export const dynamicDictionary: Record<string, string> = {
+  // Scheme Names
+  "DiGiGOLD Purchase Plan": "டிஜிகோல்ட் தவணைத் திட்டம்",
+  "DiGiSILVER Purchase Plan": "டிஜிசில்வர் தவணைத் திட்டம்",
+  "DiGiGOLD": "டிஜிகோல்ட்",
+  "DiGiSILVER": "டிஜிசில்வர்",
+  "DiGi GOLD": "டிஜிகோல்ட்",
+  "DiGi SILVER": "டிஜிசில்வர்",
+  
+  // Nominee Relationships
+  "Father": "தந்தை",
+  "Mother": "தாய்",
+  "Wife": "மனைவி",
+  "Husband": "கணவர்",
+  "Son": "மகன்",
+  "Daughter": "மகள்",
+  "Brother": "சகோதரன்",
+  "Sister": "சகோதரி",
+  "Guardian": "காப்பாளர்",
+
+  // Transaction Status
+  "Success": "வெற்றி",
+  "Pending": "நிலுவையில் உள்ளது",
+  "Failed": "தோல்வியடைந்தது",
+  "Completed": "முடிவடைந்தது",
+
+  // Transaction Types / Descriptions
+  "Gold Saved": "தங்கம் சேமிக்கப்பட்டது",
+  "Silver Saved": "வெள்ளி சேமிக்கப்பட்டது",
+  "Gold Redeemed": "தங்கம் மீட்டெடுக்கப்பட்டது",
+  "Silver Redeemed": "வெள்ளி மீட்டெடுக்கப்பட்டது",
+  "Scheme Bonus Gold": "திட்ட போனஸ் தங்கம்",
+  "Scheme Bonus Silver": "திட்ட போனஸ் வெள்ளி",
+  "Loyalty Bonus Gold": "அன்பளிப்பு போனஸ் தங்கம்",
+  "Joined Scheme": "திட்டத்தில் சேர்ந்தார்",
+  "Redemption Requested": "மீட்பு கோரப்பட்டது",
+  "Installment Paid": "சந்தா செலுத்தப்பட்டது",
+  "Installment": "தவணை",
+  "Bonus Offer": "போனஸ் சலுகை",
+  
+  // Bank Names
+  "State Bank of India": "ஸ்டேட் பாங்க் ஆஃப் இந்தியா",
+  "HDFC Bank": "எச்டிஎப்சி வங்கி",
+  "ICICI Bank": "ஐசிஐசிஐ வங்கி",
+  "Axis Bank": "ஆக்சிஸ் வங்கி",
+  "Kotak Mahindra Bank": "கோடக் மஹிந்திரா வங்கி",
+  "Indian Bank": "இந்தியன் வங்கி",
+  "Canara Bank": "கனரா வங்கி",
+  "Bank of Baroda": "பரோடா வங்கி",
+  "Union Bank of India": "யூனியன் பாங்க் ஆஃப் இந்தியா",
+  "Punjab National Bank": "பஞ்சாப் நேஷனல் வங்கி",
+  "Indian Overseas Bank": "இந்தியன் ஓவர்சீஸ் வங்கி",
+  "Federal Bank": "ஃபெடரல் வங்கி",
+  
+  // Misc
+  "Verified Vault Client": "சரிபார்க்கப்பட்ட வாடிக்கையாளர்",
+  "Verified": "சரிபார்க்கப்பட்டது",
+  "BASIC": "அடிப்படை",
+  "PENDING": "நிலுவையில் உள்ளது",
+  "APPROVED": "அங்கீகரிக்கப்பட்டது",
+  "REJECTED": "நிராகரிக்கப்பட்டது",
+  "Gold 22K (per g)": "தங்கம் 22K (ஒரு கிராமுக்கு)",
+  "Silver 99.9% (per g)": "வெள்ளி 99.9% (ஒரு கிராமுக்கு)",
+  "Current Value": "இன்றைய மதிப்பு",
+  "Total Invested": "மொத்த முதலீடு",
+  "Bonus Gold": "போனஸ் தங்கம்",
+  "grams": "கிராம்கள்",
+  "grams_suffix": "கிராம்கள்",
+  "Tamil Nadu": "தமிழ்நாடு",
+  "Puducherry": "புதுச்சேரி",
+  "Kerala": "கேரளா",
+  "Karnataka": "கர்நாடகா",
+  "Chennai": "சென்னை",
+  "Coimbatore": "கோயம்புத்தூர்",
+  "Madurai": "மதுரை",
+  "Salem": "சேலம்",
+  "Trichy": "திருச்சி",
+  "Tirunelveli": "திருநெல்வேலி",
+  "Karaikal": "காரைக்கால்",
+  "Kochi": "கொச்சி",
+  "Thiruvananthapuram": "திருவனந்தபுரம்",
+  "Bengaluru": "பெங்களூரு",
+  "Mysuru": "மைசூரு"
 };
 
 export type Language = 'en' | 'ta';
@@ -882,5 +1179,22 @@ export function useTranslation() {
     return getTranslation(key, lang);
   };
 
-  return { t, lang, changeLanguage };
+  const autoT = (text: string | null | undefined): string => {
+    if (!text) return '';
+    if (lang === 'en') return text;
+    const trimmed = text.trim();
+    if (dynamicDictionary[trimmed]) {
+      return dynamicDictionary[trimmed];
+    }
+    let result = trimmed;
+    // Map keys to translate occurrences in text
+    Object.keys(dynamicDictionary).forEach(key => {
+      const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp(`\\b${escapedKey}\\b`, 'gi');
+      result = result.replace(regex, dynamicDictionary[key]);
+    });
+    return result;
+  };
+
+  return { t, autoT, lang, changeLanguage };
 }

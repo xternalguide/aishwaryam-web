@@ -134,7 +134,7 @@ export const ChangeMpin: React.FC = () => {
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', justifyContent: 'center' }}>
         <div className="glass-card" style={{ padding: '24px', borderRadius: '20px', background: 'white', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: '0 8px 24px rgba(0,0,0,0.03)', border: '1px solid rgba(74, 14, 78, 0.04)' }}>
           <h3 style={{ fontSize: '14.5px', fontWeight: 'bold', color: 'var(--brand-dark)', textAlign: 'center', margin: 0, lineHeight: '20px' }}>
-            Set a new 4-digit PIN for quick login.
+            {t('create_secure_pin_desc')}
           </h3>
 
           {errorMsg && (
@@ -145,7 +145,7 @@ export const ChangeMpin: React.FC = () => {
 
           {/* New PIN Input Row */}
           <div>
-            <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>Enter New PIN</span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>{t('enter_new_pin')}</span>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '8px' }}>
               {Array.from({ length: 4 }).map((_, i) => (
                 <input
@@ -179,7 +179,7 @@ export const ChangeMpin: React.FC = () => {
 
           {/* Confirm PIN Input Row */}
           <div>
-            <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>Confirm New PIN</span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)', marginLeft: '4px' }}>{t('confirm_new_pin')}</span>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '8px' }}>
               {Array.from({ length: 4 }).map((_, i) => (
                 <input
@@ -216,7 +216,7 @@ export const ChangeMpin: React.FC = () => {
 
           {newMpin.length === 4 && confirmMpin.length === 4 && newMpin !== confirmMpin && (
             <span style={{ color: 'var(--error-red)', fontSize: '12px', textAlign: 'center', fontWeight: 'bold' }}>
-              PINs do not match
+              {t('pins_do_not_match')}
             </span>
           )}
 
@@ -242,7 +242,7 @@ export const ChangeMpin: React.FC = () => {
             {isLoading ? (
               <div className="spinner" style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
             ) : (
-              'Save & Update PIN'
+              t('save_update_pin')
             )}
           </button>
 
@@ -260,7 +260,7 @@ export const ChangeMpin: React.FC = () => {
             width: '100%',
             boxSizing: 'border-box'
           }}>
-            🔐 <strong>For your security:</strong> Do not share your PIN with anyone. Aishwaryam @ Your Home will never ask for your PIN.
+            🔐 <strong>{t('relationship') === 'உறவுமுறை' ? 'உங்கள் பாதுகாப்பிற்கு:' : 'For your security:'}</strong> {t('pin_security_notice')}
           </div>
         </div>
       </div>
@@ -282,7 +282,7 @@ export const ChangeMpin: React.FC = () => {
             <CheckCircle size={60} color="var(--success-green)" />
           </div>
           <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'white', textAlign: 'center', margin: 0 }}>
-            PIN Changed Successfully!
+            {t('pin_changed_success')}
           </h2>
         </div>
       )}
