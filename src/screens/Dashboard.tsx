@@ -210,7 +210,7 @@ export const Dashboard: React.FC = () => {
   const [offerDesc, setOfferDesc] = useState<string | null>(null);
   const [activeBannerIdx, setActiveBannerIdx] = useState(0);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const dragStartPosRef = useRef({ x: 0, y: 0 });
   const isDraggingRef = useRef(false);
@@ -1270,20 +1270,32 @@ export const Dashboard: React.FC = () => {
             })()}
 
             <button
+              disabled={isDownloading}
               onClick={() => { 
                 if (selectedTxDetail && selectedTxDetail.id) {
+                  setIsDownloading(true);
                   const url = `${BASE_URL}api/Gold/receipt/download/${selectedTxDetail.id}`;
                   const isCapacitor = !!(window as any).Capacitor;
                   if (isCapacitor) {
-                    window.open(url, '_system');
+                    let iframe = document.getElementById('hidden-download-iframe') as HTMLIFrameElement;
+                    if (!iframe) {
+                      iframe = document.createElement('iframe');
+                      iframe.id = 'hidden-download-iframe';
+                      iframe.style.display = 'none';
+                      document.body.appendChild(iframe);
+                    }
+                    iframe.src = url;
                   } else {
                     window.open(url, '_blank');
                   }
+                  setTimeout(() => {
+                    setIsDownloading(false);
+                  }, 2500);
                 }
               }}
-              style={{ width:'100%', height:'44px', borderRadius:'12px', background: 'linear-gradient(135deg,#29001D,#C2185B)', color:'white', border:'none', fontFamily:DS.font, fontWeight:'800', fontSize:'13px', cursor: 'pointer', boxShadow:'0 4px 16px rgba(194,24,91,0.35)' }}
+              style={{ width:'100%', height:'44px', borderRadius:'12px', background: isDownloading ? '#cccccc' : 'linear-gradient(135deg,#29001D,#C2185B)', color:'white', border:'none', fontFamily:DS.font, fontWeight:'800', fontSize:'13px', cursor: isDownloading ? 'not-allowed' : 'pointer', boxShadow:'0 4px 16px rgba(194,24,91,0.35)' }}
             >
-              Download Receipt
+              {isDownloading ? 'Downloading...' : 'Download Receipt'}
             </button>
           </div>
         </div>

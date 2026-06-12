@@ -51,12 +51,7 @@ public class MainActivity extends BridgeActivity {
             webView.setDownloadListener(new android.webkit.DownloadListener() {
                 @Override
                 public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-                    try {
-                        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url));
-                        MainActivity.this.startActivity(intent);
-                    } catch (Exception e) {
-                        // ignore
-                    }
+                    MainActivity.this.startNativeDownload(url, userAgent, contentDisposition, mimetype);
                 }
             });
             
@@ -164,13 +159,8 @@ public class MainActivity extends BridgeActivity {
                     newWebView.setDownloadListener(new android.webkit.DownloadListener() {
                         @Override
                         public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-                            try {
-                                android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url));
-                                MainActivity.this.startActivity(intent);
-                                dialog.dismiss();
-                            } catch (Exception e) {
-                                // ignore
-                            }
+                            MainActivity.this.startNativeDownload(url, userAgent, contentDisposition, mimetype);
+                            dialog.dismiss();
                         }
                     });
                     
@@ -213,6 +203,39 @@ public class MainActivity extends BridgeActivity {
                     return true;
                 }
             });
+        }
+    }
+
+    private void startNativeDownload(String url, String userAgent, String contentDisposition, String mimetype) {
+        try {
+            android.app.DownloadManager.Request request = new android.app.DownloadManager.Request(android.net.Uri.parse(url));
+            request.setMimeType("application/pdf");
+            
+            // Extract filename from URL or default
+            String transactionId = url.substring(url.lastIndexOf('/') + 1);
+            String fileName = "Receipt_" + (transactionId.length() >= 8 ? transactionId.substring(0, 8).toUpperCase() : "Details") + ".pdf";
+            
+            request.setDescription("Downloading Transaction Receipt...");
+            request.setTitle(fileName);
+            request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            request.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, fileName);
+            
+            // Allow scanning by media scanner
+            request.allowScanningByMediaScanner();
+            
+            android.app.DownloadManager dm = (android.app.DownloadManager) this.getSystemService(android.content.Context.DOWNLOAD_SERVICE);
+            if (dm != null) {
+                dm.enqueue(request);
+                android.widget.Toast.makeText(this, "Downloading receipt in background...", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            // Fallback to launching system browser if DownloadManager fails
+            try {
+                android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url));
+                this.startActivity(intent);
+            } catch (Exception ex) {
+                android.widget.Toast.makeText(this, "Failed to start download: " + ex.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+            }
         }
     }
 }
