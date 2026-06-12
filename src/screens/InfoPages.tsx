@@ -698,20 +698,20 @@ export const MyBonuses: React.FC = () => {
         {bonusTransactions.map((tx, idx) => {
           const details = getBonusDisplayDetails(tx);
           return (
-            <div key={tx.id || idx} className="glass-card" style={{ padding: '16px', borderRadius: '12px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
+            <div key={tx.id || idx} className="glass-card" style={{ padding: '16px', borderRadius: '12px', background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', color: 'var(--brand-dark)' }}>{details.name}</span>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-light)' }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-light)', whiteSpace: 'nowrap' }}>
                     {new Date(tx.createdAt).toLocaleDateString()}
                   </span>
-                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#ccc' }} />
-                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#ccc', flexShrink: 0 }} />
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '500', whiteSpace: 'nowrap' }}>
                     {details.amount} ({details.percentage})
                   </span>
                 </div>
               </div>
-              <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--success-green)' }}>+ {details.weight}</span>
+              <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--success-green)', whiteSpace: 'nowrap', flexShrink: 0, textAlign: 'right' }}>+ {details.weight}</span>
             </div>
           );
         })}
