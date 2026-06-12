@@ -1147,7 +1147,7 @@ export const Dashboard: React.FC = () => {
       <div style={{ flex:1, display:'flex', flexDirection:'column', height:'100%', overflowY:'auto', overflowX:'hidden' }}>
 
         {/* TOP NAVBAR */}
-        {selectedTab !== 2 && (isDesktop || selectedTab !== 0) && (
+        {isDesktop && selectedTab !== 2 && (
           <div style={{
             background:DS.navBg, backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
             borderBottom:'1px solid rgba(255,255,255,0.07)',
