@@ -232,5 +232,164 @@ button, input, select {
   box-sizing: border-box;
 }
 
+/* ── DARK MODE STYLING ── */
+.dark, body.dark {
+  --surface-light: #0F0A18 !important; /* Premium deep dark background */
+  --surface-white: #18122B !important; /* Premium dark card background */
+  --surface-card: rgba(255, 255, 255, 0.05) !important;
+  --surface-gold: rgba(255, 215, 0, 0.06) !important;
+  --border-light: rgba(255, 255, 255, 0.08) !important;
+
+  --text-primary: #FFFFFF !important;
+  --text-secondary: #E4E4E7 !important;
+  --text-muted: #A0A0AB !important;
+  --text-light: #71717A !important;
+  
+  --brand-deep: #FFFFFF !important;
+  --brand-dark: #FFD700 !important; /* Contrast titles in dark mode */
+}
+
+/* Force dark backgrounds on container elements that use inline light colors */
+.dark div[style*="background: white"],
+.dark div[style*="background:white"],
+.dark div[style*="background:#ffffff"],
+.dark div[style*="background: #ffffff"],
+.dark div[style*="background:#FFFFFF"],
+.dark div[style*="background: #FFFFFF"],
+.dark div[style*="background: rgb(255, 255, 255)"],
+.dark div[style*="background:var(--surface-white)"],
+.dark div[style*="background: var(--surface-white)"],
+.dark select[style*="background: white"],
+.dark select[style*="background:white"],
+.dark select,
+.dark option {
+  background: #18122B !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark div[style*="background: #F8F9FA"],
+.dark div[style*="background:#F8F9FA"],
+.dark div[style*="background: rgb(248, 249, 250)"],
+.dark div[style*="background:var(--surface-light)"],
+.dark div[style*="background: var(--surface-light)"] {
+  background: #0F0A18 !important;
+}
+
+.dark div[style*="background: #F9FAFB"],
+.dark div[style*="background:#F9FAFB"],
+.dark div[style*="background: rgb(249, 250, 251)"],
+.dark div[style*="background: #F3F4F6"],
+.dark div[style*="background:#F3F4F6"],
+.dark div[style*="background: rgb(243, 244, 246)"] {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #FFFFFF !important;
+}
+
+/* Specific overrides for dialog modal popups, cards and glassmorphic designs */
+.dark .glass-card,
+.dark div.glass-card,
+.dark div[style*="background: rgba(255, 255, 255, 0.85)"],
+.dark div[style*="background:rgba(255, 255, 255, 0.85)"] {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4) !important;
+}
+
+/* Fix light gold/yellow warning details or special accents */
+.dark div[style*="background: #FFF9C4"],
+.dark div[style*="background:#FFF9C4"],
+.dark div[style*="background: var(--warning-light)"],
+.dark div[style*="background:var(--warning-light)"] {
+  background: rgba(245, 158, 11, 0.08) !important;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+  color: #F59E0B !important;
+}
+
+/* For gold card accents or special table headers in SchemeDetail */
+.dark div[style*="background: linear-gradient(135deg, #FFFDF9 0%, #FFF9F0 100%)"],
+.dark div[style*="background:linear-gradient(135deg,#FFFDF9 0%,#FFF9F0 100%)"],
+.dark div[style*="background: linear-gradient(135deg, #FFFDF9 0%, #FFFFFF 100%)"] {
+  background: linear-gradient(135deg, #251B00 0%, #1A1200 100%) !important;
+}
+
+.dark tr[style*="background: #FFFDF9"],
+.dark tr[style*="background:#FFFDF9"],
+.dark tr[style*="background: #F9FAFB"],
+.dark tr[style*="background:#F9FAFB"] {
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: #FFFFFF !important;
+}
+
+/* Force text colors in dark mode inside inputs or styled text */
+.dark input:not([type="button"]):not([type="submit"]),
+.dark select,
+.dark textarea {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #FFD700 !important;
+}
+
+.dark input::placeholder {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Headings and generic tags colors */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: #FFFFFF !important;
+}
+
+/* Specifically target hardcoded text colors in styling */
+.dark span[style*="color: var(--brand-dark)"],
+.dark span[style*="color:var(--brand-dark)"],
+.dark h4[style*="color: var(--brand-dark)"],
+.dark h4[style*="color:var(--brand-dark)"],
+.dark label[style*="color: var(--brand-dark)"],
+.dark label[style*="color:var(--brand-dark)"],
+.dark h3[style*="color: var(--brand-dark)"],
+.dark h3[style*="color:var(--brand-dark)"] {
+  color: #FFFFFF !important;
+}
+
+.dark span[style*="color: var(--text-secondary)"],
+.dark span[style*="color:var(--text-secondary)"],
+.dark label[style*="color: var(--text-secondary)"],
+.dark label[style*="color:var(--text-secondary)"],
+.dark p[style*="color: var(--text-secondary)"],
+.dark p[style*="color:var(--text-secondary)"],
+.dark li[style*="color: var(--text-secondary)"],
+.dark li[style*="color:var(--text-secondary)"] {
+  color: #E4E4E7 !important;
+}
+
+.dark span[style*="color: var(--text-muted)"],
+.dark span[style*="color:var(--text-muted)"],
+.dark p[style*="color: var(--text-muted)"],
+.dark p[style*="color:var(--text-muted)"],
+.dark div[style*="color: var(--text-muted)"],
+.dark div[style*="color:var(--text-muted)"] {
+  color: #A0A0AB !important;
+}
+
+.dark span[style*="color: var(--text-light)"],
+.dark span[style*="color:var(--text-light)"],
+.dark div[style*="color: var(--text-light)"],
+.dark div[style*="color:var(--text-light)"] {
+  color: #71717A !important;
+}
+
+.dark div[style*="border-top: 1px solid #ECECEC"],
+.dark div[style*="border-top:1px solid #ECECEC"],
+.dark div[style*="border-bottom: 1px solid #ECECEC"],
+.dark div[style*="border-bottom:1px solid #ECECEC"] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
 
 
