@@ -337,9 +337,6 @@ export const Dashboard: React.FC = () => {
       const userId = SessionManager.getUserId();
       if (!userId) return;
       
-      // Close modal and refresh immediately so the transition is instant
-      setShowEditProfileModal(false);
-      
       await ApiClient.put(`api/User/profile/${userId}`, {
         fullName: editName.trim(), email: editEmail.trim() || null, dateOfBirth: editDob ? editDob : null,
         weddingAnniversaryDate: editWeddingDate ? editWeddingDate : null, gender: editGender || null,
@@ -1687,7 +1684,12 @@ export const Dashboard: React.FC = () => {
               </span>
             </div>
             <button
-              onClick={() => setCustomAlert(null)}
+              onClick={() => {
+                if (!customAlert.isError) {
+                  setShowEditProfileModal(false);
+                }
+                setCustomAlert(null);
+              }}
               style={{
                 width:'100%',
                 height:'38px',
