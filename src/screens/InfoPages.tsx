@@ -482,6 +482,7 @@ export const AiAssistant: React.FC = () => {
 export const Referral: React.FC = () => {
   const navigate = useNavigate();
   const { profile } = useApp();
+  const { t, lang } = useTranslation();
   const [refCode, setRefCode] = useState(profile?.referralCode || 'AISH987');
   const [totalReferrals, setTotalReferrals] = useState(0);
   const [totalBonusMg, setTotalBonusMg] = useState(0);
@@ -510,11 +511,13 @@ export const Referral: React.FC = () => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(refCode);
-    alert('Referral code copied to clipboard!');
+    alert(lang === 'ta' ? 'பரிந்துரைக் குறியீடு நகலெடுக்கப்பட்டது!' : 'Referral code copied to clipboard!');
   };
 
   const handleShare = async () => {
-    const shareText = `Start saving in gold or silver on Aishwaryam! Use my referral code: ${refCode} to get a bonus on your first chit payment.`;
+    const shareText = lang === 'ta'
+      ? `ஐஸ்வர்யாSavings திட்டத்தில் தங்கம் அல்லது வெள்ளி சேமிக்கத் தொடங்குங்கள்! எனது பரிந்துரைக் குறியீடு: ${refCode} பயன்படுத்தி முதல் தவணையில் போனஸ் பெறுங்கள்.`
+      : `Start saving in gold or silver on Aishwaryam! Use my referral code: ${refCode} to get a bonus on your first chit payment.`;
     if (Capacitor.isNativePlatform()) {
       try {
         await Share.share({
@@ -538,42 +541,42 @@ export const Referral: React.FC = () => {
       }
     } else {
       navigator.clipboard.writeText(shareText);
-      alert('Referral message copied to clipboard! Share it with your friends.');
+      alert(lang === 'ta' ? 'பரிந்துரைச் செய்தி நகலெடுக்கப்பட்டது! நண்பர்களுடன் பகிர்ந்து கொள்ளுங்கள்.' : 'Referral message copied to clipboard! Share it with your friends.');
     }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F8F9FA' }}>
-      <Header title="Referrals & Rewards" onBack={() => navigate(-1)} />
+      <Header title={t('referrals_rewards')} onBack={() => navigate(-1)} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ textAlign: 'center', padding: '10px 0' }}>
           <span style={{ fontSize: '48px' }}>🎁</span>
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', marginTop: '8px' }}>Invite Friends, Earn Gold</h2>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>Get free gold credited on your friends first savings chit payments.</p>
+          <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', marginTop: '8px' }}>{t('invite_friends_earn')}</h2>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>{t('invite_desc')}</p>
         </div>
 
         {/* Stats view */}
         <div className="glass-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '16px', borderRadius: '16px', background: 'white', gap: '16px' }}>
           <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>TOTAL INVITED</span>
-            <span style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{totalReferrals} Friends</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>{t('total_invited')}</span>
+            <span style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--brand-dark)' }}>{totalReferrals} {t('friends_suffix')}</span>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>GOLD EARNED</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>{t('gold_earned')}</span>
             <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#FFB300' }}>{(totalBonusMg / 1000).toFixed(3)} g</span>
           </div>
         </div>
 
         {/* Code copier */}
         <div className="glass-card" style={{ padding: '20px', borderRadius: '16px', background: 'white', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>YOUR REFERRAL CODE</span>
+          <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{t('your_referral_code')}</span>
           <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--brand-accent)', letterSpacing: '2px' }}>{refCode}</div>
           <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '8px' }}>
             <button onClick={handleCopy} style={{ flex: 1, height: '44px', borderRadius: '10px', background: 'var(--gold-soft)', color: 'var(--gold-deep)', border: '1px solid rgba(184, 134, 11, 0.2)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              <Copy size={16} /> Copy
+              <Copy size={16} /> {t('copy')}
             </button>
             <button onClick={handleShare} style={{ flex: 1, height: '44px', borderRadius: '10px', background: 'var(--brand-dark)', color: 'white', border: 'none', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              <Share2 size={16} /> Share
+              <Share2 size={16} /> {t('share')}
             </button>
           </div>
         </div>

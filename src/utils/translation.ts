@@ -218,6 +218,7 @@ export const translations = {
     amount: "Amount",
     gold_purchased: "Gold Purchased",
     bonus_gold: "Bonus Gold",
+    total_invested: "Total Invested",
     no_transactions_found: "No transactions found",
     scheme_matured: "Scheme Matured! 🎉",
     matured_redemption_instruction_en: "To redeem your accumulated gold/silver or cash equivalent, please contact your nearest branch or call customer support at +91 94430 00000. Physical verification is required for security.",
@@ -527,7 +528,35 @@ export const translations = {
     saving: "Saving...",
     pin_must_be_6_digits: "PIN Code must be exactly 6 digits.",
     min_investment_100: "Minimum investment amount is ₹100.",
-    join_sheet_desc: "Select a purchase amount or gold weight. Your purchase will qualify for the Tier 1 Loyalty Bonus (7.5%)!"
+    join_sheet_desc: "Select a purchase amount or gold weight. Your purchase will qualify for the Tier 1 Loyalty Bonus (7.5%)!",
+    filter_all: "All Activities",
+    filter_bonus: "Bonus",
+    filter_purchases: "Purchases",
+    filter_scheme: "Scheme Activities",
+    newest: "NEWEST",
+    oldest: "OLDEST",
+    grams_label: "GRAMS",
+    action_schemes: "Schemes",
+    action_history: "History",
+    action_referral: "Referral",
+    action_calculator: "Calculator",
+    gold_22k: "GOLD 22K (PER G)",
+    silver_999: "SILVER 99.9% (PER G)",
+    active_schemes_title: "Active Schemes",
+    monthly_scheme: "MONTHLY SCHEME",
+    progress: "Progress",
+    days_left: "days left",
+    accumulated: "ACCUMULATED",
+    flexible: "Flexible",
+    referrals_rewards: "Referrals & Rewards",
+    invite_friends_earn: "Invite Friends, Earn Gold",
+    invite_desc: "Get free gold credited on your friends first savings chit payments.",
+    total_invited: "TOTAL INVITED",
+    gold_earned: "GOLD EARNED",
+    your_referral_code: "YOUR REFERRAL CODE",
+    copy: "Copy",
+    share: "Share",
+    friends_suffix: "Friends"
   },
   ta: {
     app_name: "Aishwaryam @ Your Home",
@@ -744,6 +773,7 @@ export const translations = {
     amount: "தொகை",
     gold_purchased: "வாங்கிய தங்கம்",
     bonus_gold: "போனஸ் தங்கம்",
+    total_invested: "மொத்த முதலீடு",
     no_transactions_found: "பரிவர்த்தனைகள் எதுவும் இல்லை",
     scheme_matured: "திட்டம் முதிர்வடைந்தது! 🎉",
     matured_redemption_instruction_en: "To redeem your accumulated gold/silver or cash equivalent, please contact your nearest branch or call customer support at +91 94430 00000. Physical verification is required for security.",
@@ -1053,11 +1083,43 @@ export const translations = {
     saving: "சேமிக்கப்படுகிறது...",
     pin_must_be_6_digits: "அஞ்சல் குறியீடு (PIN Code) சரியாக 6 இலக்கங்களாக இருக்க வேண்டும்.",
     min_investment_100: "குறைந்தபட்ச முதலீட்டுத் தொகை ₹100 ஆகும்.",
-    join_sheet_desc: "வாங்கும் தொகை அல்லது தங்கத்தின் எடையைத் தேர்ந்தெடுக்கவும். நீங்கள் வாங்குவது அடுக்கு 1 விசுவாச போனஸிற்கு (7.5%) தகுதி பெறும்!"
+    join_sheet_desc: "வாங்கும் தொகை அல்லது தங்கத்தின் எடையைத் தேர்ந்தெடுக்கவும். நீங்கள் வாங்குவது அடுக்கு 1 விசுவாச போனஸிற்கு (7.5%) தகுதி பெறும்!",
+    filter_all: "அனைத்தும்",
+    filter_bonus: "போனஸ்",
+    filter_purchases: "சேமிப்புகள்",
+    filter_scheme: "திட்ட செயல்பாடுகள்",
+    newest: "புதியது",
+    oldest: "பழையது",
+    grams_label: "கிராம்கள்",
+    action_schemes: "திட்டங்கள்",
+    action_history: "வரலாறு",
+    action_referral: "பரிந்துரை",
+    action_calculator: "கணக்கீடு",
+    gold_22k: "தங்கம் 22K (ஒரு கிராமுக்கு)",
+    silver_999: "வெள்ளி 99.9% (ஒரு கிராமுக்கு)",
+    active_schemes_title: "செயலில் உள்ள திட்டங்கள்",
+    monthly_scheme: "மாதாந்திர திட்டம்",
+    progress: "முன்னேற்றம்",
+    days_left: "நாட்கள் மீதமுள்ளன",
+    accumulated: "சேமிப்பு",
+    flexible: "நெகிழ்வான",
+    referrals_rewards: "பரிந்துரைகள் & வெகுமதிகள்",
+    invite_friends_earn: "நண்பர்களை அழைத்துப் பொன் பெறுங்கள்",
+    invite_desc: "உங்கள் நண்பர்களின் முதல் தங்கச் சேமிப்பில் இலவசத் தங்கம் பெறுங்கள்.",
+    total_invited: "மொத்தம் அழைக்கப்பட்டவர்கள்",
+    gold_earned: "ஈட்டிய தங்கம்",
+    your_referral_code: "உங்கள் பரிந்துரைக் குறியீடு",
+    copy: "நகலெடு",
+    share: "பகிர்",
+    friends_suffix: "நண்பர்கள்"
   }
 };
 
 export const dynamicDictionary: Record<string, string> = {
+  // Description translations
+  "Accumulate silver weight daily with instant bonuses. Lock-in period of 330 days. No cash refunds allowed.": "உடனடி போனஸுடன் தினசரி வெள்ளி எடையைச் சேமிக்கவும். 330 நாட்கள் பூட்டுதல் காலம். பணம் திரும்பப் பெற அனுமதி இல்லை.",
+  "Accumulate gold weight daily with instant bonuses. Lock-in period of 330 days. No cash refunds allowed.": "உடனடி போனஸுடன் தினசரி தங்க எடையைச் சேமிக்கவும். 330 நாட்கள் பூட்டுதல் காலம். பணம் திரும்பப் பெற அனுமதி இல்லை.",
+
   // Scheme Names
   "DiGiGOLD Purchase Plan": "டிஜிகோல்ட் தவணைத் திட்டம்",
   "DiGiSILVER Purchase Plan": "டிஜிசில்வர் தவணைத் திட்டம்",
@@ -1139,7 +1201,8 @@ export const dynamicDictionary: Record<string, string> = {
   "Kochi": "கொச்சி",
   "Thiruvananthapuram": "திருவனந்தபுரம்",
   "Bengaluru": "பெங்களூரு",
-  "Mysuru": "மைசூரு"
+  "Mysuru": "மைசூரு",
+  "Flexible": "நெகிழ்வான"
 };
 
 export type Language = 'en' | 'ta';

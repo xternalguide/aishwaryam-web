@@ -1079,9 +1079,9 @@ export const SchemeDetail: React.FC = () => {
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', boxSizing: 'border-box' }}>
         {/* Scheme Intro Header Card */}
         <div className="glass-card" style={{ borderRadius: '16px', padding: '20px', background: 'white' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', marginBottom: '8px' }}>{scheme.planName}</h2>
+          <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--brand-dark)', marginBottom: '8px' }}>{autoT(scheme.planName)}</h2>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '18px', margin: 0 }}>
-            {scheme.description}
+            {autoT(scheme.description)}
           </p>
  
           <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
@@ -1091,13 +1091,13 @@ export const SchemeDetail: React.FC = () => {
             </div>
             <div style={{ width: '1px', height: '20px', background: 'rgba(0,0,0,0.1)' }} />
             <div>
-              <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>MIN. INVESTMENT</span>
-              <div style={{ fontSize: '13px', fontWeight: 'bold' }}>Start from {formatRupees(scheme.installmentAmountPaise)}</div>
+              <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>{t('min_investment')}</span>
+              <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{t('start_from')} {formatRupees(scheme.installmentAmountPaise)}</div>
             </div>
             <div style={{ width: '1px', height: '20px', background: 'rgba(0,0,0,0.1)' }} />
             <div>
               <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)' }}>{t('frequency').toUpperCase()}</span>
-              <div style={{ fontSize: '13px', fontWeight: 'bold', textTransform: 'capitalize' }}>{scheme.frequency}</div>
+              <div style={{ fontSize: '13px', fontWeight: 'bold', textTransform: 'capitalize' }}>{autoT(scheme.frequency)}</div>
             </div>
           </div>
         </div>

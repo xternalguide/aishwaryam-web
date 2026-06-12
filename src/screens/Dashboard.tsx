@@ -480,14 +480,14 @@ export const Dashboard: React.FC = () => {
         {/* Balance Display */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '8px 0' }}>
           <span style={{ fontFamily: DS.font, fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            Total Gold Saved
+            {t('total_gold_saved')}
           </span>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '4px' }}>
             <span style={{ fontFamily: DS.font, fontSize: '36px', fontWeight: '900', color: 'white', lineHeight: 1 }}>
               {((portfolio?.goldBalanceMg || 0) / 1000).toFixed(4)}
             </span>
             <span style={{ fontFamily: DS.font, fontSize: '13px', fontWeight: '700', color: DS.gold, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-              grams
+              {t('grams_label')}
             </span>
           </div>
         </div>
@@ -508,9 +508,9 @@ export const Dashboard: React.FC = () => {
           }}
         >
           {[
-            { label: 'Current Value', value: formatRupees(portfolio?.currentValuePaime || portfolio?.currentValuePaise || 0), color: DS.gold },
-            { label: 'Total Invested', value: formatRupees(portfolio?.investedAmountPaise || 0), color: '#FFFFFF' },
-            { label: 'Bonus Gold', value: `${(totalBonusGoldMg / 1000).toFixed(4)} g`, color: '#10B981' },
+            { label: t('current_value'), value: formatRupees(portfolio?.currentValuePaime || portfolio?.currentValuePaise || 0), color: DS.gold },
+            { label: t('total_invested'), value: formatRupees(portfolio?.investedAmountPaise || 0), color: '#FFFFFF' },
+            { label: t('bonus_gold'), value: `${(totalBonusGoldMg / 1000).toFixed(4)} g`, color: '#10B981' },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <span style={{ fontFamily: DS.font, fontSize: '8px', color: 'rgba(255, 255, 255, 0.45)', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: '600' }}>{label}</span>
@@ -524,10 +524,10 @@ export const Dashboard: React.FC = () => {
 
   const renderMobileQuickActions = () => {
     const actions = [
-      { label: 'Schemes', icon: <TrendingUp size={20} color="#C2185B" />, bg: 'rgba(194, 24, 91, 0.12)', onClick: () => navigate('/scheme-explorer') },
-      { label: 'History', icon: <History size={20} color="#FFB300" />, bg: 'rgba(255, 179, 0, 0.12)', onClick: () => setSelectedTab(1) },
-      { label: 'Referral', icon: <Gift size={20} color="#10B981" />, bg: 'rgba(16, 185, 129, 0.12)', onClick: () => navigate('/referral') },
-      { label: 'Calculator', icon: <Calculator size={20} color="#0288D1" />, bg: 'rgba(2, 136, 209, 0.12)', onClick: () => navigate('/profile/price-calculator') },
+      { label: t('action_schemes'), icon: <TrendingUp size={20} color="#C2185B" />, bg: 'rgba(194, 24, 91, 0.12)', onClick: () => navigate('/scheme-explorer') },
+      { label: t('action_history'), icon: <History size={20} color="#FFB300" />, bg: 'rgba(255, 179, 0, 0.12)', onClick: () => setSelectedTab(1) },
+      { label: t('action_referral'), icon: <Gift size={20} color="#10B981" />, bg: 'rgba(16, 185, 129, 0.12)', onClick: () => navigate('/referral') },
+      { label: t('action_calculator'), icon: <Calculator size={20} color="#0288D1" />, bg: 'rgba(2, 136, 209, 0.12)', onClick: () => navigate('/profile/price-calculator') },
     ];
 
     return (
@@ -628,7 +628,7 @@ export const Dashboard: React.FC = () => {
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
           <ShieldCheck size={14} color={DS.gold} />
           <span style={{ fontFamily:DS.font, fontSize:'10px', fontWeight:'700', letterSpacing:'1.5px', textTransform:'uppercase', color:'rgba(255,255,255,0.6)' }}>
-            SECURED DIGITAL VAULT
+            {autoT('SECURED DIGITAL VAULT')}
           </span>
         </div>
         <div style={{ width:'32px', height:'22px', borderRadius:'6px', background:'linear-gradient(135deg,#FFE082 0%,#FFB300 100%)', border:'1px solid #FFD54F', opacity:0.85 }} />
@@ -636,21 +636,21 @@ export const Dashboard: React.FC = () => {
 
       {/* balance */}
       <div style={{ marginBottom:'8px' }}>
-        <span style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'600', color:'rgba(255,255,255,0.5)', letterSpacing:'0.5px', textTransform:'uppercase' }}>Total Gold Saved</span>
+        <span style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'600', color:'rgba(255,255,255,0.5)', letterSpacing:'0.5px', textTransform:'uppercase' }}>{t('total_gold_saved')}</span>
         <div style={{ display:'flex', alignItems:'baseline', gap:'10px', marginTop:'6px' }}>
           <span style={{ fontFamily:DS.font, fontSize:'40px', fontWeight:'900', color:'#FFFFFF', lineHeight:1 }}>
             {((portfolio?.goldBalanceMg || 0) / 1000).toFixed(4)}
           </span>
-          <span style={{ fontFamily:DS.font, fontSize:'14px', fontWeight:'700', color:DS.gold, letterSpacing:'1px', textTransform:'uppercase' }}>grams</span>
+          <span style={{ fontFamily:DS.font, fontSize:'14px', fontWeight:'700', color:DS.gold, letterSpacing:'1px', textTransform:'uppercase' }}>{t('grams_label')}</span>
         </div>
       </div>
 
       {/* stats row */}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'12px', borderTop:'1px solid rgba(255,255,255,0.1)', paddingTop:'16px', marginTop:'8px' }}>
         {[
-          { label:'Current Value', value:formatRupees(portfolio?.currentValuePaise||0), color:DS.gold },
-          { label:'Total Invested', value:formatRupees(portfolio?.investedAmountPaise||0), color:'#FFFFFF' },
-          { label:'Bonus Gold', value:`${(totalBonusGoldMg/1000).toFixed(4)} g`, color:'#10B981' },
+          { label:t('current_value'), value:formatRupees(portfolio?.currentValuePaise||0), color:DS.gold },
+          { label:t('total_invested'), value:formatRupees(portfolio?.investedAmountPaise||0), color:'#FFFFFF' },
+          { label:t('bonus_gold'), value:`${(totalBonusGoldMg/1000).toFixed(4)} g`, color:'#10B981' },
         ].map(({ label, value, color }) => (
           <div key={label}>
             <span style={{ fontFamily:DS.font, fontSize:'9px', color:'rgba(255,255,255,0.4)', display:'block', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:'3px' }}>{label}</span>
@@ -665,23 +665,23 @@ export const Dashboard: React.FC = () => {
   const renderLiveRatesCard = () => (
     <div style={{ ...DS.glass, padding:'20px' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
-        <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'700', color:DS.textWhite }}>Live Metal Rates</span>
+        <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'700', color:DS.textWhite }}>{t('live_metal_rates')}</span>
         <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
           <span className="live-dot" style={{ width:'7px', height:'7px', borderRadius:'50%', background:'#10B981', display:'inline-block' }} />
-          <span style={{ fontFamily:DS.font, fontSize:'10px', color:'#10B981', fontWeight:'700', letterSpacing:'0.5px' }}>LIVE</span>
+          <span style={{ fontFamily:DS.font, fontSize:'10px', color:'#10B981', fontWeight:'700', letterSpacing:'0.5px' }}>{lang === 'ta' ? 'லைவ்' : 'LIVE'}</span>
         </div>
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
         {/* Gold */}
         <div style={{ background: isDark ? 'rgba(255,215,0,0.08)' : 'rgba(184,134,11,0.08)', padding:'14px', borderRadius:'14px', border: isDark ? '1px solid rgba(255,215,0,0.2)' : '1px solid rgba(184,134,11,0.2)' }}>
-          <span style={{ fontFamily:DS.font, fontSize:'10px', color: isDark ? 'rgba(255,215,0,0.8)' : '#996F00', display:'block', marginBottom:'6px', fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.3px' }}>Gold 22K (per g)</span>
+          <span style={{ fontFamily:DS.font, fontSize:'10px', color: isDark ? 'rgba(255,215,0,0.8)' : '#996F00', display:'block', marginBottom:'6px', fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.3px' }}>{t('gold_22k')}</span>
           <span style={{ fontFamily:DS.font, fontSize:'20px', fontWeight:'900', color:DS.gold, display:'block' }}>
             ₹{new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}).format((livePrice?.price22KPaise||701000)/100)}
           </span>
         </div>
         {/* Silver */}
         <div style={{ background: isDark ? 'rgba(207,216,220,0.08)' : 'rgba(84,110,122,0.07)', padding:'14px', borderRadius:'14px', border: isDark ? '1px solid rgba(207,216,220,0.15)' : '1px solid rgba(84,110,122,0.18)' }}>
-          <span style={{ fontFamily:DS.font, fontSize:'10px', color: isDark ? 'rgba(207,216,220,0.8)' : '#455A64', display:'block', marginBottom:'6px', fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.3px' }}>Silver 99.9% (per g)</span>
+          <span style={{ fontFamily:DS.font, fontSize:'10px', color: isDark ? 'rgba(207,216,220,0.8)' : '#455A64', display:'block', marginBottom:'6px', fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.3px' }}>{t('silver_999')}</span>
           <span style={{ fontFamily:DS.font, fontSize:'20px', fontWeight:'900', color: isDark ? '#CFD8DC' : '#546E7A', display:'block' }}>
             ₹{new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}).format((livePrice?.priceSilverPaise||9900)/100)}
           </span>
@@ -730,8 +730,8 @@ export const Dashboard: React.FC = () => {
     return (
       <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <span style={{ fontFamily:DS.font, fontSize:'16px', fontWeight:'800', color:DS.textWhite }}>Active Schemes</span>
-          <span style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'600', color:DS.gold }}>{activeList.length} running</span>
+          <span style={{ fontFamily:DS.font, fontSize:'16px', fontWeight:'800', color:DS.textWhite }}>{t('active_schemes_title')}</span>
+          <span style={{ fontFamily:DS.font, fontSize:'11px', fontWeight:'600', color:DS.gold }}>{activeList.length} {lang === 'ta' ? 'செயலில் உள்ளது' : 'running'}</span>
         </div>
         {activeList.map((sch) => {
           const totalDays = (sch.schemeDayNumber||0) + (sch.remainingDaysForScheme||0);
@@ -746,20 +746,20 @@ export const Dashboard: React.FC = () => {
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}>
                 <div>
                   <span style={{ fontFamily:DS.font, fontSize:'9px', color:DS.magenta, fontWeight:'700', textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:'3px' }}>
-                    {sch.frequency === 'Daily' ? 'DAILY SCHEME' : 'MONTHLY SCHEME'}
+                    {sch.frequency === 'Daily' ? (lang === 'ta' ? 'தினசரி திட்டம்' : 'DAILY SCHEME') : (lang === 'ta' ? 'மாதாந்திர திட்டம்' : 'MONTHLY SCHEME')}
                   </span>
                   <span style={{ fontFamily:DS.font, fontSize:'14px', fontWeight:'800', color:DS.textWhite }}>{autoT(sch.planName)}</span>
                 </div>
                 <span style={{ fontFamily:DS.font, fontSize:'10px', background:'rgba(255,215,0,0.15)', color:DS.gold, padding:'4px 10px', borderRadius:'20px', fontWeight:'700', border:'1px solid rgba(255,215,0,0.2)' }}>
-                  Day {sch.schemeDayNumber||1}
+                  {lang === 'ta' ? 'நாள்' : 'Day'} {sch.schemeDayNumber||1}
                 </span>
               </div>
 
               {/* progress */}
               <div style={{ marginBottom:'14px' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', fontFamily:DS.font, fontSize:'10px', color:DS.textMuted, marginBottom:'6px', fontWeight:'600' }}>
-                  <span>Progress</span>
-                  <span>{sch.remainingDaysForScheme} days left</span>
+                  <span>{t('progress')}</span>
+                  <span>{sch.remainingDaysForScheme} {t('days_left')}</span>
                 </div>
                 <div style={{ width:'100%', height:'5px', background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius:'3px', overflow:'hidden' }}>
                   <div style={{ width:`${Math.max(3, progressPercent)}%`, height:'100%', background:'linear-gradient(90deg, #C2185B 0%, #FFD700 100%)', borderRadius:'3px', transition:'width 0.5s ease' }} />
@@ -769,11 +769,11 @@ export const Dashboard: React.FC = () => {
               {/* stats */}
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:'12px' }}>
                 <div>
-                  <span style={{ fontFamily:DS.font, fontSize:'9px', color:DS.textMuted, display:'block', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:'2px' }}>ACCUMULATED</span>
+                  <span style={{ fontFamily:DS.font, fontSize:'9px', color:DS.textMuted, display:'block', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:'2px' }}>{t('accumulated')}</span>
                   <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'800', color:DS.gold }}>{((sch.accumulatedGoldMg||0)/1000).toFixed(4)} g</span>
                 </div>
                 <div>
-                  <span style={{ fontFamily:DS.font, fontSize:'9px', color:DS.textMuted, display:'block', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:'2px' }}>BONUS EARNED</span>
+                  <span style={{ fontFamily:DS.font, fontSize:'9px', color:DS.textMuted, display:'block', textTransform:'uppercase', letterSpacing:'0.3px', marginBottom:'2px' }}>{t('bonus_earned')}</span>
                   <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'800', color:'#10B981' }}>{((sch.totalBonusGoldMg||0)/1000).toFixed(4)} g</span>
                 </div>
               </div>
@@ -956,7 +956,7 @@ export const Dashboard: React.FC = () => {
                 onClick={()=>setTxSort(txSort==='NEWEST'?'OLDEST':'NEWEST')}
                 style={{ background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', color:DS.textSub, padding:'8px 16px', borderRadius:'20px', fontFamily:DS.font, fontSize:'11px', fontWeight:'700', cursor:'pointer' }}
               >
-                {t('sort')}: {txSort}
+                {t('sort')}: {txSort === 'NEWEST' ? t('newest') : t('oldest')}
               </button>
             </div>
           ) : (
@@ -965,7 +965,7 @@ export const Dashboard: React.FC = () => {
                 onClick={()=>setTxSort(txSort==='NEWEST'?'OLDEST':'NEWEST')}
                 style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(74,14,78,0.06)', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.12)', color:DS.textSub, padding:'8px 16px', borderRadius:'20px', fontFamily:DS.font, fontSize:'11px', fontWeight:'700', cursor:'pointer' }}
               >
-                {t('sort')}: {txSort}
+                {t('sort')}: {txSort === 'NEWEST' ? t('newest') : t('oldest')}
               </button>
             </div>
           )}
@@ -986,7 +986,7 @@ export const Dashboard: React.FC = () => {
                 transition:'all 0.2s ease'
               }}
             >
-              {f === 'ALL' ? 'All Activities' : f === 'BONUS' ? 'Bonus' : f === 'PURCHASES' ? 'Purchases' : 'Scheme Activities'}
+              {f === 'ALL' ? t('filter_all') : f === 'BONUS' ? t('filter_bonus') : f === 'PURCHASES' ? t('filter_purchases') : t('filter_scheme')}
             </button>
           ))}
         </div>
@@ -1010,7 +1010,7 @@ export const Dashboard: React.FC = () => {
                   <div>
                     <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'3px' }}>
                       <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'700', color:DS.textWhite }}>{autoT(tx.schemeName) || details.label}</span>
-                      <span style={{ fontFamily:DS.font, fontSize:'9px', fontWeight:'700', color:getStatusDetails(tx.status).color, background:getStatusDetails(tx.status).bgColor, padding:'2px 7px', borderRadius:'8px' }}>
+                      <span style={{ fontFamily:DS.font, fontSize:'9px', fontWeight:'700', color:getStatusDetails(tx.status).color, background:getStatusDetails(tx.status).bgColor, padding:'2px 7px', borderRadius:'8px', whiteSpace:'nowrap', flexShrink:0 }}>
                         {autoT(getStatusDetails(tx.status).text)}
                       </span>
                     </div>
