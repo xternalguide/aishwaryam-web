@@ -464,8 +464,143 @@ export const Dashboard: React.FC = () => {
   const totalBonusGoldMg = portfolio?.totalBonusGoldMg || 0;
 
   // ═══════════════════════════════════════════
-  // RENDER HELPERS
+  // RENDER HELPERS (MOBILE INTEGRATED DESIGN)
   // ═══════════════════════════════════════════
+
+  const renderMobileIntegratedHeader = () => {
+    const totalBonusGoldMg = portfolio?.totalBonusGoldMg || 0;
+    return (
+      <div
+        className="dash-fade-in"
+        style={{
+          background: 'linear-gradient(135deg, #29001D 0%, #4A0E4E 60%, #6A1B9A 100%)',
+          padding: 'calc(20px + env(safe-area-inset-top, 0px)) 20px 48px 20px',
+          borderBottomLeftRadius: '32px',
+          borderBottomRightRadius: '32px',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          boxShadow: '0 10px 30px rgba(74, 14, 78, 0.25)',
+        }}
+      >
+        {/* Header Row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'rgba(74, 14, 78, 0.5)', border: '1.5px solid rgba(255, 215, 0, 0.25)' }}>
+              {profile?.profilePictureBase64 ? <img src={profile.profilePictureBase64} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Avatar" /> : <User size={18} color={DS.gold} />}
+            </div>
+            <div>
+              <span style={{ fontFamily: DS.font, fontSize: '13px', fontWeight: '800', color: 'white', display: 'block' }}>
+                {t('hello')}, {userName}
+              </span>
+              <span style={{ fontFamily: DS.font, fontSize: '9px', color: 'rgba(255, 255, 255, 0.6)', display: 'block' }}>{t('verified_client')}</span>
+            </div>
+          </div>
+          <button
+            onClick={() => { setUnreadNotifCount(0); navigate('/notifications'); }}
+            style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}
+          >
+            <Bell size={16} color="white" />
+            {unreadNotifCount > 0 && <span style={{ position: 'absolute', top: '7px', right: '7px', width: '8px', height: '8px', background: '#EF4444', borderRadius: '50%' }} />}
+          </button>
+        </div>
+
+        {/* Balance Display */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '8px 0' }}>
+          <span style={{ fontFamily: DS.font, fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase' }}>
+            Total Gold Saved
+          </span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '4px' }}>
+            <span style={{ fontFamily: DS.font, fontSize: '36px', fontWeight: '900', color: 'white', lineHeight: 1 }}>
+              {((portfolio?.goldBalanceMg || 0) / 1000).toFixed(4)}
+            </span>
+            <span style={{ fontFamily: DS.font, fontSize: '13px', fontWeight: '700', color: DS.gold, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              grams
+            </span>
+          </div>
+        </div>
+
+        {/* Mini stats glass panel */}
+        <div
+          style={{
+            background: 'rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            borderRadius: '16px',
+            padding: '10px 14px',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gap: '8px',
+            textAlign: 'center',
+          }}
+        >
+          {[
+            { label: 'Current Value', value: formatRupees(portfolio?.currentValuePaime || portfolio?.currentValuePaise || 0), color: DS.gold },
+            { label: 'Total Invested', value: formatRupees(portfolio?.investedAmountPaise || 0), color: '#FFFFFF' },
+            { label: 'Bonus Gold', value: `${(totalBonusGoldMg / 1000).toFixed(4)} g`, color: '#10B981' },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span style={{ fontFamily: DS.font, fontSize: '8px', color: 'rgba(255, 255, 255, 0.45)', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: '600' }}>{label}</span>
+              <span style={{ fontFamily: DS.font, fontSize: '11px', fontWeight: '800', color }}>{value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderMobileQuickActions = () => {
+    const actions = [
+      { label: 'Schemes', icon: <TrendingUp size={20} color="#C2185B" />, bg: 'rgba(194, 24, 91, 0.12)', onClick: () => navigate('/scheme-explorer') },
+      { label: 'History', icon: <History size={20} color="#FFB300" />, bg: 'rgba(255, 179, 0, 0.12)', onClick: () => setSelectedTab(1) },
+      { label: 'Referral', icon: <Gift size={20} color="#10B981" />, bg: 'rgba(16, 185, 129, 0.12)', onClick: () => navigate('/referral') },
+      { label: 'Calculator', icon: <Calculator size={20} color="#0288D1" />, bg: 'rgba(2, 136, 209, 0.12)', onClick: () => navigate('/profile/price-calculator') },
+    ];
+
+    return (
+      <div
+        className="dash-fade-in"
+        style={{
+          marginTop: '-32px',
+          background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#FFFFFF',
+          borderRadius: '20px',
+          padding: '16px 12px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '8px',
+          boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.4)' : '0 10px 30px rgba(74, 14, 78, 0.12)',
+          border: isDark ? '1px solid rgba(255, 255, 255, 0.07)' : '1px solid rgba(74, 14, 78, 0.08)',
+          position: 'relative',
+          zIndex: 5,
+        }}
+      >
+        {actions.map(({ label, icon, bg, onClick }) => (
+          <div
+            key={label}
+            onClick={onClick}
+            className="dash-action-hover"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {icon}
+            </div>
+            <span style={{ fontFamily: DS.font, fontSize: '10px', fontWeight: '700', color: DS.textWhite, textAlign: 'center', lineHeight: 1.2 }}>
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   /** Top vault / balance card */
   const renderVaultCard = () => (
@@ -962,7 +1097,7 @@ export const Dashboard: React.FC = () => {
       <div style={{ flex:1, display:'flex', flexDirection:'column', height:'100%', overflowY:'auto', overflowX:'hidden' }}>
 
         {/* TOP NAVBAR */}
-        {selectedTab !== 2 && (
+        {selectedTab !== 2 && (isDesktop || selectedTab !== 0) && (
           <div style={{
             background:DS.navBg, backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
             borderBottom:'1px solid rgba(255,255,255,0.07)',
@@ -1000,11 +1135,11 @@ export const Dashboard: React.FC = () => {
 
           {/* ── TAB 0: HOME ── */}
           {selectedTab === 0 && (
-            <div className="dash-fade-in" style={{ padding:'20px', display:'flex', flexDirection:'column', gap:'20px' }}>
+            <div className="dash-fade-in" style={{ padding: isDesktop ? '20px' : '0 0 20px 0', display:'flex', flexDirection:'column', gap: isDesktop ? '20px' : '0' }}>
 
               {/* KYC alert */}
               {(kycLevel === 'BASIC' || kycLevel === 'PENDING') && (
-                <div onClick={()=>navigate('/onboarding')} style={{ background:'rgba(245,158,11,0.12)', border:'1px solid rgba(245,158,11,0.25)', borderRadius:'16px', padding:'14px 16px', display:'flex', gap:'12px', cursor:'pointer', alignItems:'center' }}>
+                <div onClick={()=>navigate('/onboarding')} style={{ background:'rgba(245,158,11,0.12)', border:'1px solid rgba(245,158,11,0.25)', borderRadius:'16px', padding:'14px 16px', display:'flex', gap:'12px', cursor:'pointer', alignItems:'center', margin: isDesktop ? '0' : '20px 20px 0 20px' }}>
                   <AlertTriangle size={18} color="#F59E0B" />
                   <div>
                     <span style={{ fontFamily:DS.font, fontSize:'13px', fontWeight:'800', color:DS.textWhite, display:'block' }}>{t('kyc_required')}</span>
@@ -1028,14 +1163,16 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div style={{ display:'flex', flexDirection:'column', gap:'20px' }}>
-                  {renderVaultCard()}
-                  {renderLiveRatesCard()}
-                  {renderQuickActionsGrid()}
-                  {renderActiveSchemesSection()}
-                  {renderAvailableSchemesSection()}
-                  {renderPromosAndBanners()}
-                  {renderNeedHelpCard()}
+                <div style={{ display:'flex', flexDirection:'column' }}>
+                  {renderMobileIntegratedHeader()}
+                  <div style={{ display:'flex', flexDirection:'column', gap:'20px', padding:'20px' }}>
+                    {renderMobileQuickActions()}
+                    {renderLiveRatesCard()}
+                    {renderActiveSchemesSection()}
+                    {renderAvailableSchemesSection()}
+                    {renderPromosAndBanners()}
+                    {renderNeedHelpCard()}
+                  </div>
                 </div>
               )}
             </div>
