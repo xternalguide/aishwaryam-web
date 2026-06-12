@@ -474,7 +474,7 @@ export const Dashboard: React.FC = () => {
         className="dash-fade-in"
         style={{
           background: 'linear-gradient(135deg, #29001D 0%, #4A0E4E 60%, #6A1B9A 100%)',
-          padding: 'calc(38px + env(safe-area-inset-top, 0px)) 20px 48px 20px',
+          padding: 'calc(20px + env(safe-area-inset-top, 0px)) 20px 48px 20px',
           borderBottomLeftRadius: '32px',
           borderBottomRightRadius: '32px',
           position: 'relative',
@@ -607,7 +607,7 @@ export const Dashboard: React.FC = () => {
       <div
         style={{
           background: 'linear-gradient(135deg, #29001D 0%, #4A0E4E 60%, #6A1B9A 100%)',
-          padding: 'calc(38px + env(safe-area-inset-top, 0px)) 20px 24px 20px',
+          padding: 'calc(20px + env(safe-area-inset-top, 0px)) 20px 24px 20px',
           borderBottomLeftRadius: '32px',
           borderBottomRightRadius: '32px',
           display: 'flex',
@@ -1151,7 +1151,7 @@ export const Dashboard: React.FC = () => {
           <div style={{
             background:DS.navBg, backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
             borderBottom:'1px solid rgba(255,255,255,0.07)',
-            paddingTop: isDesktop ? '16px' : 'calc(24px + env(safe-area-inset-top, 0px))',
+            paddingTop: isDesktop ? '16px' : 'calc(0px + env(safe-area-inset-top, 0px))',
             paddingLeft:'20px', paddingRight:'20px',
             paddingBottom: isDesktop ? '16px' : '12px',
             display:'flex', justifyContent:'space-between', alignItems:'center', zIndex:10
@@ -1240,7 +1240,7 @@ export const Dashboard: React.FC = () => {
                 <div
                   style={{
                     background: 'linear-gradient(135deg, #29001D 0%, #4A0E4E 60%, #6A1B9A 100%)',
-                    padding: 'calc(38px + env(safe-area-inset-top, 0px)) 20px 32px 20px',
+                    padding: 'calc(20px + env(safe-area-inset-top, 0px)) 20px 32px 20px',
                     borderBottomLeftRadius: '32px',
                     borderBottomRightRadius: '32px',
                     display: 'flex',
