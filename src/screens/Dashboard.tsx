@@ -202,16 +202,6 @@ export const Dashboard: React.FC = () => {
       return next;
     });
   };
-
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-      document.body.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.body.classList.remove('dark');
-    }
-  }, [isDark]);
   // ─────────────────────────────────────────────────────────────────────────
 
   // Ref for the tab scroll container — used to reset scroll on tab switch

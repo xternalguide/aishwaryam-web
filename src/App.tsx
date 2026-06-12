@@ -178,16 +178,6 @@ const App: React.FC = () => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
-    // Sync theme on startup
-    const theme = localStorage.getItem('DASHBOARD_THEME');
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.body.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.body.classList.remove('dark');
-    }
-
     // Programmatically style and set translucent to false for native platforms
     if (Capacitor.isNativePlatform()) {
       StatusBar.setOverlaysWebView({ overlay: false })
