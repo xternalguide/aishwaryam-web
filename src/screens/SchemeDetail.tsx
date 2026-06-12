@@ -142,6 +142,40 @@ export const SchemeDetail: React.FC = () => {
     fetchAddresses();
   }, [profile]);
 
+  // Back button dismiss registers for hardware back button on Android
+  useEffect(() => {
+    if (showJoinSheet) {
+      const dismiss = () => setShowJoinSheet(false);
+      (window as any).activeModals = (window as any).activeModals || [];
+      (window as any).activeModals.push(dismiss);
+      return () => {
+        (window as any).activeModals = ((window as any).activeModals || []).filter((d: any) => d !== dismiss);
+      };
+    }
+  }, [showJoinSheet]);
+
+  useEffect(() => {
+    if (showSuccessPopup) {
+      const dismiss = () => setShowSuccessPopup(false);
+      (window as any).activeModals = (window as any).activeModals || [];
+      (window as any).activeModals.push(dismiss);
+      return () => {
+        (window as any).activeModals = ((window as any).activeModals || []).filter((d: any) => d !== dismiss);
+      };
+    }
+  }, [showSuccessPopup]);
+
+  useEffect(() => {
+    if (showSetupModal) {
+      const dismiss = () => setShowSetupModal(false);
+      (window as any).activeModals = (window as any).activeModals || [];
+      (window as any).activeModals.push(dismiss);
+      return () => {
+        (window as any).activeModals = ((window as any).activeModals || []).filter((d: any) => d !== dismiss);
+      };
+    }
+  }, [showSetupModal]);
+
   const handleSetupPincodeChange = (value: string) => {
     const numericValue = value.replace(/\D/g, '').slice(0, 6);
     setSetupPincode(numericValue);

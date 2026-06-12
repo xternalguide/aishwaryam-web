@@ -247,6 +247,86 @@ export const Dashboard: React.FC = () => {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [customAlert, setCustomAlert] = useState<{ message: string; isError?: boolean } | null>(null);
 
+  // Back button dismiss registers
+  useEffect(() => {
+    if (selectedTxDetail) {
+      const dismiss = () => setSelectedTxDetail(null);
+      (window as any).activeModals = (window as any).activeModals || [];
+      (window as any).activeModals.push(dismiss);
+      return () => {
+        (window as any).activeModals = ((window as any).activeModals || []).filter((d: any) => d !== dismiss);
+      };
+    }
+  }, [selectedTxDetail]);
+
+  useEffect(() => {
+    if (showEditProfileModal) {
+      const dismiss = () => setShowEditProfileModal(false);
+      (window as any).activeModals = (window as any).activeModals || [];
+      (window as any).activeModals.push(dismiss);
+      return () => {
+        (window as any).activeModals = ((window as any).activeModals || []).filter((d: any) => d !== dismiss);
+      };
+    }
+  }, [showEditProfileModal]);
+
+  useEffect(() => {
+    if (customAlert) {
+      const dismiss = () => setCustomAlert(null);
+      (window as any).activeModals = (window as any).activeModals || [];
+      (window as any).activeModals.push(dismiss);
+      return () => {
+        (window as any).activeModals = ((window as any).activeModals || []).filter((d: any) => d !== dismiss);
+      };
+    }
+  }, [customAlert]);
+
+  // Pull to refresh states
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const pullStartYRef = useRef(0);
+  const isPullingRef = useRef(false);
+
+  const handlePullTouchStart = (e: React.TouchEvent) => {
+    const scrollContainer = tabScrollRef.current;
+    if (scrollContainer && scrollContainer.scrollTop === 0) {
+      pullStartYRef.current = e.touches[0].pageY;
+      isPullingRef.current = true;
+    }
+  };
+
+  const handlePullTouchMove = (e: React.TouchEvent) => {
+    if (!isPullingRef.current) return;
+    const currentY = e.touches[0].pageY;
+    const diff = currentY - pullStartYRef.current;
+    if (diff > 0) {
+      const distance = Math.min(80, diff * 0.45);
+      setPullDistance(distance);
+      if (distance > 10) {
+        if (e.cancelable) e.preventDefault();
+      }
+    }
+  };
+
+  const handlePullTouchEnd = async () => {
+    if (!isPullingRef.current) return;
+    isPullingRef.current = false;
+    if (pullDistance > 50 && !isRefreshing) {
+      setIsRefreshing(true);
+      setPullDistance(40);
+      try {
+        await refreshData();
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsRefreshing(false);
+        setPullDistance(0);
+      }
+    } else {
+      setPullDistance(0);
+    }
+  };
+
   const calculateAge = (dobString: string) => {
     if (!dobString) return 0;
     const today = new Date();
@@ -1169,7 +1249,42 @@ export const Dashboard: React.FC = () => {
         )}
 
         {/* TAB CONTAINER */}
-        <div ref={tabScrollRef} style={{ flex:1, overflowY:'auto', overflowX:'hidden', paddingBottom:isDesktop?'32px':(isAndroidApp?'96px':'32px') }}>
+        <div
+          ref={tabScrollRef}
+          onTouchStart={handlePullTouchStart}
+          onTouchMove={handlePullTouchMove}
+          onTouchEnd={handlePullTouchEnd}
+          style={{ flex:1, overflowY:'auto', overflowX:'hidden', paddingBottom:isDesktop?'32px':(isAndroidApp?'96px':'32px'), position:'relative' }}
+        >
+          {/* Pull to refresh indicator */}
+          {(pullDistance > 0 || isRefreshing) && (
+            <div style={{
+              position: 'absolute',
+              top: `${pullDistance - 35}px`,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'white',
+              boxShadow: '0 3px 10px rgba(0,0,0,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 99,
+              transition: isPullingRef.current ? 'none' : 'all 0.3s ease',
+              opacity: Math.min(1, pullDistance / 45)
+            }}>
+              <Loader2
+                size={16}
+                color="#C2185B"
+                style={{
+                  animation: isRefreshing ? 'spin 1s infinite linear' : 'none',
+                  transform: isRefreshing ? 'none' : `rotate(${pullDistance * 4}deg)`
+                }}
+              />
+            </div>
+          )}
 
           {/* ── TAB 0: HOME ── */}
           {selectedTab === 0 && (
