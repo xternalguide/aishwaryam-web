@@ -388,6 +388,18 @@ export const Dashboard: React.FC = () => {
   const getImageUrl = (url: string) => {
     if (!url) return '';
     if (url.startsWith('data:')) return url;
+    const isBase64 = url.length > 100 && !url.startsWith('http') && !url.endsWith('.png') && !url.endsWith('.jpg') && !url.endsWith('.jpeg') && !url.endsWith('.webp') && !url.endsWith('.gif');
+    if (isBase64) {
+      let mime = 'image/png';
+      if (url.startsWith('/9j/')) {
+        mime = 'image/jpeg';
+      } else if (url.startsWith('R0lG')) {
+        mime = 'image/gif';
+      } else if (url.startsWith('UklG')) {
+        mime = 'image/webp';
+      }
+      return `data:${mime};base64,${url}`;
+    }
     const activeBaseUrl = 'https://aishwaryam-production.up.railway.app/';
     const activeBase = activeBaseUrl.endsWith('/') ? activeBaseUrl : activeBaseUrl + '/';
     if (url.includes('/uploads/')) { const parts = url.split('/uploads/'); return activeBase + 'uploads/' + parts[1]; }
@@ -891,7 +903,12 @@ export const Dashboard: React.FC = () => {
                 return (
                   <div
                     key={banner.id||index}
-                    onClick={(e)=>{ if(isDraggingRef.current){e.preventDefault();e.stopPropagation();return;} navigate(banner.tapActionUrl||'/scheme-explorer'); }}
+                    onClick={(e)=>{ 
+                      if(isDraggingRef.current){e.preventDefault();e.stopPropagation();return;} 
+                      if (banner.tapActionUrl) {
+                        navigate(banner.tapActionUrl);
+                      }
+                    }}
                     style={{ width:`${100/banners.length}%`, height:'100%', position:'relative', cursor:'pointer' }}
                   >
                     {!imageErrors[bannerKey] ? (
