@@ -1676,6 +1676,35 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ── MOBILE CHATBOT FLOATING ACTION BUTTON ── */}
+      {!isDesktop && (
+        <button
+          onClick={() => navigate('/ai_assistant')}
+          style={{
+            position: 'fixed',
+            bottom: `calc(80px + env(safe-area-inset-bottom, 0px))`,
+            right: '20px',
+            width: '54px',
+            height: '54px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #C2185B, #4A0E4E)',
+            color: 'white',
+            border: '2px solid rgba(255, 215, 0, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 8px 24px rgba(74, 14, 78, 0.35)',
+            zIndex: 90,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            padding: 0
+          }}
+          className="dash-action-hover"
+        >
+          <Headset size={24} color="white" />
+        </button>
+      )}
     </div>
   );
 };
