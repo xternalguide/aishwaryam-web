@@ -347,6 +347,7 @@ export const Mpin: React.FC = () => {
                   setMpin(val);
                   if (errorMsg) setErrorMsg(null);
                   if (val.length === 4) {
+                    mpinInputRef.current?.blur();
                     handleVerifyExistingMpin(val);
                   }
                 }}
@@ -475,6 +476,9 @@ export const Mpin: React.FC = () => {
                   const val = e.target.value.replace(/\D/g, '').slice(0, 4);
                   setConfirmMpin(val);
                   if (errorMsg) setErrorMsg(null);
+                  if (val.length === 4) {
+                    confirmMpinInputRef.current?.blur();
+                  }
                 }}
                 onFocus={() => setIsConfirmMpinFocused(true)}
                 onBlur={() => setIsConfirmMpinFocused(false)}
@@ -622,6 +626,7 @@ export const Mpin: React.FC = () => {
                   setOtp(val);
                   if (errorMsg) setErrorMsg(null);
                   if (val.length === 6) {
+                    otpInputRef.current?.blur();
                     handleVerifyOtp(val);
                   }
                 }}
