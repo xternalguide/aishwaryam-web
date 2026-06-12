@@ -602,6 +602,41 @@ export const Dashboard: React.FC = () => {
     );
   };
 
+  const renderMobilePageHeader = (title: string) => {
+    return (
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #29001D 0%, #4A0E4E 60%, #6A1B9A 100%)',
+          padding: 'calc(20px + env(safe-area-inset-top, 0px)) 20px 24px 20px',
+          borderBottomLeftRadius: '32px',
+          borderBottomRightRadius: '32px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 10px 30px rgba(74, 14, 78, 0.25)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'rgba(74, 14, 78, 0.5)', border: '1.5px solid rgba(255, 215, 0, 0.25)' }}>
+            {profile?.profilePictureBase64 ? <img src={profile.profilePictureBase64} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Avatar" /> : <User size={18} color={DS.gold} />}
+          </div>
+          <div>
+            <span style={{ fontFamily: DS.font, fontSize: '15px', fontWeight: '900', color: 'white' }}>
+              {title}
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={() => { setUnreadNotifCount(0); navigate('/notifications'); }}
+          style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}
+        >
+          <Bell size={16} color="white" />
+          {unreadNotifCount > 0 && <span style={{ position: 'absolute', top: '7px', right: '7px', width: '8px', height: '8px', background: '#EF4444', borderRadius: '50%' }} />}
+        </button>
+      </div>
+    );
+  };
+
   /** Top vault / balance card */
   const renderVaultCard = () => (
     <div
@@ -939,16 +974,30 @@ export const Dashboard: React.FC = () => {
   const renderLedgerSection = () => {
     const list = getFilteredTransactions();
     return (
-      <div style={{ padding: isDesktop ? '32px' : '20px', display:'flex', flexDirection:'column', gap:'20px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <span style={{ fontFamily:DS.font, fontSize:'22px', fontWeight:'900', color:DS.textWhite }}>{t('transactions_title')}</span>
-          <button
-            onClick={()=>setTxSort(txSort==='NEWEST'?'OLDEST':'NEWEST')}
-            style={{ background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', color:DS.textSub, padding:'8px 16px', borderRadius:'20px', fontFamily:DS.font, fontSize:'11px', fontWeight:'700', cursor:'pointer' }}
-          >
-            {t('sort')}: {txSort}
-          </button>
-        </div>
+      <div style={{ display:'flex', flexDirection:'column' }}>
+        {!isDesktop && renderMobilePageHeader(t('transactions_title'))}
+
+        <div style={{ padding: isDesktop ? '32px' : '20px', display:'flex', flexDirection:'column', gap:'20px' }}>
+          {isDesktop ? (
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontFamily:DS.font, fontSize:'22px', fontWeight:'900', color:DS.textWhite }}>{t('transactions_title')}</span>
+              <button
+                onClick={()=>setTxSort(txSort==='NEWEST'?'OLDEST':'NEWEST')}
+                style={{ background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', color:DS.textSub, padding:'8px 16px', borderRadius:'20px', fontFamily:DS.font, fontSize:'11px', fontWeight:'700', cursor:'pointer' }}
+              >
+                {t('sort')}: {txSort}
+              </button>
+            </div>
+          ) : (
+            <div style={{ display:'flex', justifyContent:'flex-end' }}>
+              <button
+                onClick={()=>setTxSort(txSort==='NEWEST'?'OLDEST':'NEWEST')}
+                style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(74,14,78,0.06)', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(74,14,78,0.12)', color:DS.textSub, padding:'8px 16px', borderRadius:'20px', fontFamily:DS.font, fontSize:'11px', fontWeight:'700', cursor:'pointer' }}
+              >
+                {t('sort')}: {txSort}
+              </button>
+            </div>
+          )}
 
         {/* filter chips */}
         <div style={{ display:'flex', gap:'8px', overflowX:'auto', paddingBottom:'4px' }}>
@@ -1019,6 +1068,7 @@ export const Dashboard: React.FC = () => {
           )}
         </div>
       </div>
+    </div>
     );
   };
 
@@ -1185,38 +1235,75 @@ export const Dashboard: React.FC = () => {
           {selectedTab === 2 && (
             <div className="dash-fade-in" style={{ minHeight:'calc(100vh - 64px)', display:'flex', flexDirection:'column', position:'relative', width:'100%', padding:0 }}>
 
-              {/* mobile profile header */}
-              {!isDesktop && (
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:'16px 20px', background:'rgba(255,255,255,0.02)', position:'relative', zIndex:10, marginTop:'30px' }}>
-                  <button onClick={()=>setSelectedTab(0)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:'8px', display:'flex', alignItems:'center', justifyContent:'center', color:DS.textWhite, position:'absolute', left:'12px', zIndex:11 }}>
-                    <ChevronLeft size={24} color={DS.textWhite} />
-                  </button>
-                  <span style={{ fontFamily:DS.font, fontSize:'18px', fontWeight:'900', color:DS.textWhite, textAlign:'center' }}>{t('my_profile')}</span>
+              {/* Profile header and avatar details */}
+              {!isDesktop ? (
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, #29001D 0%, #4A0E4E 60%, #6A1B9A 100%)',
+                    padding: 'calc(20px + env(safe-area-inset-top, 0px)) 20px 32px 20px',
+                    borderBottomLeftRadius: '32px',
+                    borderBottomRightRadius: '32px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '20px',
+                    boxShadow: '0 10px 30px rgba(74, 14, 78, 0.25)',
+                    position: 'relative',
+                  }}
+                >
+                  {/* Top Row with Back Button */}
+                  <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <button onClick={()=>setSelectedTab(0)} style={{ background:'transparent', border:'none', cursor:'pointer', padding:'8px', display:'flex', alignItems:'center', justifyContent:'center', color:'white', marginLeft: '-8px' }}>
+                      <ChevronLeft size={24} color="white" />
+                    </button>
+                    <span style={{ fontFamily:DS.font, fontSize:'16px', fontWeight:'900', color:'white' }}>{t('my_profile')}</span>
+                    <div style={{ width: 40 }} />
+                  </div>
+
+                  {/* Avatar + user details */}
+                  <div style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+                    <div style={{ position:'relative', width:'90px', height:'90px', marginBottom:'12px' }}>
+                      <div style={{ width:'100%', height:'100%', borderRadius:'50%', overflow:'hidden', background:'rgba(74,14,78,0.4)', border:'3px solid rgba(255,215,0,0.3)', boxShadow:'0 8px 32px rgba(74,14,78,0.4)' }}>
+                        {profile?.profilePictureBase64 ? (
+                          <img src={profile.profilePictureBase64} style={{ width:'100%',height:'100%',objectFit:'cover' }} alt="Avatar" />
+                        ) : (
+                          <div style={{ width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                            <User size={38} color={DS.gold} />
+                          </div>
+                        )}
+                      </div>
+                      <button onClick={openEditProfile} style={{ position:'absolute', bottom:'0px', right:'0px', width:'28px', height:'28px', borderRadius:'50%', background:'linear-gradient(135deg,#C2185B,#4A0E4E)', border:'2px solid rgba(255,215,0,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', padding:0 }}>
+                        <Pencil size={12} color="white" />
+                      </button>
+                    </div>
+                    <span style={{ fontFamily:DS.font, fontSize:'18px', fontWeight:'900', color:'white', letterSpacing:'0.3px', marginBottom:'2px' }}>{userName}</span>
+                    <span style={{ fontFamily:DS.font, fontSize:'12px', color:'rgba(255, 255, 255, 0.65)' }}>{profile?.email || ''}</span>
+                  </div>
+                </div>
+              ) : (
+                /* Desktop layout avatar */
+                <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'32px 20px 24px 20px' }}>
+                  <div style={{ position:'relative', width:'96px', height:'96px', marginBottom:'16px' }}>
+                    <div style={{ width:'100%', height:'100%', borderRadius:'50%', overflow:'hidden', background:'rgba(74,14,78,0.4)', border:'3px solid rgba(255,215,0,0.3)', boxShadow:'0 8px 32px rgba(74,14,78,0.4)' }}>
+                      {profile?.profilePictureBase64 ? (
+                        <img src={profile.profilePictureBase64} style={{ width:'100%',height:'100%',objectFit:'cover' }} alt="Avatar" />
+                      ) : (
+                        <div style={{ width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center' }}>
+                          <User size={40} color={DS.gold} />
+                        </div>
+                      )}
+                    </div>
+                    <button onClick={openEditProfile} style={{ position:'absolute', bottom:'0px', right:'0px', width:'30px', height:'30px', borderRadius:'50%', background:'linear-gradient(135deg,#C2185B,#4A0E4E)', border:'2px solid rgba(255,215,0,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', padding:0 }}>
+                      <Pencil size={13} color="white" />
+                    </button>
+                  </div>
+                  <span style={{ fontFamily:DS.font, fontSize:'20px', fontWeight:'900', color:DS.textWhite, letterSpacing:'0.3px', marginBottom:'4px' }}>{userName}</span>
+                  <span style={{ fontFamily:DS.font, fontSize:'13px', color:DS.textSub }}>{profile?.email || ''}</span>
                 </div>
               )}
 
-              {/* Avatar + user details */}
-              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'32px 20px 24px 20px' }}>
-                <div style={{ position:'relative', width:'96px', height:'96px', marginBottom:'16px' }}>
-                  <div style={{ width:'100%', height:'100%', borderRadius:'50%', overflow:'hidden', background:'rgba(74,14,78,0.4)', border:'3px solid rgba(255,215,0,0.3)', boxShadow:'0 8px 32px rgba(74,14,78,0.4)' }}>
-                    {profile?.profilePictureBase64 ? (
-                      <img src={profile.profilePictureBase64} style={{ width:'100%',height:'100%',objectFit:'cover' }} alt="Avatar" />
-                    ) : (
-                      <div style={{ width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center' }}>
-                        <User size={40} color={DS.gold} />
-                      </div>
-                    )}
-                  </div>
-                  <button onClick={openEditProfile} style={{ position:'absolute', bottom:'0px', right:'0px', width:'30px', height:'30px', borderRadius:'50%', background:'linear-gradient(135deg,#C2185B,#4A0E4E)', border:'2px solid rgba(255,215,0,0.3)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', padding:0 }}>
-                    <Pencil size={13} color="white" />
-                  </button>
-                </div>
-                <span style={{ fontFamily:DS.font, fontSize:'20px', fontWeight:'900', color:DS.textWhite, letterSpacing:'0.3px', marginBottom:'4px' }}>{userName}</span>
-                <span style={{ fontFamily:DS.font, fontSize:'13px', color:DS.textSub }}>{profile?.email || ''}</span>
-              </div>
-
               {/* menu cards */}
-              <div style={{ flex:1, padding:'0 20px 120px 20px', display:'flex', flexDirection:'column', gap:'24px' }}>
+              <div style={{ flex:1, padding: !isDesktop ? '24px 20px 120px 20px' : '0 20px 120px 20px', display:'flex', flexDirection:'column', gap:'24px' }}>
 
                 {/* Quick actions */}
                 <div style={{ display:'grid', gridTemplateColumns:isDesktop?'1fr 1fr':'1fr', gap:'10px' }}>
