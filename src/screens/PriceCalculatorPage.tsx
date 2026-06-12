@@ -117,6 +117,7 @@ export const PriceCalculatorPage: React.FC = () => {
               </span>
               <input
                 type="text"
+                inputMode="decimal"
                 placeholder="0"
                 value={calcAmount}
                 onChange={(e) => setCalcAmount(e.target.value.replace(/[^0-9.]/g, ''))}
