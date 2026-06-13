@@ -196,7 +196,7 @@ export const Login: React.FC = () => {
           <h1 style={{
             fontFamily: 'var(--font-playfair)',
             color: 'var(--brand-deep)',
-            fontSize: '26px',
+            fontSize: 'clamp(20px, 6.5vw, 26px)',
             marginBottom: '8px',
             textAlign: 'center'
           }}>
@@ -204,7 +204,7 @@ export const Login: React.FC = () => {
           </h1>
           <p style={{
             color: 'var(--text-secondary)',
-            fontSize: '13px',
+            fontSize: 'clamp(11.5px, 3.5vw, 13.5px)',
             marginBottom: '32px',
             textAlign: 'center'
           }}>
@@ -227,7 +227,7 @@ export const Login: React.FC = () => {
           {isOtpFlow ? (
             /* OTP 6-Digit input layout */
             <div style={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center' }}>
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '24px', width: '100%' }}>
+              <div style={{ display: 'flex', gap: 'clamp(4px, 2vw, 8px)', justifyContent: 'center', marginBottom: '24px', width: '100%' }}>
                 {Array.from({ length: 6 }).map((_, index) => (
                   <input
                     key={index}
@@ -251,12 +251,12 @@ export const Login: React.FC = () => {
                     }}
                     ref={(el) => { if (el) otpInputsRef.current[index] = el; }}
                     style={{
-                      width: '46px',
-                      height: '46px',
+                      width: 'clamp(32px, 10vw, 46px)',
+                      height: 'clamp(32px, 10vw, 46px)',
                       borderRadius: '12px',
                       border: '1.5px solid rgba(74, 14, 78, 0.15)',
                       textAlign: 'center',
-                      fontSize: '18px',
+                      fontSize: 'clamp(14px, 4.5vw, 18px)',
                       fontWeight: 'bold',
                       color: 'var(--brand-dark)',
                       outline: 'none',
@@ -304,8 +304,8 @@ export const Login: React.FC = () => {
                 background: 'white',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
               }}>
-                <Phone size={20} color="var(--brand-dark)" style={{ marginRight: '8px' }} />
-                <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '16px', marginRight: '8px' }}>
+                <Phone size={20} color="var(--brand-dark)" style={{ marginRight: '8px', flexShrink: 0 }} />
+                <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontSize: 'clamp(14px, 4.5vw, 16px)', marginRight: '8px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                   +91
                 </span>
                 <input
@@ -323,7 +323,7 @@ export const Login: React.FC = () => {
                   style={{
                     flex: 1,
                     border: 'none',
-                    fontSize: '16px',
+                    fontSize: 'clamp(14px, 4.5vw, 16px)',
                     outline: 'none',
                     fontFamily: 'var(--font-poppins)',
                     color: 'var(--text-primary)'
